@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Resources" />
+		<Option pch_mode="2" />
+		<Option compiler="null" />
+		<Build>
+			<Target title="Release">
+				<Option output="bin/Release/Resources" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="null" />
+			</Target>
+		</Build>
+		<Unit filename="DOCS/CHIP8.DOC" />
+		<Unit filename="DOCS/FAQ.TXT" />
+		<Unit filename="DOCS/GAMES.TXT" />
+		<Unit filename="DOCS/SGAMES.TXT" />
+		<Unit filename="DOCS/WHATSNEW.TXT" />
+		<Unit filename="GAMES/15PUZZLE" />
+		<Unit filename="GAMES/BLINKY" />
+		<Unit filename="GAMES/BLITZ" />
+		<Unit filename="GAMES/BREAKOUT" />
+		<Unit filename="GAMES/BRIX" />
+		<Unit filename="GAMES/CONNECT4" />
+		<Unit filename="GAMES/GUESS" />
+		<Unit filename="GAMES/HIDDEN" />
+		<Unit filename="GAMES/INVADERS" />
+		<Unit filename="GAMES/KALEID" />
+		<Unit filename="GAMES/MAZE" />
+		<Unit filename="GAMES/MERLIN" />
+		<Unit filename="GAMES/MISSILE" />
+		<Unit filename="GAMES/PONG" />
+		<Unit filename="GAMES/PONG2" />
+		<Unit filename="GAMES/PUZZLE" />
+		<Unit filename="GAMES/SOURCES/15PUZZLE.SRC" />
+		<Unit filename="GAMES/SOURCES/BLINKY.SRC" />
+		<Unit filename="GAMES/SOURCES/BREAKOUT.SRC" />
+		<Unit filename="GAMES/SOURCES/BRIX.SRC" />
+		<Unit filename="GAMES/SOURCES/MAZE.SRC" />
+		<Unit filename="GAMES/SOURCES/PONG.SRC" />
+		<Unit filename="GAMES/SOURCES/PONG2.SRC" />
+		<Unit filename="GAMES/SOURCES/SYZYGY.SRC" />
+		<Unit filename="GAMES/SOURCES/UFO.SRC" />
+		<Unit filename="GAMES/SOURCES/VBRIX.SRC" />
+		<Unit filename="GAMES/SQUASH" />
+		<Unit filename="GAMES/SYZYGY" />
+		<Unit filename="GAMES/TANK" />
+		<Unit filename="GAMES/TETRIS" />
+		<Unit filename="GAMES/TICTAC" />
+		<Unit filename="GAMES/UFO" />
+		<Unit filename="GAMES/VBRIX" />
+		<Unit filename="GAMES/VERS" />
+		<Unit filename="GAMES/WALL" />
+		<Unit filename="GAMES/WIPEOFF" />
+		<Unit filename="SGAMES/ALIEN" />
+		<Unit filename="SGAMES/ANT" />
+		<Unit filename="SGAMES/BLINKY" />
+		<Unit filename="SGAMES/CAR" />
+		<Unit filename="SGAMES/DRAGON.DOC" />
+		<Unit filename="SGAMES/DRAGON1" />
+		<Unit filename="SGAMES/DRAGON2" />
+		<Unit filename="SGAMES/FIELD" />
+		<Unit filename="SGAMES/JOUST23" />
+		<Unit filename="SGAMES/MAZE" />
+		<Unit filename="SGAMES/MINES" />
+		<Unit filename="SGAMES/PIPER" />
+		<Unit filename="SGAMES/RACE" />
+		<Unit filename="SGAMES/SOURCES/BLINKY.SRC" />
+		<Unit filename="SGAMES/SOURCES/HPIPER.SRC" />
+		<Unit filename="SGAMES/SOURCES/JOUST20.SRC" />
+		<Unit filename="SGAMES/SOURCES/MAZE.SRC" />
+		<Unit filename="SGAMES/SOURCES/MINES.SRC" />
+		<Unit filename="SGAMES/SOURCES/TEST.SRC" />
+		<Unit filename="SGAMES/SOURCES/UBOAT.SRC" />
+		<Unit filename="SGAMES/SOURCES/WORM3.SRC" />
+		<Unit filename="SGAMES/SPACEFIG" />
+		<Unit filename="SGAMES/SPACEFIG.DOC" />
+		<Unit filename="SGAMES/SQUARE" />
+		<Unit filename="SGAMES/SQUARE.DOC" />
+		<Unit filename="SGAMES/TEST" />
+		<Unit filename="SGAMES/UBOAT" />
+		<Unit filename="SGAMES/UBOAT.DOC" />
+		<Unit filename="SGAMES/WORM3" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

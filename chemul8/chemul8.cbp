@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="chemul8" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/chemul8" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="../GAMES/HIDDEN" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="src" />
+					<Add directory="./" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/chemul8" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="src" />
+					<Add directory="./" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Test">
+				<Option output="bin/Test/chemul8" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Test/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DTESTING" />
+					<Add directory="src" />
+					<Add directory="./" />
+					<Add directory="test_src" />
+				</Compiler>
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="Debug;Release;Test;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="`sdl2-config --cflags`" />
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add option="`sdl2-config --libs`" />
+		</Linker>
+		<Unit filename="main.cc" />
+		<Unit filename="src/chemul8.cc" />
+		<Unit filename="src/chemul8.h" />
+		<Unit filename="src/chip8.cc" />
+		<Unit filename="src/chip8.h" />
+		<Unit filename="src/display.cc" />
+		<Unit filename="src/display.h" />
+		<Unit filename="src/keyboard.cc" />
+		<Unit filename="src/keyboard.h" />
+		<Unit filename="src/resourcelayer.cc" />
+		<Unit filename="src/resourcelayer.h" />
+		<Unit filename="test_src/chemul8test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/chemul8test.h">
+			<Option target="Test" />
+		</Unit>
+		<Extensions>
+			<lib_finder>
+				<lib name="cppunit" />
+			</lib_finder>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
