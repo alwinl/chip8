@@ -19,28 +19,14 @@
  *
  */
 
-#include "tester.h"
-
-#include <cppunit/CompilerOutputter.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/ui/text/TestRunner.h>
-#include <cppunit/TestFixture.h>
-#include <cppunit/extensions/HelperMacros.h>
-
-#include <iostream>
+#ifndef TESTER_H
+#define TESTER_H
 
 
-int Tester::run( int argc, char ** argv )
+class Chasem8Test
 {
-	 // Get the top level suite from the registry
-	CppUnit::Test *suite = CppUnit::TestFactoryRegistry::getRegistry().makeTest();
+public:
+	int run( int argc, char ** argv );
+};
 
-	// Adds the test to the list of test to run
-	CppUnit::TextUi::TestRunner runner;
-	runner.addTest( suite );
-
-	// Change the default outputter to a compiler error format outputter
-	runner.setOutputter( new CppUnit::CompilerOutputter( &runner.result(), std::cerr ) );
-
-	return runner.run() ? 0 : 1;		// Return error code 1 if the one of test failed.
-}
+#endif // TESTER_H

@@ -20,8 +20,8 @@
  */
 
 #ifdef TESTING
-#include "tester.h"
-#define AppClass Tester
+#include "chasem8test.h"
+#define AppClass Chasem8Test
 #else
 #include "assembler.h"
 #define AppClass Assembler

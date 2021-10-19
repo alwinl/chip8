@@ -53,10 +53,10 @@
 		<Unit filename="src/assembler.h" />
 		<Unit filename="src/token.cc" />
 		<Unit filename="src/token.h" />
-		<Unit filename="test_src/tester.cc">
+		<Unit filename="test_src/chasem8test.cc">
 			<Option target="Test" />
 		</Unit>
-		<Unit filename="test_src/tester.h">
+		<Unit filename="test_src/chasem8test.h">
 			<Option target="Test" />
 		</Unit>
 		<Extensions>
