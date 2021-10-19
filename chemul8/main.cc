@@ -25,7 +25,7 @@
 #include "test_src/chemul8test.h"
 #define AppClass Chemul8Test
 #else
-#include "src/chemul8.h"
+#include "sdlsrc/chemul8.h"
 #define AppClass Chemul8
 #endif
 

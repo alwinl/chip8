@@ -14,8 +14,6 @@
 				<Option parameters="../GAMES/HIDDEN" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="src" />
-					<Add directory="./" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -25,8 +23,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add directory="src" />
-					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -39,8 +35,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DTESTING" />
-					<Add directory="src" />
-					<Add directory="./" />
 					<Add directory="test_src" />
 				</Compiler>
 			</Target>
@@ -49,23 +43,25 @@
 			<Add alias="All" targets="Debug;Release;Test;" />
 		</VirtualTargets>
 		<Compiler>
-			<Add option="`sdl2-config --cflags`" />
 			<Add option="-Wall" />
+			<Add option="`sdl2-config --cflags`" />
+			<Add directory="sdlsrc" />
+			<Add directory="src" />
 		</Compiler>
 		<Linker>
 			<Add option="`sdl2-config --libs`" />
 		</Linker>
 		<Unit filename="main.cc" />
-		<Unit filename="src/chemul8.cc" />
-		<Unit filename="src/chemul8.h" />
+		<Unit filename="sdlsrc/chemul8.cc" />
+		<Unit filename="sdlsrc/chemul8.h" />
+		<Unit filename="sdlsrc/resourcelayer.cc" />
+		<Unit filename="sdlsrc/resourcelayer.h" />
 		<Unit filename="src/chip8.cc" />
 		<Unit filename="src/chip8.h" />
 		<Unit filename="src/display.cc" />
 		<Unit filename="src/display.h" />
 		<Unit filename="src/keyboard.cc" />
 		<Unit filename="src/keyboard.h" />
-		<Unit filename="src/resourcelayer.cc" />
-		<Unit filename="src/resourcelayer.h" />
 		<Unit filename="test_src/chemul8test.cc">
 			<Option target="Test" />
 		</Unit>
