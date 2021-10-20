@@ -28,6 +28,8 @@
 
 int Chidisas8::run( int argc, char *argv[] )
 {
+	static const unsigned int start_address = 0x200;
+
 	if( argc < 2 ) {
 		std::cout << "Usage dis_chip8 [program binary]" << std::endl;
 		return 1;
@@ -41,9 +43,9 @@ int Chidisas8::run( int argc, char *argv[] )
 		return 1;
 	}
 
-	Disassembler dis( argv[1] );
-	dis.disassemble( is );
-
+	Disassembler dis( argv[1], start_address );
+	dis.read_binary( is );
+	dis.disassemble( );
 	dis.write_listing( os );
 
     return 0;

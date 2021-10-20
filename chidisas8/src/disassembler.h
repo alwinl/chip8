@@ -98,12 +98,14 @@ private:
 class Disassembler
 {
 public:
-	Disassembler( std::string _bin_name ) : 	bin_name( _bin_name ) {};
+	Disassembler( std::string bin_name, unsigned int origin )
+	{
+		this->bin_name = bin_name;
+		this->origin = origin;
+	};
 
-
-	void add_raw_byte( uint16_t address, uint8_t value );
-	void disassemble( uint16_t start_address );
-	void disassemble( std::istream& is );
+	void read_binary( std::istream& is );
+	void disassemble( );
 	void write_listing( std::ostream& os ) const;
 
 private:
@@ -133,6 +135,7 @@ private:
 		std::string label;
 	};
 
+	uint16_t origin;
 	std::string bin_name;
 
 	std::set<RawData> data_set;
@@ -163,6 +166,8 @@ private:
 	Instruction decode_DRW( uint16_t address, uint16_t opcode );
 	Instruction decode_Key( uint16_t address, uint16_t opcode );
 	Instruction decode_Misc( uint16_t address, uint16_t opcode );
+
+	void add_raw_byte( uint16_t address, uint8_t value );
 
 	std::string add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type );
 	void mark_as_instruction( uint16_t address );
