@@ -127,12 +127,15 @@ void ResourceLayer::repaint()
 
 bool ResourceLayer::frame_time()
 {
-	if( audio_on)
-		std::cout << '\b';
-
 	if( SDL_GetTicks64() <  mark_time + 17 )							// running at 60 FPS which is 16.6 ms
 		return false;
 
 	mark_time = SDL_GetTicks64();
 	return true;
+}
+
+void ResourceLayer::make_sound()
+{
+	if( audio_on)
+		std::cout << '\a';
 }

@@ -38,6 +38,7 @@ public:
 	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
 	void repaint();
 	bool frame_time();
+	void make_sound();
 
 	bool do_quit() { return quit; }
 	void audio( bool on ) { audio_on = on; };

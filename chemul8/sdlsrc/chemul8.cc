@@ -54,6 +54,8 @@ int Chemul8::run( int argc, char *argv[] )
 
 	while( !SDLRef.do_quit() ) {
 
+		SDLRef.make_sound();
+
 		if( SDLRef.frame_time() ) {
 			timers.decrease_timers();
 			display.draw();
