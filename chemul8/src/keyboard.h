@@ -33,12 +33,12 @@ class KeyTrigger;
 class Keyboard
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+	Keyboard() {};
 
 	bool is_key_pressed( int key_no );
 	void wait_for_key( );
 	bool executing() const;
-	void check_key_captured();
+	void check_key_captured( ResourceLayer& res );
 
 	void add_subcriber( KeyTrigger& new_subscriber );
 	void process_key( uint8_t key_value );
@@ -48,9 +48,6 @@ private:
 	uint16_t last_keys = 0;
 
 	bool waiting_on_key = false;
-	uint8_t capture_reg;
-
-	ResourceLayer& res;
 
 	std::vector<std::reference_wrapper<KeyTrigger>> subscribers;
 };

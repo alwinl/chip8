@@ -39,7 +39,7 @@ bool Keyboard::executing() const
 	return !waiting_on_key;
 }
 
-void Keyboard::check_key_captured()
+void Keyboard::check_key_captured( ResourceLayer& res )
 {
 	keys = res.check_key_event();
 

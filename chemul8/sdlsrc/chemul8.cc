@@ -37,7 +37,7 @@ int Chemul8::run( int argc, char *argv[] )
 	ResourceLayer SDLRef;
 
 	Display display;
-	Keyboard keyboard( SDLRef );
+	Keyboard keyboard;
 	Timers timers( SDLRef );
 	Randometer rander;
 
@@ -61,7 +61,7 @@ int Chemul8::run( int argc, char *argv[] )
 			display.draw( SDLRef );
 		}
 
-		keyboard.check_key_captured();
+		keyboard.check_key_captured( SDLRef );
 
 		if( keyboard.executing() )
 			device.execute_instruction();
