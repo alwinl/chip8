@@ -24,8 +24,11 @@
 
 #include <cstdint>
 
+#include <vector>
+#include <functional>
+
 class ResourceLayer;
-class Chip8;
+class KeyTrigger;
 
 class Keyboard
 {
@@ -33,9 +36,12 @@ public:
 	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
 
 	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
+	void wait_for_key( );
 	bool executing() const;
-	void check_key_captured( Chip8& device);
+	void check_key_captured();
+
+	void add_subcriber( KeyTrigger& new_subscriber );
+	void process_key( uint8_t key_value );
 
 private:
 	uint16_t keys = 0;
@@ -45,6 +51,19 @@ private:
 	uint8_t capture_reg;
 
 	ResourceLayer& res;
+
+	std::vector<std::reference_wrapper<KeyTrigger>> subscribers;
+};
+
+class KeyTrigger
+{
+public:
+	KeyTrigger( Keyboard& keyboard );
+
+	virtual void key_captured( uint8_t key_value ) = 0;
+
+protected:
+	virtual ~KeyTrigger() {};
 };
 
 #endif // KEYBOARD_H

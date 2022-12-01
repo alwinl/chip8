@@ -21,14 +21,12 @@
 
 #include "chip8.h"
 
-
-#include "resourcelayer.h"
-
 #include <iostream>
 #include <fstream>
 
 
-Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ ) : display(display_), keyboard(keyboard_), timers(timers_), rander(rander_), Stack{}, memory{}, V{}
+Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ )
+	: Stack{}, memory{}, V{}, display(display_), keyboard(keyboard_), timers(timers_), rander(rander_), key_trigger(keyboard_, this)
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -48,13 +46,9 @@ Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randomete
 		/* E */ 0xF0, 0x80, 0xF0, 0x80, 0xF0,
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
-	I = 0;
-	PC = 0x200;
-	SP = 0;
 
 	//load the font in memory
-	for( uint8_t i=0; i< sizeof(font); ++i )
-		memory[font_sprite_base + i] = font[i];
+	std::copy_n( &font[0], sizeof(font), &memory[font_sprite_base] );
 }
 
 void Chip8::load_program( std::istream& is )
@@ -270,7 +264,7 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 															/* opcodes 0x00 .. 0x06 not defined */
 	case 0x07: V[reg_x] = timers.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
 															/* opcodes 0x08 .. 0x09 not defined */
-	case 0x0A: keyboard.wait_for_key( reg_x ); break;		// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
+	case 0x0A: get_key( reg_x ); break;		// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 															/* opcodes 0x0B .. 0x1 not defined */
 	case 0x15: timers.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
 															/* opcodes 0x16 and 0x17 not defined */
@@ -305,11 +299,6 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 	default:
 		break;
 	}
-}
-
-void Chip8::key_captured( uint8_t reg_x, uint8_t key_value )
-{
-	V[reg_x] = key_value;
 }
 
 

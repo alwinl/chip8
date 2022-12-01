@@ -64,7 +64,7 @@ int Chemul8::run( int argc, char *argv[] )
 		if( keyboard.executing() )
 			device.execute_instruction();
 		else
-			keyboard.check_key_captured( device );
+			keyboard.check_key_captured();
 	}
 
 

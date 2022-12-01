@@ -29,7 +29,6 @@
 #include "timers.h"
 #include "randometer.h"
 
-class ResourceLayer;
 
 class Chip8
 {
@@ -39,20 +38,14 @@ public:
 	void load_program( std::istream& is );
 	void execute_instruction();
 
-	void key_captured( uint8_t reg_x, uint8_t key_value );
-
 private:
-	Display& display;
-	Keyboard& keyboard;
-	Timers& timers;
-	Randometer& rander;
 
 	uint16_t Stack[16];
 	uint8_t memory[4096];
 	uint8_t V[16];
-	uint16_t I;
-	uint16_t PC;
-	uint8_t SP;
+	uint16_t I = 0;
+	uint16_t PC = 0x200;
+	uint8_t SP = 0;
 
 	const uint16_t font_sprite_base = 0x0100;
 
@@ -73,8 +66,40 @@ private:
 	void Key( uint16_t opcode );		//0xEddd
 	void Misc( uint16_t opcode );		//0xFddd
 
+	Display& display;
+	Keyboard& keyboard;
+	Timers& timers;
+	Randometer& rander;
+
 	void vf_reset_quirk();
 	void memory_quirk( int bytes_to_add );
+
+	class Chip8_KeyTrigger : KeyTrigger
+	{
+	public:
+		Chip8_KeyTrigger( Keyboard& keyboard_, Chip8 * target_ ) : KeyTrigger( keyboard_ ), target( target_ ) {};
+		virtual ~Chip8_KeyTrigger() {};
+
+		void set_waiting_register( uint8_t reg ) { this->reg = reg; };
+
+		virtual void key_captured( uint8_t key_value ) { target->key_captured( reg, key_value ); };
+
+	private:
+		Chip8 * target;
+		uint8_t reg;
+
+	};
+
+	friend class Chip8_KeyTrigger;
+	void key_captured( uint8_t reg_x, uint8_t key_value )  { V[reg_x] = key_value; }
+
+	Chip8_KeyTrigger key_trigger;
+
+	void get_key( uint8_t reg )
+	{
+		key_trigger.set_waiting_register( reg );
+		keyboard.wait_for_key( );
+	}
 };
 
 #endif // CHIP8_H
