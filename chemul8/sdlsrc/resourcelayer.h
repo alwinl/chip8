@@ -41,16 +41,15 @@ public:
 
 	bool do_quit() { return quit; }
 	void audio( bool on ) { audio_on = on; };
-	uint8_t get_random_byte() { return std::rand() % 0xFF; };		// needs some work here
 
 private:
     SDL_Window * m_window;
     SDL_Renderer * m_renderer;
 
-    uint32_t mark_time = 0;
+    uint64_t mark_time = 0;
     bool audio_on = 0;
 
-	uint16_t keys;
+	uint16_t keys = 0;
 	bool quit = false;
 };
 

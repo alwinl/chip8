@@ -8,6 +8,7 @@ SpriteViewer/bin/*
 SpriteViewer/obj/*
 Resources/backup/chip8_assemble/bin
 Resources/backup/chip8_assemble/obj
+chip8-test-suite/*
 *.lst
 *.depend
 *.layout

@@ -57,7 +57,6 @@ ResourceLayer::ResourceLayer()
 	if( SDL_CreateWindowAndRenderer( 640, 320, SDL_WINDOW_SHOWN, &m_window, &m_renderer ) != 0 )
 		throw InitError();
 
-	srand( (unsigned) time(0) );
 }
 
 ResourceLayer::~ResourceLayer()
@@ -73,10 +72,35 @@ uint16_t ResourceLayer::check_key_event()
 	SDL_Event event;
 
 	while( SDL_PollEvent( &event ) ) {
-		switch( event.type ) {
-		case SDL_KEYUP: keys &= ~( 1 << mapping[event.key.keysym.sym]); break;
-		case SDL_KEYDOWN: keys |= 1 << mapping[event.key.keysym.sym]; break;
-		case SDL_QUIT: quit = 1;
+		try{
+			switch( event.type ) {
+			case SDL_KEYUP: {
+					uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
+
+					if( (keys & mask) != 0 ) {
+						keys &= ~mask;
+						return keys;
+					}
+				}
+				break;
+
+			case SDL_KEYDOWN: {
+					uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
+
+					if( (keys & mask ) == 0 ) {
+						keys |= mask;
+						return keys;
+					}
+				}
+				break;
+
+			case SDL_QUIT:
+				quit = 1;
+				break;
+			}
+		}
+		catch( std::out_of_range& e ) {
+			// ignore keys we are not interested in
 		}
 	}
 
@@ -85,12 +109,7 @@ uint16_t ResourceLayer::check_key_event()
 
 void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 {
-	SDL_Rect pixel_loc;
-
-	pixel_loc.x = x_pos * 10;
-	pixel_loc.y = y_pos * 10;
-	pixel_loc.w = 10;		// world width is 64, physical is 640 pixels
-	pixel_loc.h = 10;		// world height is 32, physical is 320 pixels
+	SDL_Rect pixel_loc = { .x = (x_pos * 10), .y = (y_pos * 10), .w = 10, .h = 10 };
 
 	if( white )
 		SDL_SetRenderDrawColor( m_renderer, 255, 255, 255, 255 );	// white
@@ -111,9 +130,9 @@ bool ResourceLayer::frame_time()
 	if( audio_on)
 		std::cout << '\b';
 
-	if( SDL_GetTicks() <  mark_time + 17 )							// running at 60 FPS which is 16.6 ms
+	if( SDL_GetTicks64() <  mark_time + 17 )							// running at 60 FPS which is 16.6 ms
 		return false;
 
-	mark_time = SDL_GetTicks();
+	mark_time = SDL_GetTicks64();
 	return true;
 }

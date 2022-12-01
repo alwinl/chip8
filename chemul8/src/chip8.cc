@@ -28,8 +28,7 @@
 #include <fstream>
 
 
-
-Chip8::Chip8(ResourceLayer& res_init) : res( res_init), display(res_init), keyboard(res_init), Stack{}, memory{}, V{}
+Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ ) : display(display_), keyboard(keyboard_), timers(timers_), rander(rander_), Stack{}, memory{}, V{}
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -50,8 +49,6 @@ Chip8::Chip8(ResourceLayer& res_init) : res( res_init), display(res_init), keybo
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
 	I = 0;
-	DelayTimer = 0;
-	SoundTimer = 0;
 	PC = 0x200;
 	SP = 0;
 
@@ -69,24 +66,6 @@ void Chip8::load_program( std::istream& is )
 		ch = is.get();
 	}
 }
-
-void Chip8::decrease_timers()
-{
-	if( !res.frame_time() )
-		return;
-
-	if( DelayTimer )
-		--DelayTimer;
-
-	if( SoundTimer ) {
-		--SoundTimer;
-		if( !SoundTimer )
-			res.audio( false );
-	}
-
-}
-
-
 
 void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code routine at nnn.
 {
@@ -159,6 +138,11 @@ void Chip8::ADD( uint16_t opcode )	// 7xkk - ADD Vx, byte : Set Vx = Vx + kk
 	V[reg_x] += opcode & 0xFF;
 }
 
+void Chip8::vf_reset_quirk()
+{
+	V[0x0F] = 0;
+}
+
 void Chip8::MathOp( uint16_t opcode )		// 8xyn - Various mathematical and logical operations
 {
 	uint8_t reg_x = (opcode >> 8) & 0xF;
@@ -166,18 +150,20 @@ void Chip8::MathOp( uint16_t opcode )		// 8xyn - Various mathematical and logica
 
 	switch( opcode & 0xF ) {
 	case 0x0: V[reg_x]  = V[reg_y]; break;		// LD Vx, Vy : Set Vx = Vy.
-	case 0x1: V[reg_x] |= V[reg_y]; break;		// OR Vx, Vy : Set Vx = Vx OR Vy
-	case 0x2: V[reg_x] &= V[reg_y]; break;		// AND Vx, Vy : Set Vx = Vx AND Vy
-	case 0x3: V[reg_x] ^= V[reg_y]; break;		// XOR Vx, Vy : Set Vx = Vx XOR Vy
+	case 0x1: V[reg_x] |= V[reg_y]; vf_reset_quirk(); break;		// OR Vx, Vy : Set Vx = Vx OR Vy
+	case 0x2: V[reg_x] &= V[reg_y]; vf_reset_quirk(); break;		// AND Vx, Vy : Set Vx = Vx AND Vy
+	case 0x3: V[reg_x] ^= V[reg_y]; vf_reset_quirk(); break;		// XOR Vx, Vy : Set Vx = Vx XOR Vy
 	case 0x4: {									// ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
 			uint16_t result = V[reg_x] + V[reg_y];
-			V[0xF] = ( result > 255 ) ? 1 : 0;
 			V[reg_x] = result & 0xFF;
+			V[0xF] = ( result > 255 ) ? 1 : 0;
 		}
 		break;
-	case 0x5:									// SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
-		V[0xF] = (V[reg_x] > V[reg_y]) ? 1 : 0;
-		V[reg_x] -= V[reg_y];
+	case 0x5: {									// SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
+			uint16_t result = (V[reg_x] >= V[reg_y]) ? 1 : 0;
+			V[reg_x] -= V[reg_y];
+			V[0xF] = result;
+		}
 		break;
 	/*
 	 * Note from Wikipedia:
@@ -187,8 +173,9 @@ void Chip8::MathOp( uint16_t opcode )		// 8xyn - Various mathematical and logica
 	 */
 	case 0x6: V[reg_x] = V[reg_y] >> 1; break;	// SHR Vx {, Vy} : Set Vx = Vx SHR 1.	Error in documentation! should be Vx = Vy SHR 1
 	case 0x7: {										// SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
-			V[0xF] = (V[reg_y] > V[reg_x]) ? 1 : 0;
+			uint16_t result = (V[reg_y] > V[reg_x]) ? 1 : 0;
 			V[reg_x] -= V[reg_y];
+			V[0xF] = result;
 		}
 		break;
 
@@ -200,9 +187,11 @@ void Chip8::MathOp( uint16_t opcode )		// 8xyn - Various mathematical and logica
 	case 0xD:
 		break;
 
-	case 0xE:										// SHL Vx {, Vy} : Set Vx = Vx SHL 1. Error in documentation, should be Vx = Vy SHL 1
-		V[0xF] = (V[reg_x] & 0x80) ? 1 : 0;
-		V[reg_x] = V[reg_y] << 1;
+	case 0xE: {										// SHL Vx {, Vy} : Set Vx = Vx SHL 1. Error in documentation, should be Vx = Vy SHL 1
+			uint16_t result = (V[reg_x] & 0x80) ? 1 : 0;
+			V[reg_x] = V[reg_y] << 1;
+			V[0xF] = result;
+		}
 		break;
 
 	case 0xF:										// undefined
@@ -218,7 +207,7 @@ void Chip8::SNE( uint16_t opcode )		// 9xy0 - SNE Vx, Vy : Skip next instruction
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 	uint8_t reg_y = (opcode >> 4) & 0xF;
 
-	if( V[reg_x] == V[reg_y] )
+	if( V[reg_x] != V[reg_y] )
 		PC += 2;
 }
 
@@ -236,7 +225,7 @@ void Chip8::RND( uint16_t opcode )		// Cxkk - RND Vx, byte : Set Vx = random byt
 {
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
-	V[reg_x] = res.get_random_byte() & (opcode & 0xFF );
+	V[reg_x] = rander.get_new_value() & (opcode & 0xFF );
 }
 
 void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
@@ -268,23 +257,24 @@ void Chip8::Key( uint16_t opcode )		//0xExkk
 	}
 }
 
+void Chip8::memory_quirk( int bytes_to_add )
+{
+	I += bytes_to_add;
+}
+
 void Chip8::Misc( uint16_t opcode )		//0xFxkk
 {
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
 	switch( opcode & 0xFF ) {
 															/* opcodes 0x00 .. 0x06 not defined */
-	case 0x07: V[reg_x] = DelayTimer; break;				// Fx07 - LD Vx, DT : Set Vx = delay timer value.
+	case 0x07: V[reg_x] = timers.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
 															/* opcodes 0x08 .. 0x09 not defined */
-	case 0x0A: V[reg_x]	 = keyboard.wait_for_key(); break;	// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
+	case 0x0A: keyboard.wait_for_key( reg_x ); break;		// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 															/* opcodes 0x0B .. 0x1 not defined */
-	case 0x15: DelayTimer = V[reg_x]; break;				// Fx15 - LD DT, Vx : Set delay timer = Vx.
+	case 0x15: timers.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
 															/* opcodes 0x16 and 0x17 not defined */
-	case 0x18: 												// Fx18 - LD ST, Vx : Set sound timer = Vx.
-		SoundTimer = V[reg_x];
-		if( SoundTimer )
-			res.audio( true );
-		break;
+	case 0x18: timers.set_sound_timer( V[reg_x] ); break;	// Fx18 - LD ST, Vx : Set sound timer = Vx.
 															/* opcodes 0x19 .. 0x1D not defined */
 	case 0x1E: I += V[reg_x]; break;						// Fx1E - ADD I, Vx : Set I = I + Vx
 															/* opcodes 0x1F .. 0x28 not defined */
@@ -296,19 +286,30 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 		memory[I+2] = V[reg_x] % 10;
 		break;
 															/* opcodes 0x34 .. 0x54 not defined */
-	case 0x55:												// Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
-		for( int i=0; i<=reg_x; ++i )
-			memory[ I + i] = V[i];
+	case 0x55: {												// Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
+			int i;
+			for( i=0; i<=reg_x; ++i )
+				memory[ I + i] = V[i];
+			memory_quirk( i );
+		}
 		break;
 															/* opcodes 0x56 .. 0x64 not defined */
-	case 0x65:												// Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
-		for( int i=0; i<=reg_x; ++i )
-			V[i] = memory[ I + i];
+	case 0x65: {												// Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
+			int i;
+			for( i=0; i<=reg_x; ++i )
+				V[i] = memory[ I + i];
+			memory_quirk( i );
+		}
 		break;
 															/* opcodes 0x66 .. 0xFF not defined */
 	default:
 		break;
 	}
+}
+
+void Chip8::key_captured( uint8_t reg_x, uint8_t key_value )
+{
+	V[reg_x] = key_value;
 }
 
 
@@ -337,17 +338,3 @@ void Chip8::execute_instruction()
 	case 0xF: Misc( opcode ); break;
 	}
 }
-
-
-void Chip8::run_program()
-{
-	while( !res.do_quit() ) {
-
-		decrease_timers();
-
-		keyboard.check_key_event();
-
-		execute_instruction();
-	}
-}
-

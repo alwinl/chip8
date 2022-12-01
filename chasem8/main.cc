@@ -23,8 +23,8 @@
 #include "chasem8test.h"
 #define AppClass Chasem8Test
 #else
-#include "assembler.h"
-#define AppClass Assembler
+#include "chasem8cli.h"
+#define AppClass Chasem8CLI
 #endif // TESTING
 
 int main(int argc, char ** argv )

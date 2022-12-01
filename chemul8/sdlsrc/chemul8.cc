@@ -35,7 +35,13 @@ int Chemul8::run( int argc, char *argv[] )
 	}
 
 	ResourceLayer SDLRef;
-	Chip8 device( SDLRef );
+
+	Display display( SDLRef );
+	Keyboard keyboard( SDLRef );
+	Timers timers( SDLRef );
+	Randometer rander;
+
+	Chip8 device( display, keyboard, timers, rander );
 
 	std::ifstream is = std::ifstream( argv[1] );
 	if( !is.good() ) {
@@ -44,7 +50,21 @@ int Chemul8::run( int argc, char *argv[] )
 	}
 
 	device.load_program( is );
-	device.run_program();
+
+
+	while( !SDLRef.do_quit() ) {
+
+		if( SDLRef.frame_time() ) {
+			timers.decrease_timers();
+			display.draw();
+		}
+
+		if( keyboard.executing() )
+			device.execute_instruction();
+		else
+			keyboard.check_key_captured( device );
+	}
+
 
 	return 0;
 }

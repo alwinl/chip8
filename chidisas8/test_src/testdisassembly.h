@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,32 +19,28 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef TESTDISASSEMBLY_H
+#define TESTDISASSEMBLY_H
 
-#include <cstdint>
+#include <cppunit/TestFixture.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+class TestDisassembly : public CppUnit::TestFixture
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+    TestDisassembly() {};
+    virtual ~TestDisassembly() {};
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+    CPPUNIT_TEST_SUITE( TestDisassembly );
+
+    CPPUNIT_TEST( DisassembleBLINKY );
+
+    CPPUNIT_TEST_SUITE_END();
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
 
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
+    void DisassembleBLINKY();
 
-	ResourceLayer& res;
 };
 
-#endif // KEYBOARD_H
+#endif // TESTDISASSEMBLY_H

@@ -19,32 +19,19 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H
 
-#include <cstdint>
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+class Instruction
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+    Instruction();
+    virtual ~Instruction() {};
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+protected:
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
-
-	ResourceLayer& res;
 };
 
-#endif // KEYBOARD_H
+#endif // INSTRUCTION_H

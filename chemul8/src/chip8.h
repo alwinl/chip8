@@ -26,36 +26,33 @@
 
 #include "display.h"
 #include "keyboard.h"
+#include "timers.h"
+#include "randometer.h"
 
 class ResourceLayer;
 
 class Chip8
 {
 public:
-	Chip8( ResourceLayer& res_init );
+	Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ );
 
 	void load_program( std::istream& is );
-	void run_program();
+	void execute_instruction();
+
+	void key_captured( uint8_t reg_x, uint8_t key_value );
 
 private:
-	ResourceLayer& res;
-
-	Display display;
-	Keyboard keyboard;
+	Display& display;
+	Keyboard& keyboard;
+	Timers& timers;
+	Randometer& rander;
 
 	uint16_t Stack[16];
 	uint8_t memory[4096];
 	uint8_t V[16];
 	uint16_t I;
-
-	uint8_t DelayTimer;
-	uint8_t SoundTimer;
-
 	uint16_t PC;
 	uint8_t SP;
-
-	void decrease_timers();
-	void execute_instruction();
 
 	const uint16_t font_sprite_base = 0x0100;
 
@@ -72,9 +69,12 @@ private:
 	void LDI( uint16_t opcode );		//0xAddd
 	void JMP( uint16_t opcode );		//0xBddd
 	void RND( uint16_t opcode );		//0xCddd
-	void DRW( uint16_t opcode );	//0xDddd
+	void DRW( uint16_t opcode );		//0xDddd
 	void Key( uint16_t opcode );		//0xEddd
 	void Misc( uint16_t opcode );		//0xFddd
+
+	void vf_reset_quirk();
+	void memory_quirk( int bytes_to_add );
 };
 
 #endif // CHIP8_H

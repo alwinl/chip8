@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef RANDOMETER_H
+#define RANDOMETER_H
 
-#include <cstdint>
+#include <random>
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+class Randometer
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+    Randometer() : dist( 1, 255 ) {};
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+    uint8_t get_new_value() { return dist( rd ); };
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
-
-	ResourceLayer& res;
+	std::random_device rd;
+	std::uniform_int_distribution<int> dist;
 };
 
-#endif // KEYBOARD_H
+#endif // RANDOMETER_H

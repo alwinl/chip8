@@ -28,6 +28,12 @@ Display::Display( ResourceLayer& res_init ) : res( res_init )
 	clear_screen();
 }
 
+void Display::clear_screen()
+{
+	for( uint16_t idx = 0; idx < sizeof(display_buffer); ++ idx )
+		display_buffer[idx] = 0;
+}
+
 void Display::draw()
 {
 	uint16_t total_pixels = sizeof(display_buffer) * 8;
@@ -38,24 +44,41 @@ void Display::draw()
 	res.repaint();
 }
 
-void Display::clear_screen()
+bool Display::set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length )
 {
-	for( uint16_t idx = 0; idx < sizeof(display_buffer); ++ idx )
-		display_buffer[idx] = 0;
+	bool turned_off = false;
 
-	draw();
+	for( uint16_t byte_offset = 0; byte_offset < length; ++byte_offset ) {
+		turned_off |= process_byte( x, y, buffer[byte_offset] );
+		y = (y + 1 ) % 32;
+	}
+
+	return turned_off;
 }
 
-/*
- * returns true if pixel was turned off
- */
-bool Display::set_pixel( uint8_t x, uint8_t y, bool on )
+bool Display::process_byte( uint8_t x, uint8_t y, uint8_t byte_to_draw )
 {
-	if( !on )
-		return false;
+	bool turned_off = false;
 
-	uint16_t idx = (x + y * WIDTH) / 8;
-	uint8_t offset = (x + y * WIDTH) % 8;
+	for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
+		if( is_bit_nonzero( byte_to_draw, bit_offset ) )
+			toggle_pixel( x, y, bit_offset );
+	}
+
+	return turned_off;
+}
+
+bool Display::is_bit_nonzero( uint8_t byte_to_draw, uint8_t bit_offset )
+{
+	return byte_to_draw  & (1 << (7-bit_offset) );
+}
+
+bool Display::toggle_pixel( uint8_t x, uint8_t y, uint8_t bit_offset )
+{
+	uint8_t x_ = (x + bit_offset) % 64;
+
+	uint16_t idx = (x_ + y * WIDTH) / 8;
+	uint8_t offset = (x_ + y * WIDTH) % 8;
 
 	bool turned_off = (display_buffer[idx] & (1 << offset));
 
@@ -64,25 +87,3 @@ bool Display::set_pixel( uint8_t x, uint8_t y, bool on )
 	return turned_off;
 }
 
-
-bool Display::set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length )
-{
-	bool turned_off = false;
-
-	for( uint16_t buf_idx = 0; buf_idx < length; ++buf_idx ) {
-		for( uint8_t offset = 0; offset < 8; ++offset ) {
-			uint8_t x_ = x + offset;
-			if( x_ >= 64 )
-				x_ -= 64;
-
-			turned_off |= set_pixel( x_, y, (buffer[buf_idx] >> (7-offset) ) & 1 );
-		}
-
-		if( ++y == 32 )
-			y = 0;
-	}
-
-	draw();
-
-	return turned_off;
-}

@@ -19,32 +19,22 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef CHASEM8CLI_H
+#define CHASEM8CLI_H
 
-#include <cstdint>
+#include <string>
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+class Chasem8CLI
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
-
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+    int run( int argc, char ** argv );
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
+	//enum eParseErrors { NoError, NoTargetError };
 
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
+	//int parse_arguments( int argc, char ** argv );
 
-	ResourceLayer& res;
+	std::string OutFileName;
 };
 
-#endif // KEYBOARD_H
+#endif // CHASEM8CLI_H

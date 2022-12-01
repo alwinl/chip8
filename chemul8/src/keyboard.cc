@@ -20,41 +20,48 @@
  */
 
 #include "keyboard.h"
+#include "chip8.h"
 
 #include "resourcelayer.h"
 
-void Keyboard::check_key_event()
+bool Keyboard::is_key_pressed( int key_no )
 {
 	keys = res.check_key_event();
+
+	return (keys >> key_no) & 0x01;
 }
 
-bool Keyboard::key_state_changed()
+void Keyboard::wait_for_key( uint8_t reg_x )
 {
-	if( keys == last_keys)
-		return false;
+	capture_reg = reg_x;
+	waiting_on_key = true;
+}
+
+bool Keyboard::executing() const
+{
+	return !waiting_on_key;
+}
+
+void Keyboard::check_key_captured( Chip8& device)
+{
+	if( !waiting_on_key )
+		return;
+
+	keys = res.check_key_event();
+
+	uint16_t key_changes = keys ^ last_keys;
+
+	if( ! key_changes )
+		return;
 
 	last_keys = keys;
-	return true;
-}
 
-uint8_t Keyboard::wait_for_key()
-{
-	while( !res.do_quit() ) {
-
-		check_key_event();
-
-		if( !(keys ^ last_keys) )
-			continue;
-
-		uint16_t key_changes = keys ^ last_keys;
-		last_keys = keys;
-
-		for( int key_no = 0; key_no < 16; ++key_no )
-			if( (key_changes >> key_no) & 0x01 ) {
-				if( (keys >> key_no) & 0x01 )
-					return key_no;
+	for( int key_no = 0; key_no < 16; ++key_no )
+		if( (key_changes >> key_no) & 0x01 ) {
+			if( (keys >> key_no) & 0x01 )  {
+				device.key_captured( capture_reg, key_no );
+				waiting_on_key = false;
+				return;
 			}
-	}
-
-	return 0xFF;
+		}
 }

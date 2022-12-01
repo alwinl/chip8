@@ -49,14 +49,32 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="main.cc" />
-		<Unit filename="src/assembler.cc" />
-		<Unit filename="src/assembler.h" />
+		<Unit filename="src/chasem8cli.cc" />
+		<Unit filename="src/chasem8cli.h" />
+		<Unit filename="src/filenameextractor.cc" />
+		<Unit filename="src/filenameextractor.h" />
+		<Unit filename="src/instruction.cc" />
+		<Unit filename="src/instruction.h" />
+		<Unit filename="src/program.cc" />
+		<Unit filename="src/program.h" />
 		<Unit filename="src/token.cc" />
 		<Unit filename="src/token.h" />
 		<Unit filename="test_src/chasem8test.cc">
 			<Option target="Test" />
 		</Unit>
 		<Unit filename="test_src/chasem8test.h">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/filenameextractortest.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/filenameextractortest.h">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/testprogram.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/testprogram.h">
 			<Option target="Test" />
 		</Unit>
 		<Extensions>

@@ -19,32 +19,25 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#include "program.h"
 
-#include <cstdint>
-
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+Program::Program()
 {
-public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+	//ctor
+}
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+void Program::read_source( std::istream& is )
+{
 
-private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
+}
 
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
+void Program::write_binary( std::ostream& os )
+{
 
-	ResourceLayer& res;
-};
+}
 
-#endif // KEYBOARD_H
+void Program::write_listing( std::ostream& os )
+{
+
+}
+

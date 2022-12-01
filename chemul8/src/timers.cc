@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,45 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#include "timers.h"
 
-#include <cstdint>
+#include "resourcelayer.h"
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+void Timers::set_delay_timer( uint8_t value )
 {
-public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+	DelayTimer = value;
+}
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+uint8_t Timers::get_delay_timer( ) const
+{
+	return DelayTimer;
+}
 
-private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
+void Timers::set_sound_timer( uint8_t value )
+{
+	SoundTimer = value;
+	if( value )
+		res.audio( true );
+}
 
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
+uint8_t Timers::get_sound_timer( ) const
+{
+	return SoundTimer;
+}
 
-	ResourceLayer& res;
-};
+void Timers::decrease_timers()
+{
+	//if( !res.frame_time() )
+	//	return;
 
-#endif // KEYBOARD_H
+	if( DelayTimer )
+		--DelayTimer;
+
+	if( SoundTimer ) {
+		--SoundTimer;
+		if( !SoundTimer )
+			res.audio( false );
+	}
+}

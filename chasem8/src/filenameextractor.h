@@ -19,32 +19,24 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef FILENAMEEXTRACTOR_H
+#define FILENAMEEXTRACTOR_H
 
-#include <cstdint>
+#include <string>
+#include <vector>
 
-class ResourceLayer;
-class Chip8;
-
-class Keyboard
+class FilenameExtractor
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+    FilenameExtractor( std::vector<std::string> arguments );
+    FilenameExtractor( int argc, char ** argv );
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+    std::string get_source_name();
+    std::string get_binary_name();
+    std::string get_listing_name();
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
-
-	ResourceLayer& res;
+    std::vector<std::string> arguments;
 };
 
-#endif // KEYBOARD_H
+#endif // FILENAMEEXTRACTOR_H

@@ -19,22 +19,29 @@
  *
  */
 
-#ifndef ASSEMBLER_H
-#define ASSEMBLER_H
+#ifndef PROGRAM_H
+#define PROGRAM_H
 
-#include <string>
+#include <vector>
+#include <istream>
+#include <ostream>
 
-class Assembler
+#include "instruction.h"
+
+class Program
 {
 public:
-    int run( int argc, char ** argv );
+    Program();
+
+    void read_source( std::istream& is );
+
+    void write_binary( std::ostream& os );
+    void write_listing( std::ostream& os );
 
 private:
-	enum eParseErrors { NoError, NoTargetError };
+    void add_instruction( Instruction& inst ) { instructions.push_back( inst ); }
 
-	int parse_arguments( int argc, char ** argv );
-
-	std::string OutFileName;
+    std::vector<Instruction> instructions;
 };
 
-#endif // ASSEMBLER_H
+#endif // PROGRAM_H

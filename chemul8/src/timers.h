@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,33 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef TIMERS_H
+#define TIMERS_H
 
 #include <cstdint>
 
 class ResourceLayer;
-class Chip8;
 
-class Keyboard
+class Timers
 {
 public:
-	Keyboard( ResourceLayer& res_init ) : res( res_init) {};
+    Timers( ResourceLayer& res_init ) : res( res_init) {};
 
-	bool is_key_pressed( int key_no );
-	void wait_for_key( uint8_t reg_x );
-	bool executing() const;
-	void check_key_captured( Chip8& device);
+    void set_delay_timer( uint8_t value );
+    uint8_t get_delay_timer( ) const;
+
+    void set_sound_timer( uint8_t value );
+    uint8_t get_sound_timer( ) const;
+
+    void decrease_timers();
 
 private:
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool waiting_on_key = false;
-	uint8_t capture_reg;
-
 	ResourceLayer& res;
+
+	uint8_t DelayTimer = 0;
+	uint8_t SoundTimer = 0;
 };
 
-#endif // KEYBOARD_H
+#endif // TIMERS_H

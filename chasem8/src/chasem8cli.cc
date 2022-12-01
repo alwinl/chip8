@@ -19,15 +19,23 @@
  *
  */
 
-#include "assembler.h"
+#include "chasem8cli.h"
 
+#include "instruction.h"
+#include "program.h"
+
+#include <iostream>
+#include <fstream>
+
+
+#if 0
 /*
  * we expect between 2 and 4 arguments
  * argv[1] = out_file name
  * argv[2] = in_file name
  * argv[3] = list_file name
  */
-int Assembler::parse_arguments( int argc, char ** argv )
+int Chasem8CLI::parse_arguments( int argc, char ** argv )
 {
 	if( argc < 2 )
 		return NoTargetError;
@@ -35,7 +43,6 @@ int Assembler::parse_arguments( int argc, char ** argv )
 	OutFileName = argv[1];
 
 
-#if 0
 
 	strcpy( OutFileName, argv[ 1 ] );
 
@@ -104,15 +111,58 @@ int Assembler::parse_arguments( int argc, char ** argv )
 
     return( True );
 
-#endif // 0
-
 	return NoError;
 }
+#endif // 0
+#include "filenameextractor.h"
 
-int Assembler::run( int argc, char ** argv )
+int Chasem8CLI::run( int argc, char ** argv )
 {
-	if( parse_arguments( argc, argv ) != NoError )
+	if( argc < 2 ) {
+		std::cout << "Usage chasem8 source [binary [listing] ]" << std::endl;
 		return 1;
+	}
+
+    FilenameExtractor filenames( argc, argv );
+
+	std::ifstream source = std::ifstream( filenames.get_source_name().c_str() );
+	if( source.bad() ) {
+		std::cout << "Cannot open source file" << std::endl;
+		return 2;
+	}
+
+	std::ofstream binary = std::ofstream( filenames.get_binary_name().c_str() );
+	if( binary.bad() ) {
+		std::cout << "Cannot open output file" << std::endl;
+		return 3;
+	}
+
+	bool no_listing = false;
+	std::ofstream listing = std::ofstream( filenames.get_listing_name().c_str() );
+	if( listing.bad() ) {
+		std::cout << "Cannot open lisintg file. Listing will  not be generated" << std::endl;
+		no_listing = true;
+	}
+
+
+#if 0
+	std::ifstream source = std::ifstream( argv[1] );
+	if( !source.good() ) {
+		std::cout << "Cannot read program" << std::endl;
+		return 1;
+	}
+
+	Program prog;
+
+	prog.read_source( source );
+
+	std::ofstream binary_file = std
+	prog.write_binary( )
+
+	Instruction inst;
+
+	prog.add_instruction( inst );
+#endif // 0
 
 	return 0;
 }

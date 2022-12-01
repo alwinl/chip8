@@ -32,7 +32,8 @@
 class RawData
 {
 public:
-	RawData( uint16_t location, uint8_t value, bool is_instruction )
+    /* Default arguments so we can make a RawData object for comparison (find ) */
+	RawData( uint16_t location, uint8_t value = 0, bool is_instruction  = false )
 	{
 		this->location = location;
 		this->value = value;
@@ -55,7 +56,8 @@ private:
 class Instruction
 {
 public:
-	Instruction( unsigned int address, std::string mnemonic, std::string argument )
+    /* Default arguments so we can make an Instruction object for comparison (find) */
+	Instruction( unsigned int address, std::string mnemonic = "", std::string argument = "" )
 	{
 		this->address = address;
 		this->mnemonic = mnemonic;
@@ -75,6 +77,11 @@ private:
 	std::string argument;
 };
 
+/*
+ * Instead of collecting bytes and then creating a datarun object I should be
+ * creating a datarun object and add bytes.
+ * Once full we insert the object into the set
+ */
 class DataBytes
 {
 public:
@@ -95,6 +102,32 @@ private:
 	std::vector<uint8_t> byte_run;
 };
 
+class Target
+{
+public:
+    enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
+
+    /* Default arguments so we can make a Target object for comparison (find) */
+    Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" )
+    {
+        this->address = address;
+        this->type = type;
+        this->label = label;
+    };
+
+    bool operator<( const Target& rhs ) const { return address < rhs.address; }
+    bool operator==( const Target& rhs ) const { return address == rhs.address; }
+
+    uint16_t get_address() const { return address; }
+    eTargetKind get_kind() const { return type; }
+    std::string get_label() const { return label; }
+
+private:
+    uint16_t address;
+    eTargetKind type;
+    std::string label;
+};
+
 class Disassembler
 {
 public:
@@ -110,31 +143,6 @@ public:
 
 private:
 
-	class Target
-	{
-	public:
-		enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
-
-		Target( uint16_t address, eTargetKind type, std::string label )
-		{
-			this->address = address;
-			this->type = type;
-			this->label = label;
-		};
-
-		bool operator<( const Target& rhs ) const { return address < rhs.address; }
-		bool operator==( const Target& rhs ) const { return address == rhs.address; }
-
-		uint16_t get_address() const { return address; }
-		eTargetKind get_kind() const { return type; }
-		std::string get_label() const { return label; }
-
-	private:
-		uint16_t address;
-		eTargetKind type;
-		std::string label;
-	};
-
 	uint16_t origin;
 	std::string bin_name;
 
@@ -142,14 +150,28 @@ private:
 	std::set<Instruction> instructions;
 	std::set<DataBytes> databytes;
 
-	std::stack<uint16_t> process_list;
+	std::stack<uint16_t> address_stack;
 
+	/* Don't like this whole block
+	 * maybe it should be encapsulated in a new object
+	 */
 	std::set<Target> jmp_targets;
 	unsigned int label_sequence = 0;
 	unsigned int funct_sequence = 0;
 	unsigned int data_sequence = 0;
 	unsigned int table_sequence = 0;
+	std::string add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type );
 
+
+	void add_raw_byte( uint16_t address, uint8_t value );
+
+	/*
+	 * Problem with all these decode functions is that they have two side effects
+	 * 1. Translate a raw byte into a mnemonic
+	 * 2. Calculate new instruction addresses
+	 *
+	 * These are to distinct responsibilities
+	 */
 	Instruction decode_SYS( uint16_t address, uint16_t opcode );
 	Instruction decode_JP( uint16_t address, uint16_t opcode );
 	Instruction decode_CALL( uint16_t address, uint16_t opcode );
@@ -166,13 +188,11 @@ private:
 	Instruction decode_DRW( uint16_t address, uint16_t opcode );
 	Instruction decode_Key( uint16_t address, uint16_t opcode );
 	Instruction decode_Misc( uint16_t address, uint16_t opcode );
-
-	void add_raw_byte( uint16_t address, uint8_t value );
-
-	std::string add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type );
 	void mark_as_instruction( uint16_t address );
 	void disassemble_instruction( uint16_t address );
 
+    void configure_stream( std::ostream& os ) const;
+    void write_header( std::ostream& os ) const;
 	void write_label( std::ostream& os, uint16_t address ) const;
 	void write_instruction( std::ostream& os, Instruction inst ) const;
 	void write_datarun( std::ostream& os, DataBytes datarun ) const;
