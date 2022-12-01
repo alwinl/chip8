@@ -23,7 +23,7 @@
 
 #include "resourcelayer.h"
 
-Display::Display( ResourceLayer& res_init ) : res( res_init )
+Display::Display()
 {
 	clear_screen();
 }
@@ -34,7 +34,7 @@ void Display::clear_screen()
 		display_buffer[idx] = 0;
 }
 
-void Display::draw()
+void Display::draw( ResourceLayer& res )
 {
 	uint16_t total_pixels = sizeof(display_buffer) * 8;
 

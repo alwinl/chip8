@@ -29,17 +29,16 @@ class ResourceLayer;
 class Display
 {
 public:
-    Display( ResourceLayer& res_init );
+    Display();
 
     void clear_screen();
     bool set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length );
-    void draw();
+    void draw( ResourceLayer& res );
 
 private:
 	static const uint8_t WIDTH = 64;
 	static const uint8_t HEIGHT = 32;
 
-	ResourceLayer& res;
     uint8_t display_buffer[ WIDTH * HEIGHT / 8 ];
 
 	bool process_byte( uint8_t x, uint8_t y, uint8_t byte_to_draw );
