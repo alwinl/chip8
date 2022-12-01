@@ -26,8 +26,6 @@
 
 bool Keyboard::is_key_pressed( int key_no )
 {
-	keys = res.check_key_event();
-
 	return (keys >> key_no) & 0x01;
 }
 
@@ -43,10 +41,10 @@ bool Keyboard::executing() const
 
 void Keyboard::check_key_captured()
 {
+	keys = res.check_key_event();
+
 	if( !waiting_on_key )
 		return;
-
-	keys = res.check_key_event();
 
 	uint16_t key_changes = keys ^ last_keys;
 

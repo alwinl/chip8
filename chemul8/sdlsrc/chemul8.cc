@@ -61,10 +61,10 @@ int Chemul8::run( int argc, char *argv[] )
 			display.draw( SDLRef );
 		}
 
+		keyboard.check_key_captured();
+
 		if( keyboard.executing() )
 			device.execute_instruction();
-		else
-			keyboard.check_key_captured();
 	}
 
 
