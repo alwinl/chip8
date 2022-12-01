@@ -45,9 +45,6 @@ uint8_t Timers::get_sound_timer( ) const
 
 void Timers::decrease_timers()
 {
-	//if( !res.frame_time() )
-	//	return;
-
 	if( DelayTimer )
 		--DelayTimer;
 
