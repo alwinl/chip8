@@ -120,7 +120,6 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 void ResourceLayer::repaint()
 {
     SDL_RenderPresent( m_renderer );
-    SDL_Delay(10);
 }
 
 bool ResourceLayer::frame_time()
