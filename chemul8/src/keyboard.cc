@@ -57,7 +57,7 @@ void Keyboard::check_key_captured()
 
 	for( int key_no = 0; key_no < 16; ++key_no )
 		if( (key_changes >> key_no) & 0x01 ) {
-			if( (keys >> key_no) & 0x01 )  {
+			if( !( (keys >> key_no) & 0x01 ) )  {
 				process_key( key_no );
 				waiting_on_key = false;
 				return;
