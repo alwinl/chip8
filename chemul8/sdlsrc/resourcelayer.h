@@ -24,9 +24,24 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <string>
+#include <exception>
 
 struct SDL_Window;
 struct SDL_Renderer;
+
+
+class InitError : public std::exception
+{
+public:
+    InitError();
+    InitError( const std::string & m );
+    virtual const char * what() const noexcept;
+
+private:
+    std::string msg;
+};
+
 
 class ResourceLayer
 {

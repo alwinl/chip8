@@ -24,27 +24,25 @@
 #include <SDL.h>
 
 #include <map>
-#include <string>
-#include <exception>
 #include <iostream>
+
+InitError::InitError() : exception(), msg( SDL_GetError() )
+	{}
+
+InitError::InitError( const std::string & m ) : exception(), msg( m )
+	{}
+
+const char * InitError::what() const noexcept
+{
+	return msg.c_str();
+}
+
 
 std::map<SDL_Keycode,uint8_t> mapping = {
 	{SDLK_0, 0x00},	{SDLK_1, 0x01},	{SDLK_2, 0x02},	{SDLK_3, 0x03},
 	{SDLK_4, 0x04},	{SDLK_5, 0x05},	{SDLK_6, 0x06},	{SDLK_7, 0x07},
 	{SDLK_8, 0x08},	{SDLK_9, 0x09},	{SDLK_a, 0x0A},	{SDLK_b, 0x0B},
 	{SDLK_c, 0x0C},	{SDLK_d, 0x0D},	{SDLK_e, 0x0E},	{SDLK_f, 0x0F}
-};
-
-class InitError : public std::exception
-{
-public:
-    InitError() : exception(), msg( SDL_GetError() ) {};
-    InitError( const std::string & m ) : exception(), msg( m ) { };
-    virtual ~InitError() throw() {};
-    virtual const char * what() const throw() { return msg.c_str(); };
-
-private:
-    std::string msg;
 };
 
 
