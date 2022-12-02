@@ -193,7 +193,8 @@ private:
 
     void configure_stream( std::ostream& os ) const;
     void write_header( std::ostream& os ) const;
-	void write_label( std::ostream& os, uint16_t address ) const;
+	bool label_present( std::set<Target>::iterator& it, uint16_t address ) const;
+	void write_label( std::ostream& os, Target target ) const;
 	void write_instruction( std::ostream& os, Instruction inst ) const;
 	void write_datarun( std::ostream& os, DataBytes datarun ) const;
 };

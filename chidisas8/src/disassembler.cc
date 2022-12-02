@@ -551,17 +551,20 @@ void Disassembler::write_listing( std::ostream& os ) const
     configure_stream( os );
     write_header( os );
 
+	std::set<Target>::iterator target_iter;
 	std::set<Instruction>::iterator instruction_iter = instructions.begin();
 	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
 
 	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
 
 		if( (*instruction_iter).get_address() < (*datarun_iter).get_address() ) {
-			write_label( os, (*instruction_iter).get_address() );
+			if( label_present( target_iter, (*instruction_iter).get_address()) )
+				write_label( os, *target_iter );
 			write_instruction( os, *instruction_iter );
 			++instruction_iter;
 		} else {
-			write_label( os, (*datarun_iter).get_address() );
+			if( label_present( target_iter, (*datarun_iter).get_address()) )
+				write_label( os, *target_iter );
 			write_datarun( os, *datarun_iter );
 			++datarun_iter;
 		}
@@ -569,13 +572,15 @@ void Disassembler::write_listing( std::ostream& os ) const
 
 	// what have we remaining
 	while( instruction_iter != instructions.end() ) {
-		write_label( os, (*instruction_iter).get_address() );
+		if( label_present( target_iter, (*instruction_iter).get_address()) )
+			write_label( os, *target_iter );
 		write_instruction( os, *instruction_iter );
 		++instruction_iter;
 	}
 
 	while( datarun_iter != databytes.end() ) {
-		write_label( os, (*datarun_iter).get_address() );
+		if( label_present( target_iter, (*datarun_iter).get_address()) )
+			write_label( os, *target_iter );
 		write_datarun( os, *datarun_iter );
 		++datarun_iter;
 	}
@@ -596,17 +601,19 @@ void Disassembler::write_header( std::ostream& os ) const
 	os << "\t.ORG " << format_address(origin) << "\n\n";
 }
 
-void Disassembler::write_label( std::ostream& os, uint16_t address ) const
+bool Disassembler::label_present( std::set<Target>::iterator& it, uint16_t address ) const
 {
-	std::set<Target>::iterator it = jmp_targets.find( Target( address ) );
+	it = jmp_targets.find( Target( address ) );
 
-	if( it == jmp_targets.end() )
-		return;		// no label to be written
+	return it != jmp_targets.end();
+}
 
-	if( (*it).get_kind() == Target::eTargetKind::SUBROUTINE )
+void Disassembler::write_label( std::ostream& os, Target target ) const
+{
+	if( target.get_kind() == Target::eTargetKind::SUBROUTINE )
 		os << '\n';
 
-	os << '\t' << (*it).get_label() << ":\n";
+	os << '\t' << target.get_label() << ":\n";
 }
 
 void Disassembler::write_instruction( std::ostream& os, Instruction inst ) const
