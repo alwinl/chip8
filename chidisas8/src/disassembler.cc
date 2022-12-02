@@ -133,6 +133,7 @@ Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 	/* opcodes 00EF .. 0FFF not defined */
 	default:
 		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		address_stack.push( address + 2 );
 		break;
 	}
 
@@ -203,6 +204,7 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 	/* opcodes 5xy1 .. 5xyF not defined */
 	default:
 		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		address_stack.push( address + 2 );
 		break;
 	}
 
@@ -293,6 +295,7 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 	/* opcode 8xyF not defined */
 	default:
 		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		address_stack.push( address + 2 );
 		break;
 	}
 
@@ -376,6 +379,7 @@ Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
 	/* opcodes ExA2 .. ExFF not defined */
 	default:
 		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		address_stack.push( address + 2 );
 		break;
 	}
 
@@ -446,6 +450,7 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 	/* opcodes Fx66 .. FxFF not defined */
 	default:
 		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		address_stack.push( address + 2 );
 		break;
 	}
 
