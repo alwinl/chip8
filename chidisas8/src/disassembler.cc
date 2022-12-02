@@ -546,6 +546,41 @@ void Disassembler::disassemble( )
 /*
  * Output section
  */
+void Disassembler::write_listing( std::ostream& os ) const
+{
+    configure_stream( os );
+    write_header( os );
+
+	std::set<Instruction>::iterator instruction_iter = instructions.begin();
+	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
+
+	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
+
+		if( (*instruction_iter).get_address() < (*datarun_iter).get_address() ) {
+			write_label( os, (*instruction_iter).get_address() );
+			write_instruction( os, *instruction_iter );
+			++instruction_iter;
+		} else {
+			write_label( os, (*datarun_iter).get_address() );
+			write_datarun( os, *datarun_iter );
+			++datarun_iter;
+		}
+	}
+
+	// what have we remaining
+	while( instruction_iter != instructions.end() ) {
+		write_label( os, (*instruction_iter).get_address() );
+		write_instruction( os, *instruction_iter );
+		++instruction_iter;
+	}
+
+	while( datarun_iter != databytes.end() ) {
+		write_label( os, (*datarun_iter).get_address() );
+		write_datarun( os, *datarun_iter );
+		++datarun_iter;
+	}
+}
+
 void Disassembler::configure_stream( std::ostream& os ) const
 {
 	os << std::setfill( '0');
@@ -588,39 +623,3 @@ void Disassembler::write_datarun( std::ostream& os, DataBytes datarun ) const
 
 	os << '\n';
 }
-
-void Disassembler::write_listing( std::ostream& os ) const
-{
-    configure_stream( os );
-    write_header( os );
-
-	std::set<Instruction>::iterator instruction_iter = instructions.begin();
-	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
-
-	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
-
-		if( (*instruction_iter).get_address() < (*datarun_iter).get_address() ) {
-			write_label( os, (*instruction_iter).get_address() );
-			write_instruction( os, *instruction_iter );
-			++instruction_iter;
-		} else {
-			write_label( os, (*datarun_iter).get_address() );
-			write_datarun( os, *datarun_iter );
-			++datarun_iter;
-		}
-	}
-
-	// what have we remaining
-	while( instruction_iter != instructions.end() ) {
-		write_label( os, (*instruction_iter).get_address() );
-		write_instruction( os, *instruction_iter );
-		++instruction_iter;
-	}
-
-	while( datarun_iter != databytes.end() ) {
-		write_label( os, (*datarun_iter).get_address() );
-		write_datarun( os, *datarun_iter );
-		++datarun_iter;
-	}
-}
-
