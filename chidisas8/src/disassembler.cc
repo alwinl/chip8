@@ -597,9 +597,9 @@ void Disassembler::output_instruction( std::ostream& os, Instruction inst ) cons
 	std::set<Target>::iterator target_iter;
 
 	if( label_present( target_iter, inst.get_address()) )
-		write_label( os, *target_iter );
+		(*target_iter).print( os );
 
-	write_instruction( os, inst );
+	inst.print( os );
 }
 
 void Disassembler::output_datarun( std::ostream& os, DataBytes datarun ) const
@@ -607,9 +607,9 @@ void Disassembler::output_datarun( std::ostream& os, DataBytes datarun ) const
 	std::set<Target>::iterator target_iter;
 
 	if( label_present( target_iter, datarun.get_address()) )
-		write_label( os, *target_iter );
+		(*target_iter).print( os );
 
-	write_datarun( os, datarun );
+	datarun.print( os );
 }
 
 bool Disassembler::label_present( std::set<Target>::iterator& it, uint16_t address ) const
@@ -619,23 +619,9 @@ bool Disassembler::label_present( std::set<Target>::iterator& it, uint16_t addre
 	return it != jmp_targets.end();
 }
 
-void Disassembler::write_label( std::ostream& os, Target target ) const
-{
-	target.print( os );
-}
-
-void Disassembler::write_instruction( std::ostream& os, Instruction inst ) const
-{
-	inst.print( os );
-}
-
-void Disassembler::write_datarun( std::ostream& os, DataBytes datarun ) const
-{
-	datarun.print( os );
-}
 
 
-void Target::print( std::ostream& os )
+void Target::print( std::ostream& os ) const
 {
 	if( type == eTargetKind::SUBROUTINE )
 		os << '\n';
@@ -643,12 +629,12 @@ void Target::print( std::ostream& os )
 	os << '\t' << label << ":\n";
 }
 
-void Instruction::print( std::ostream& os )
+void Instruction::print( std::ostream& os ) const
 {
 	os << address << "\t\t" << mnemonic << "\t" << argument << "\n";
 }
 
-void DataBytes::print( std::ostream& os )
+void DataBytes::print( std::ostream& os ) const
 {
 	os << address << "\t\t" << ".DB\t";
 

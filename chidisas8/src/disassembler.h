@@ -71,7 +71,7 @@ public:
 	bool operator<( const Instruction& rhs ) const { return address < rhs.address; };
 	bool operator==( const Instruction& rhs ) const { return address == rhs.address; };
 
-	void print( std::ostream& os );
+	void print( std::ostream& os ) const;
 
 private:
 	uint16_t address;
@@ -99,7 +99,7 @@ public:
 	bool operator<( const DataBytes& rhs ) const { return address < rhs.address; };
 	bool operator==( const DataBytes& rhs ) const { return address == rhs.address; };
 
-	void print( std::ostream& os );
+	void print( std::ostream& os ) const;
 
 private:
 	uint16_t address;
@@ -126,7 +126,7 @@ public:
     eTargetKind get_kind() const { return type; }
     std::string get_label() const { return label; }
 
-    void print( std::ostream& os );
+    void print( std::ostream& os ) const;
 
 private:
     uint16_t address;
@@ -204,9 +204,11 @@ private:
 	void output_datarun( std::ostream& os, DataBytes datarun ) const;
 
 	bool label_present( std::set<Target>::iterator& it, uint16_t address ) const;
+/*
 	void write_label( std::ostream& os, Target target ) const;
 	void write_instruction( std::ostream& os, Instruction inst ) const;
 	void write_datarun( std::ostream& os, DataBytes datarun ) const;
+*/
 };
 
 #endif // DISASSEMBLER_H
