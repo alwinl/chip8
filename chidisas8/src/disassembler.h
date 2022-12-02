@@ -65,8 +65,6 @@ public:
 	}
 
 	uint16_t get_address() const { return address; };
-	std::string get_mnemonic() const { return mnemonic; };
-	std::string get_argument() const { return argument; };
 
 	bool operator<( const Instruction& rhs ) const { return address < rhs.address; };
 	bool operator==( const Instruction& rhs ) const { return address == rhs.address; };
@@ -94,7 +92,6 @@ public:
 	}
 
 	uint16_t get_address() const { return address; }
-	std::vector<uint8_t> get_byte_run( ) const { return byte_run; }
 
 	bool operator<( const DataBytes& rhs ) const { return address < rhs.address; };
 	bool operator==( const DataBytes& rhs ) const { return address == rhs.address; };
@@ -122,8 +119,6 @@ public:
     bool operator<( const Target& rhs ) const { return address < rhs.address; }
     bool operator==( const Target& rhs ) const { return address == rhs.address; }
 
-    uint16_t get_address() const { return address; }
-    eTargetKind get_kind() const { return type; }
     std::string get_label() const { return label; }
 
     void print( std::ostream& os ) const;
@@ -204,11 +199,6 @@ private:
 	void output_datarun( std::ostream& os, DataBytes datarun ) const;
 
 	bool label_present( std::set<Target>::iterator& it, uint16_t address ) const;
-/*
-	void write_label( std::ostream& os, Target target ) const;
-	void write_instruction( std::ostream& os, Instruction inst ) const;
-	void write_datarun( std::ostream& os, DataBytes datarun ) const;
-*/
 };
 
 #endif // DISASSEMBLER_H
