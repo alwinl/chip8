@@ -25,8 +25,8 @@
 #include <fstream>
 
 
-Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ )
-	: Stack{}, memory{}, V{}, display(display_), keyboard(keyboard_), timers(timers_), rander(rander_), key_trigger(keyboard_, this)
+Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ )
+	: Stack{}, memory{}, V{}, display(display_), keyboard(keyboard_), timers(timers_), key_trigger(keyboard_, this)
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -219,7 +219,7 @@ void Chip8::RND( uint16_t opcode )		// Cxkk - RND Vx, byte : Set Vx = random byt
 {
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
-	V[reg_x] = rander.get_new_value() & (opcode & 0xFF );
+	V[reg_x] = get_random_value() & (opcode & 0xFF );
 }
 
 void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision

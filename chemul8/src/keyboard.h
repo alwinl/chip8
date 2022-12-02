@@ -33,8 +33,6 @@ class KeyTrigger;
 class Keyboard
 {
 public:
-	Keyboard() {};
-
 	bool is_key_pressed( int key_no );
 	void wait_for_key( );
 	bool executing() const;

@@ -23,17 +23,17 @@
 #define CHIP8_H
 
 #include <iosfwd>
+#include <random>
 
 #include "display.h"
 #include "keyboard.h"
 #include "timers.h"
-#include "randometer.h"
 
 
 class Chip8
 {
 public:
-	Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_, Randometer& rander_ );
+	Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ );
 
 	void load_program( std::istream& is );
 	void execute_instruction();
@@ -69,7 +69,6 @@ private:
 	Display& display;
 	Keyboard& keyboard;
 	Timers& timers;
-	Randometer& rander;
 
 	void vf_reset_quirk();
 	void memory_quirk( int bytes_to_add );
@@ -99,6 +98,14 @@ private:
 	{
 		key_trigger.set_waiting_register( reg );
 		keyboard.wait_for_key( );
+	}
+
+	uint8_t get_random_value()
+	{
+		static std::mt19937 mt{ std::random_device{}() };
+
+		std::uniform_int_distribution<> dist(1,255);
+		return dist( mt );
 	}
 };
 

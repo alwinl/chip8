@@ -39,9 +39,8 @@ int Chemul8::run( int argc, char *argv[] )
 	Display display;
 	Keyboard keyboard;
 	Timers timers;
-	Randometer rander;
 
-	Chip8 device( display, keyboard, timers, rander );
+	Chip8 device( display, keyboard, timers );
 
 	std::ifstream is = std::ifstream( argv[1] );
 	if( !is.good() ) {

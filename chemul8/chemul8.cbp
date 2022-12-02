@@ -62,8 +62,6 @@
 		<Unit filename="src/display.h" />
 		<Unit filename="src/keyboard.cc" />
 		<Unit filename="src/keyboard.h" />
-		<Unit filename="src/randometer.cc" />
-		<Unit filename="src/randometer.h" />
 		<Unit filename="src/timers.cc" />
 		<Unit filename="src/timers.h" />
 		<Unit filename="test_src/chemul8test.cc">
