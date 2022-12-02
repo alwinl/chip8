@@ -71,6 +71,8 @@ public:
 	bool operator<( const Instruction& rhs ) const { return address < rhs.address; };
 	bool operator==( const Instruction& rhs ) const { return address == rhs.address; };
 
+	void print( std::ostream& os );
+
 private:
 	uint16_t address;
 	std::string mnemonic;
@@ -97,6 +99,8 @@ public:
 	bool operator<( const DataBytes& rhs ) const { return address < rhs.address; };
 	bool operator==( const DataBytes& rhs ) const { return address == rhs.address; };
 
+	void print( std::ostream& os );
+
 private:
 	uint16_t address;
 	std::vector<uint8_t> byte_run;
@@ -121,6 +125,8 @@ public:
     uint16_t get_address() const { return address; }
     eTargetKind get_kind() const { return type; }
     std::string get_label() const { return label; }
+
+    void print( std::ostream& os );
 
 private:
     uint16_t address;

@@ -621,22 +621,38 @@ bool Disassembler::label_present( std::set<Target>::iterator& it, uint16_t addre
 
 void Disassembler::write_label( std::ostream& os, Target target ) const
 {
-	if( target.get_kind() == Target::eTargetKind::SUBROUTINE )
-		os << '\n';
-
-	os << '\t' << target.get_label() << ":\n";
+	target.print( os );
 }
 
 void Disassembler::write_instruction( std::ostream& os, Instruction inst ) const
 {
-	os << inst.get_address() << "\t\t" << inst.get_mnemonic() << "\t" << inst.get_argument() << "\n";
+	inst.print( os );
 }
 
 void Disassembler::write_datarun( std::ostream& os, DataBytes datarun ) const
 {
-	os << datarun.get_address() << "\t\t" << ".DB\t";
+	datarun.print( os );
+}
 
-	for( uint8_t byte : datarun.get_byte_run() )
+
+void Target::print( std::ostream& os )
+{
+	if( type == eTargetKind::SUBROUTINE )
+		os << '\n';
+
+	os << '\t' << label << ":\n";
+}
+
+void Instruction::print( std::ostream& os )
+{
+	os << address << "\t\t" << mnemonic << "\t" << argument << "\n";
+}
+
+void DataBytes::print( std::ostream& os )
+{
+	os << address << "\t\t" << ".DB\t";
+
+	for( uint8_t byte : byte_run )
 		os << format_byte( byte ) << " ";
 
 	os << '\n';
