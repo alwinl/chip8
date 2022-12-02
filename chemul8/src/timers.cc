@@ -33,20 +33,24 @@ uint8_t Timers::get_delay_timer( ) const
 
 void Timers::set_sound_timer( uint8_t value )
 {
-	SoundTimer = value;
-	if( value )
-		res.audio( true );
+	new_soundtimer_value = value;
 }
 
-uint8_t Timers::get_sound_timer( ) const
-{
-	return SoundTimer;
-}
-
-void Timers::decrease_timers()
+void Timers::decrease_timers( ResourceLayer& res )
 {
 	if( DelayTimer )
 		--DelayTimer;
+
+	if( new_soundtimer_value != (uint16_t) -1 ) {
+
+		SoundTimer = new_soundtimer_value;
+		new_soundtimer_value =  (uint16_t) -1;
+
+		if( SoundTimer )
+			res.audio( true );
+
+		return;
+	}
 
 	if( SoundTimer ) {
 		--SoundTimer;

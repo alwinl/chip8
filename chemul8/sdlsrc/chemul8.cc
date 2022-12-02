@@ -38,7 +38,7 @@ int Chemul8::run( int argc, char *argv[] )
 
 	Display display;
 	Keyboard keyboard;
-	Timers timers( SDLRef );
+	Timers timers;
 	Randometer rander;
 
 	Chip8 device( display, keyboard, timers, rander );
@@ -57,7 +57,7 @@ int Chemul8::run( int argc, char *argv[] )
 		SDLRef.make_sound();
 
 		if( SDLRef.frame_time() ) {
-			timers.decrease_timers();
+			timers.decrease_timers( SDLRef );
 			display.draw( SDLRef );
 		}
 

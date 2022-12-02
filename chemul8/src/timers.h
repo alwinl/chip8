@@ -27,21 +27,19 @@ class ResourceLayer;
 class Timers
 {
 public:
-    Timers( ResourceLayer& res_init ) : res( res_init) {};
+    Timers() {};
 
     void set_delay_timer( uint8_t value );
     uint8_t get_delay_timer( ) const;
-
     void set_sound_timer( uint8_t value );
-    uint8_t get_sound_timer( ) const;
 
-    void decrease_timers();
+    void decrease_timers( ResourceLayer& res );
 
 private:
-	ResourceLayer& res;
-
 	uint8_t DelayTimer = 0;
 	uint8_t SoundTimer = 0;
+
+	uint16_t new_soundtimer_value = (uint16_t)-1;
 };
 
 #endif // TIMERS_H
