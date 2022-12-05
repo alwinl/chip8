@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,35 +15,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef PROGRAMPARSERTEST_H
+#define PROGRAMPARSERTEST_H
 
-#include <vector>
-#include <istream>
-#include <ostream>
+#include <cppunit/TestFixture.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-#include "instruction.h"
 
-class Program
+class ProgramParserTest : public CppUnit::TestFixture
 {
 public:
-    Program();
-
-    void read_source( std::istream& is );
-
-    void write_binary( std::ostream& os );
-    void write_listing( std::ostream& os );
+    CPPUNIT_TEST_SUITE( ProgramParserTest );
+    CPPUNIT_TEST( TestJP );
+    CPPUNIT_TEST( TestClearScreen );
+    CPPUNIT_TEST_SUITE_END();
 
 private:
-    void add_instruction( Instruction& inst ) { instructions.push_back( inst ); }
-
-    std::vector<Instruction> instructions;
-	std::vector<uint8_t> codes;
-
+	void TestClearScreen();
+	void TestJP();
 };
 
-#endif // PROGRAM_H
+#endif // PROGRAMPARSERTEST_H
