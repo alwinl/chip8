@@ -62,7 +62,7 @@ bool Display::process_byte( uint8_t x, uint8_t y, uint8_t byte_to_draw )
 
 	for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 		if( is_bit_nonzero( byte_to_draw, bit_offset ) )
-			toggle_pixel( x, y, bit_offset );
+			turned_off |= toggle_pixel( x, y, bit_offset );
 	}
 
 	return turned_off;

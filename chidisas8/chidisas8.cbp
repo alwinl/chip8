@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="resources/CHIP8.ROM" />
+				<Option parameters="chip8-test-suite.ch8" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>

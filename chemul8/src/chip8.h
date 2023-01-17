@@ -29,6 +29,19 @@
 #include "keyboard.h"
 #include "timers.h"
 
+class Chip8_KeyTrigger : public KeyTrigger
+{
+public:
+	Chip8_KeyTrigger( Keyboard& keyboard ) : KeyTrigger( keyboard ) {};
+	virtual ~Chip8_KeyTrigger() {};
+
+	void set_waiting_register( uint8_t * reg_loc ) { this->reg_loc = reg_loc; start_waiting(); };
+	virtual void key_captured( uint8_t key_value ) { *reg_loc = key_value; };
+
+private:
+	uint8_t * reg_loc;
+};
+
 
 class Chip8
 {
@@ -39,7 +52,6 @@ public:
 	void execute_instruction();
 
 private:
-
 	uint16_t Stack[16];
 	uint8_t memory[4096];
 	uint8_t V[16];
@@ -47,66 +59,36 @@ private:
 	uint16_t PC = 0x200;
 	uint8_t SP = 0;
 
+	Display& display;
+	Timers& timers;
+	Chip8_KeyTrigger key_trigger;
+
 	const uint16_t font_sprite_base = 0x0100;
 
-	void SYS( uint16_t opcode );		// SYS addr
-	void JP( uint16_t opcode );			// JP address
-	void CALL( uint16_t opcode );		// CALL address
-	void SEI( uint16_t opcode );		// SE Vx, byte
-	void SNI( uint16_t opcode );		// SNE Vx, byte
-	void SER( uint16_t opcode );		// SE Vx, Vy
-	void LD( uint16_t opcode );			// LD, Vx, byte
-	void ADD( uint16_t opcode );		// Add Vx, byte
-	void MathOp( uint16_t opcode );		//
-	void SNE( uint16_t opcode );		// SNE Vx, Vy
-	void LDI( uint16_t opcode );		//0xAddd
-	void JMP( uint16_t opcode );		//0xBddd
-	void RND( uint16_t opcode );		//0xCddd
-	void DRW( uint16_t opcode );		//0xDddd
-	void Key( uint16_t opcode );		//0xEddd
-	void Misc( uint16_t opcode );		//0xFddd
+	void SYS( uint16_t opcode );		// 0x0nnn
+	void JP( uint16_t opcode );			// 0x1nnn
+	void CALL( uint16_t opcode );		// 0x2nnn
+	void SEI( uint16_t opcode );		// 0x3xkk
+	void SNI( uint16_t opcode );		// 0x4xkk
+	void SER( uint16_t opcode );		// 0x5xyk
+	void LD( uint16_t opcode );			// 0x6xkk
+	void ADD( uint16_t opcode );		// 0x7xkk
+	void MathOp( uint16_t opcode );		// 0x8xyn
+	void SNE( uint16_t opcode );		// 0x9xy0
+	void LDI( uint16_t opcode );		// 0xAnnn
+	void JMP( uint16_t opcode );		// 0xBnnn
+	void RND( uint16_t opcode );		// 0xCxkk
+	void DRW( uint16_t opcode );		// 0xDxyn
+	void Key( uint16_t opcode );		// 0xExkk
+	void Misc( uint16_t opcode );		// 0xFxkk
 
-	Display& display;
-	Keyboard& keyboard;
-	Timers& timers;
+	void get_key( uint8_t reg ) { key_trigger.set_waiting_register( &V[reg] ); }
+	bool is_key_pressed( uint8_t reg ) { return key_trigger.is_key_pressed( reg ); }
+
+	uint8_t get_random_value();
 
 	void vf_reset_quirk();
 	void memory_quirk( int bytes_to_add );
-
-	class Chip8_KeyTrigger : KeyTrigger
-	{
-	public:
-		Chip8_KeyTrigger( Keyboard& keyboard_, Chip8 * target_ ) : KeyTrigger( keyboard_ ), target( target_ ) {};
-		virtual ~Chip8_KeyTrigger() {};
-
-		void set_waiting_register( uint8_t reg ) { this->reg = reg; };
-
-		virtual void key_captured( uint8_t key_value ) { target->key_captured( reg, key_value ); };
-
-	private:
-		Chip8 * target;
-		uint8_t reg;
-
-	};
-
-	friend class Chip8_KeyTrigger;
-	void key_captured( uint8_t reg_x, uint8_t key_value )  { V[reg_x] = key_value; }
-
-	Chip8_KeyTrigger key_trigger;
-
-	void get_key( uint8_t reg )
-	{
-		key_trigger.set_waiting_register( reg );
-		keyboard.wait_for_key( );
-	}
-
-	uint8_t get_random_value()
-	{
-		static std::mt19937 mt{ std::random_device{}() };
-
-		std::uniform_int_distribution<> dist(1,255);
-		return dist( mt );
-	}
 };
 
 #endif // CHIP8_H

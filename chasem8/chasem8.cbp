@@ -35,6 +35,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-g" />
 					<Add option="-DTESTING" />
 					<Add directory="src" />
 					<Add directory="test_src" />
@@ -69,6 +70,12 @@
 			<Option target="Test" />
 		</Unit>
 		<Unit filename="test_src/filenameextractortest.h">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/programparsertest.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="test_src/programparsertest.h">
 			<Option target="Test" />
 		</Unit>
 		<Unit filename="test_src/testprogram.cc">

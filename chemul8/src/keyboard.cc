@@ -72,13 +72,3 @@ void Keyboard::process_key( uint8_t key_value )
 		}
 	);
 }
-
-KeyTrigger::KeyTrigger( Keyboard& keyboard )
-{
-	keyboard.add_subcriber( *this );
-}
-
-void Keyboard::add_subcriber( KeyTrigger& new_subscriber )
-{
-	subscribers.push_back( new_subscriber );
-}

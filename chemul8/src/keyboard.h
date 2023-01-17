@@ -37,28 +37,34 @@ public:
 	void wait_for_key( );
 	bool executing() const;
 	void check_key_captured( ResourceLayer& res );
-
-	void add_subcriber( KeyTrigger& new_subscriber );
-	void process_key( uint8_t key_value );
+	void add_subcriber( KeyTrigger& new_subscriber ) { subscribers.push_back( new_subscriber ); }
 
 private:
 	uint16_t keys = 0;
 	uint16_t last_keys = 0;
-
 	bool waiting_on_key = false;
-
 	std::vector<std::reference_wrapper<KeyTrigger>> subscribers;
+
+	void process_key( uint8_t key_value );
 };
 
 class KeyTrigger
 {
 public:
-	KeyTrigger( Keyboard& keyboard );
+	KeyTrigger( Keyboard& keyboard_ ) : keyboard(keyboard_) { keyboard_.add_subcriber( *this ); }
 
 	virtual void key_captured( uint8_t key_value ) = 0;
 
+	bool is_key_pressed( int key_no ) { return keyboard.is_key_pressed( key_no ); };
+
+
 protected:
 	virtual ~KeyTrigger() {};
+	void start_waiting() {
+		keyboard.wait_for_key( );
+	}
+
+	Keyboard& keyboard;
 };
 
 #endif // KEYBOARD_H
