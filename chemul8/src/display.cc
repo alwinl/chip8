@@ -48,9 +48,12 @@ bool Display::set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length
 {
 	bool turned_off = false;
 
-	for( uint16_t byte_offset = 0; byte_offset < length; ++byte_offset ) {
+	x = x % 64;
+	y = y % 32;
+
+	for( uint16_t byte_offset = 0; (byte_offset < length) && (y < 32); ++byte_offset, ++y ) {
 		turned_off |= process_byte( x, y, buffer[byte_offset] );
-		y = (y + 1 ) % 32;
+		//y = (y + 1 ) % 32;
 	}
 
 	return turned_off;
@@ -61,7 +64,7 @@ bool Display::process_byte( uint8_t x, uint8_t y, uint8_t byte_to_draw )
 	bool turned_off = false;
 
 	for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
-		if( is_bit_nonzero( byte_to_draw, bit_offset ) )
+		if( is_bit_nonzero( byte_to_draw, bit_offset ) && ((x + bit_offset) < 64) )
 			turned_off |= toggle_pixel( x, y, bit_offset );
 	}
 
