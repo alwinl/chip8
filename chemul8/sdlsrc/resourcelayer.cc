@@ -33,9 +33,8 @@ InitError::InitError( const std::string & m ) : exception(), msg( m )
 	{}
 
 const char * InitError::what() const noexcept
-{
-	return msg.c_str();
-}
+	{ return msg.c_str(); }
+
 
 
 std::map<SDL_Keycode,uint8_t> mapping = {
@@ -54,7 +53,6 @@ ResourceLayer::ResourceLayer()
 
 	if( SDL_CreateWindowAndRenderer( 640, 320, SDL_WINDOW_SHOWN, &m_window, &m_renderer ) != 0 )
 		throw InitError();
-
 }
 
 ResourceLayer::~ResourceLayer()
@@ -65,37 +63,13 @@ ResourceLayer::~ResourceLayer()
     SDL_Quit();
 }
 
-uint16_t ResourceLayer::check_key_event()
+uint16_t ResourceLayer::check_events()
 {
 	SDL_Event event;
 
 	while( SDL_PollEvent( &event ) ) {
 		try{
-			switch( event.type ) {
-			case SDL_KEYUP: {
-					uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
-
-					if( (keys & mask) != 0 ) {
-						keys &= ~mask;
-						return keys;
-					}
-				}
-				break;
-
-			case SDL_KEYDOWN: {
-					uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
-
-					if( (keys & mask ) == 0 ) {
-						keys |= mask;
-						return keys;
-					}
-				}
-				break;
-
-			case SDL_QUIT:
-				quit = 1;
-				break;
-			}
+			switch_event( event );
 		}
 		catch( std::out_of_range& e ) {
 			// ignore keys we are not interested in
@@ -103,6 +77,31 @@ uint16_t ResourceLayer::check_key_event()
 	}
 
 	return keys;
+}
+
+void ResourceLayer::switch_event( SDL_Event& event )
+{
+	switch( event.type ) {
+	case SDL_KEYUP: {
+			uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
+
+			if( (keys & mask) != 0 )
+				keys &= ~mask;
+		}
+		break;
+
+	case SDL_KEYDOWN: {
+			uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
+
+			if( (keys & mask ) == 0 )
+				keys |= mask;
+		}
+		break;
+
+	case SDL_QUIT:
+		quit = 1;
+		break;
+	}
 }
 
 void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )

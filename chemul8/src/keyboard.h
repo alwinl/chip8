@@ -27,7 +27,6 @@
 #include <vector>
 #include <functional>
 
-class ResourceLayer;
 class KeyTrigger;
 
 class Keyboard
@@ -36,7 +35,7 @@ public:
 	bool is_key_pressed( int key_no );
 	void wait_for_key( );
 	bool executing() const;
-	void check_key_captured( ResourceLayer& res );
+	void check_key_captured( uint16_t new_keys );
 	void add_subcriber( KeyTrigger& new_subscriber ) { subscribers.push_back( new_subscriber ); }
 
 private:

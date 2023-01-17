@@ -30,6 +30,8 @@
 struct SDL_Window;
 struct SDL_Renderer;
 
+union SDL_Event;
+
 
 class InitError : public std::exception
 {
@@ -49,7 +51,7 @@ public:
 	ResourceLayer();
 	virtual ~ResourceLayer();
 
-	uint16_t check_key_event();
+	uint16_t check_events();
 	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
 	void repaint();
 	bool frame_time();
@@ -67,6 +69,9 @@ private:
 
 	uint16_t keys = 0;
 	bool quit = false;
+
+	void switch_event( SDL_Event& event );
+
 };
 
 #endif // RESOURCELAYER_H

@@ -22,8 +22,6 @@
 #include "keyboard.h"
 #include "chip8.h"
 
-#include "resourcelayer.h"
-
 bool Keyboard::is_key_pressed( int key_no )
 {
 	return (keys >> key_no) & 0x01;
@@ -39,9 +37,9 @@ bool Keyboard::executing() const
 	return !waiting_on_key;
 }
 
-void Keyboard::check_key_captured( ResourceLayer& res )
+void Keyboard::check_key_captured( uint16_t new_keys )
 {
-	keys = res.check_key_event();
+	keys = new_keys;
 
 	if( !waiting_on_key )
 		return;

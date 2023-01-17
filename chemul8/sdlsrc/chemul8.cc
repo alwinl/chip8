@@ -60,7 +60,9 @@ int Chemul8::run( int argc, char *argv[] )
 			display.draw( SDLRef );
 		}
 
-		keyboard.check_key_captured( SDLRef );
+		uint16_t keys = SDLRef.check_events();
+
+		keyboard.check_key_captured( keys );
 
 		if( keyboard.executing() )
 			device.execute_instruction();
