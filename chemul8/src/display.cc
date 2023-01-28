@@ -44,6 +44,18 @@ void Display::draw( ResourceLayer& res )
 	res.repaint();
 }
 
+bool Display::toggle_a_pixel( uint8_t x, uint8_t y )
+{
+	uint16_t idx = (x + y * WIDTH) / 8;
+	uint8_t offset = (x + y * WIDTH) % 8;
+
+	bool turned_off = (display_buffer[idx] & (1 << offset));
+
+	display_buffer[idx] ^= (1 << offset);
+
+	return turned_off;
+}
+
 bool Display::set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length )
 {
 	bool turned_off = false;

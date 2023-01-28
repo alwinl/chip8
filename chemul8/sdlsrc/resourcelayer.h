@@ -23,15 +23,12 @@
 #define RESOURCELAYER_H
 
 #include <cstdint>
-#include <cstdlib>
 #include <string>
 #include <exception>
 
 struct SDL_Window;
 struct SDL_Renderer;
-
 union SDL_Event;
-
 
 class InitError : public std::exception
 {
@@ -43,7 +40,6 @@ public:
 private:
     std::string msg;
 };
-
 
 class ResourceLayer
 {
@@ -70,8 +66,7 @@ private:
 	uint16_t keys = 0;
 	bool quit = false;
 
-	void switch_event( SDL_Event& event );
-
+	bool switch_event( SDL_Event& event );
 };
 
 #endif // RESOURCELAYER_H

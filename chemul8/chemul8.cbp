@@ -51,6 +51,10 @@
 		<Linker>
 			<Add option="`sdl2-config --libs`" />
 		</Linker>
+		<Unit filename="chip8-test-suite.ch8">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="main.cc" />
 		<Unit filename="sdlsrc/chemul8.cc" />
 		<Unit filename="sdlsrc/chemul8.h" />

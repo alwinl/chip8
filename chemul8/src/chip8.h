@@ -22,26 +22,12 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+#include <cstdint>
 #include <iosfwd>
-#include <random>
 
-#include "display.h"
-#include "keyboard.h"
-#include "timers.h"
-
-class Chip8_KeyTrigger : public KeyTrigger
-{
-public:
-	Chip8_KeyTrigger( Keyboard& keyboard ) : KeyTrigger( keyboard ) {};
-	virtual ~Chip8_KeyTrigger() {};
-
-	void set_waiting_register( uint8_t * reg_loc ) { this->reg_loc = reg_loc; start_waiting(); };
-	virtual void key_captured( uint8_t key_value ) { *reg_loc = key_value; };
-
-private:
-	uint8_t * reg_loc;
-};
-
+class Display;
+class Keyboard;
+class Timers;
 
 class Chip8
 {
@@ -60,8 +46,8 @@ private:
 	uint8_t SP = 0;
 
 	Display& display;
+	Keyboard& keyboard;
 	Timers& timers;
-	Chip8_KeyTrigger key_trigger;
 
 	const uint16_t font_sprite_base = 0x0100;
 
@@ -81,9 +67,6 @@ private:
 	void DRW( uint16_t opcode );		// 0xDxyn
 	void Key( uint16_t opcode );		// 0xExkk
 	void Misc( uint16_t opcode );		// 0xFxkk
-
-	void get_key( uint8_t reg ) { key_trigger.set_waiting_register( &V[reg] ); }
-	bool is_key_pressed( uint8_t reg ) { return key_trigger.is_key_pressed( reg ); }
 
 	uint8_t get_random_value();
 

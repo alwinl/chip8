@@ -23,10 +23,15 @@
 
 #include <iostream>
 #include <fstream>
+#include <functional>
+#include <random>
 
+#include "display.h"
+#include "keyboard.h"
+#include "timers.h"
 
 Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ )
-	: Stack{}, memory{}, V{}, display(display_), timers(timers_), key_trigger(keyboard_)
+	: Stack{}, memory{}, V{}, display(display_), keyboard(keyboard_), timers(timers_)
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -87,7 +92,6 @@ void Chip8::execute_instruction()
 	}
 }
 
-
 void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code routine at nnn.
 {
 	switch( opcode & 0xFFF ) {
@@ -101,6 +105,7 @@ void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code r
 		break;
 	}
 }
+
 void Chip8::JP( uint16_t opcode )		// 1nnn - JP addr : Jump to location nnn.
 {
 	PC = opcode & 0xFFF;
@@ -245,7 +250,36 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 	uint8_t reg_y = (opcode >> 4) & 0xF;
 
+#if 0
+/*
+	@TODO: The clipping quirk necessitates that we pull most of the
+
+	https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
+ */
+	uint8_t x = V[reg_x] % 64;
+	uint8_t y = V[reg_y] % 32;
+
+	V[0xF] = 0;
+
+	for( uint8_t row = 0; row < (opcode & 0xF); ++row ) {
+
+		uint8_t sprite_byte = memory[I + row];
+
+		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
+			if( sprite_byte  & (1 << (7-bit_offset) ) ) {
+				V[0x0F] |= display.toggle_a_pixel( x, y );
+				++x;
+				if( x == 64 )
+					break;
+			}
+			++y;
+			if( y == 32 )
+				break;
+		}
+	}
+#else
 	V[0xF] = display.set_pixels( V[reg_x], V[reg_y], &memory[I], opcode & 0xF ) ? 1 : 0;
+#endif // 0
 }
 
 void Chip8::Key( uint16_t opcode )		//0xExkk
@@ -255,12 +289,12 @@ void Chip8::Key( uint16_t opcode )		//0xExkk
 	switch( opcode & 0xFF ) {
 	/* opcodes 0x00 .. 0x9D not defined */
 	case 0x9E:								// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		if( is_key_pressed( V[reg_x] ) )
+		if( keyboard.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
 	/* opcodes 0x9F .. 0xA0 not defined */
 	case 0xA1:								// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		if( ! is_key_pressed( V[reg_x] ) )
+		if( ! keyboard.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
 	/* opcodes 0xA2 .. 0xFF not defined */
@@ -277,7 +311,17 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 	/* opcodes 0x00 .. 0x06 not defined */
 	case 0x07: V[reg_x] = timers.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
 	/* opcodes 0x08 .. 0x09 not defined */
-	case 0x0A: get_key( reg_x ); break;						// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
+	case 0x0A:
+		{
+			uint8_t key_no = keyboard.which_key_captured();
+			if( key_no != (uint8_t)-1 )
+				V[reg_x] = key_no;
+			else
+				PC -= 2;
+		}
+		break;
+
+		//get_key( reg_x ); break;						// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 	/* opcodes 0x0B .. 0x1 not defined */
 	case 0x15: timers.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
 	/* opcodes 0x16 and 0x17 not defined */

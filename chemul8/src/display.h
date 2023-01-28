@@ -35,6 +35,8 @@ public:
     bool set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length );
     void draw( ResourceLayer& res );
 
+    bool toggle_a_pixel( uint8_t x, uint8_t y );
+
 private:
 	static const uint8_t WIDTH = 64;
 	static const uint8_t HEIGHT = 32;

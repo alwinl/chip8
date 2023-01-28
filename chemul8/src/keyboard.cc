@@ -20,53 +20,30 @@
  */
 
 #include "keyboard.h"
-#include "chip8.h"
+
+void Keyboard::set_keys_state( uint16_t new_keys )
+{
+	keys = new_keys;
+}
 
 bool Keyboard::is_key_pressed( int key_no )
 {
 	return (keys >> key_no) & 0x01;
 }
 
-void Keyboard::wait_for_key()
+uint8_t Keyboard::which_key_captured( )
 {
-	waiting_on_key = true;
-}
-
-bool Keyboard::executing() const
-{
-	return !waiting_on_key;
-}
-
-void Keyboard::check_key_captured( uint16_t new_keys )
-{
-	keys = new_keys;
-
-	if( !waiting_on_key )
-		return;
-
 	uint16_t key_changes = keys ^ last_keys;
 
 	if( ! key_changes )
-		return;
+		return (uint8_t) -1;
 
 	last_keys = keys;
 
 	for( int key_no = 0; key_no < 16; ++key_no )
-		if( (key_changes >> key_no) & 0x01 ) {
-			if( !( (keys >> key_no) & 0x01 ) )  {
-				process_key( key_no );
-				waiting_on_key = false;
-				return;
-			}
-		}
+		if( ( (key_changes >> key_no) & 0x01 ) && ( !( (keys >> key_no) & 0x01 ) ) )
+			return key_no;
+
+	return (uint8_t) -1;
 }
 
-void Keyboard::process_key( uint8_t key_value )
-{
-	for_each( subscribers.begin(), subscribers.end(),
-		[key_value]( std::reference_wrapper<KeyTrigger>& subscriber )
-		{
-			subscriber.get().key_captured( key_value );
-		}
-	);
-}

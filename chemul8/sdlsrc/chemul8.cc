@@ -25,6 +25,10 @@
 #include "chemul8.h"
 
 #include "resourcelayer.h"
+#include "display.h"
+#include "keyboard.h"
+#include "timers.h"
+
 #include "chip8.h"
 
 int Chemul8::run( int argc, char *argv[] )
@@ -62,10 +66,9 @@ int Chemul8::run( int argc, char *argv[] )
 
 		uint16_t keys = SDLRef.check_events();
 
-		keyboard.check_key_captured( keys );
+		keyboard.set_keys_state( keys );
 
-		if( keyboard.executing() )
-			device.execute_instruction();
+		device.execute_instruction();
 	}
 
 
