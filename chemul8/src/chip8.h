@@ -38,6 +38,8 @@ public:
 	void load_program( std::istream& is );
 	void execute_instruction();
 
+	void set_int_state( bool on ) { int_set = on; }
+
 private:
 	uint16_t Stack[16];
 	uint8_t memory[4096];
@@ -51,6 +53,7 @@ private:
 	Timers& timers;
 
 	const uint16_t font_sprite_base = 0x0100;
+	bool int_set;
 
 	void SYS( uint16_t opcode );		// 0x0nnn
 	void JP( uint16_t opcode );			// 0x1nnn

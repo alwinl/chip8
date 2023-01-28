@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "chemul8.h"
 
@@ -30,6 +31,8 @@
 #include "timers.h"
 
 #include "chip8.h"
+
+using namespace std::chrono;
 
 int Chemul8::run( int argc, char *argv[] )
 {
@@ -54,12 +57,20 @@ int Chemul8::run( int argc, char *argv[] )
 
 	device.load_program( is );
 
+	auto last_time = system_clock::now();
+	bool interrupt = false;
 
 	while( !SDLRef.do_quit() ) {
 
+		if( duration<double,std::milli>(system_clock::now() - last_time ).count() > 16 ) {
+			interrupt = true;
+			device.set_int_state( true );
+			last_time = system_clock::now();
+		}
+
 		SDLRef.make_sound();
 
-		if( SDLRef.frame_time() )
+		if( interrupt )
 			timers.decrease_timers( SDLRef );
 
 		display.draw( SDLRef );
@@ -69,6 +80,11 @@ int Chemul8::run( int argc, char *argv[] )
 		keyboard.set_keys_state( keys );
 
 		device.execute_instruction();
+
+		if( interrupt ) {
+			interrupt = false;
+			device.set_int_state( false );
+		}
 	}
 
 
