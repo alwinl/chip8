@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <map>
 
 class Display;
 class Keyboard;
@@ -54,6 +55,10 @@ private:
 
 	const uint16_t font_sprite_base = 0x0100;
 	bool int_set;
+
+	typedef void (Chip8::*FN_DISP)( uint16_t );
+	std::map<uint8_t,FN_DISP> dispatchers;
+
 
 	void SYS( uint16_t opcode );		// 0x0nnn
 	void JP( uint16_t opcode );			// 0x1nnn

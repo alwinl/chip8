@@ -54,6 +54,23 @@ Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ )
 
 	//load the font in memory
 	std::copy_n( &font[0], sizeof(font), &memory[font_sprite_base] );
+
+	dispatchers.insert( std::make_pair(0x00, &Chip8::SYS) );
+	dispatchers.insert( std::make_pair(0x01, &Chip8::JP) );
+	dispatchers.insert( std::make_pair(0x02, &Chip8::CALL) );
+	dispatchers.insert( std::make_pair(0x03, &Chip8::SEI) );
+	dispatchers.insert( std::make_pair(0x04, &Chip8::SNI) );
+	dispatchers.insert( std::make_pair(0x05, &Chip8::SER) );
+	dispatchers.insert( std::make_pair(0x06, &Chip8::LD) );
+	dispatchers.insert( std::make_pair(0x07, &Chip8::ADD) );
+	dispatchers.insert( std::make_pair(0x08, &Chip8::MathOp) );
+	dispatchers.insert( std::make_pair(0x09, &Chip8::SNE) );
+	dispatchers.insert( std::make_pair(0x0A, &Chip8::LDI) );
+	dispatchers.insert( std::make_pair(0x0B, &Chip8::JMP) );
+	dispatchers.insert( std::make_pair(0x0C, &Chip8::RND) );
+	dispatchers.insert( std::make_pair(0x0D, &Chip8::DRW) );
+	dispatchers.insert( std::make_pair(0x0E, &Chip8::Key) );
+	dispatchers.insert( std::make_pair(0x0F, &Chip8::Misc) );
 }
 
 void Chip8::load_program( std::istream& is )
@@ -72,24 +89,8 @@ void Chip8::execute_instruction()
 
 	PC += 2;
 
-	switch( opcode >> 12 ) {
-	case 0x0: SYS( opcode ); break;
-	case 0x1: JP( opcode ); break;
-	case 0x2: CALL( opcode ); break;
-	case 0x3: SEI( opcode ); break;
-	case 0x4: SNI( opcode ); break;
-	case 0x5: SER( opcode ); break;
-	case 0x6: LD( opcode ); break;
-	case 0x7: ADD( opcode ); break;
-	case 0x8: MathOp( opcode ); break;
-	case 0x9: SNE( opcode ); break;
-	case 0xA: LDI( opcode ); break;
-	case 0xB: JMP( opcode ); break;
-	case 0xC: RND( opcode ); break;
-	case 0xD: DRW( opcode ); break;
-	case 0xE: Key( opcode ); break;
-	case 0xF: Misc( opcode ); break;
-	}
+	FN_DISP fp = dispatchers.at(opcode >> 12);
+	(this->*fp)( opcode );
 }
 
 void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code routine at nnn.
