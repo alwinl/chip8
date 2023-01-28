@@ -59,10 +59,10 @@ int Chemul8::run( int argc, char *argv[] )
 
 		SDLRef.make_sound();
 
-		if( SDLRef.frame_time() ) {
+		if( SDLRef.frame_time() )
 			timers.decrease_timers( SDLRef );
-			display.draw( SDLRef );
-		}
+
+		display.draw( SDLRef );
 
 		uint16_t keys = SDLRef.check_events();
 

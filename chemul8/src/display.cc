@@ -21,6 +21,9 @@
 
 #include "display.h"
 
+#include <chrono>
+#include <thread>
+
 #include "resourcelayer.h"
 
 Display::Display()
@@ -54,4 +57,11 @@ bool Display::toggle_a_pixel( uint8_t x, uint8_t y )
 	display_buffer[idx] ^= (1 << offset);
 
 	return turned_off;
+}
+
+void Display::wait_for_interrupt()
+{
+	/* should actually be triggered by an interrupt, also 17ms is 60FPS */
+	std::this_thread::sleep_for(std::chrono::milliseconds(17));
+
 }

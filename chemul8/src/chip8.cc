@@ -253,6 +253,8 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 	V[0xF] = 0;
 	uint8_t y = V[reg_y] % 32;
 
+	display.wait_for_interrupt();
+
 	for( uint8_t row = 0; row < (opcode & 0xF); ++row ) {
 
 		uint8_t sprite_byte = memory[I + row];
