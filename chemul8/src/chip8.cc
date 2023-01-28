@@ -250,36 +250,26 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 	uint8_t reg_y = (opcode >> 4) & 0xF;
 
-#if 0
-/*
-	@TODO: The clipping quirk necessitates that we pull most of the
-
-	https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
- */
-	uint8_t x = V[reg_x] % 64;
-	uint8_t y = V[reg_y] % 32;
-
 	V[0xF] = 0;
+	uint8_t y = V[reg_y] % 32;
 
 	for( uint8_t row = 0; row < (opcode & 0xF); ++row ) {
 
 		uint8_t sprite_byte = memory[I + row];
+		uint8_t x = V[reg_x] % 64;
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
-			if( sprite_byte  & (1 << (7-bit_offset) ) ) {
+			if( sprite_byte & (1 << (7-bit_offset) ) )
 				V[0x0F] |= display.toggle_a_pixel( x, y );
-				++x;
-				if( x == 64 )
-					break;
-			}
-			++y;
-			if( y == 32 )
+
+			++x;
+			if( x == 64 )
 				break;
 		}
+		++y;
+		if( y == 32 )
+			break;
 	}
-#else
-	V[0xF] = display.set_pixels( V[reg_x], V[reg_y], &memory[I], opcode & 0xF ) ? 1 : 0;
-#endif // 0
 }
 
 void Chip8::Key( uint16_t opcode )		//0xExkk

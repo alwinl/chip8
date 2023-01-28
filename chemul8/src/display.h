@@ -32,7 +32,6 @@ public:
     Display();
 
     void clear_screen();
-    bool set_pixels( uint8_t x, uint8_t y, uint8_t * buffer, uint8_t length );
     void draw( ResourceLayer& res );
 
     bool toggle_a_pixel( uint8_t x, uint8_t y );
@@ -42,10 +41,6 @@ private:
 	static const uint8_t HEIGHT = 32;
 
     uint8_t display_buffer[ WIDTH * HEIGHT / 8 ];
-
-	bool process_byte( uint8_t x, uint8_t y, uint8_t byte_to_draw );
-	bool is_bit_nonzero( uint8_t byte_to_draw, uint8_t bit_offset );
-	bool toggle_pixel( uint8_t x, uint8_t y, uint8_t bit_offset );
 };
 
 #endif // DISPLAY_H
