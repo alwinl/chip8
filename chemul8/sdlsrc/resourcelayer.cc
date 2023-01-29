@@ -28,16 +28,7 @@
 #include <chrono>
 #include <thread>
 
-InitError::InitError() : exception(), msg( SDL_GetError() )
-	{}
-
-InitError::InitError( const std::string & m ) : exception(), msg( m )
-	{}
-
-const char * InitError::what() const noexcept
-	{ return msg.c_str(); }
-
-
+#include <stdexcept>
 
 std::map<SDL_Keycode,uint8_t> mapping = {
 	{SDLK_0, 0x00},	{SDLK_1, 0x01},	{SDLK_2, 0x02},	{SDLK_3, 0x03},
@@ -46,38 +37,63 @@ std::map<SDL_Keycode,uint8_t> mapping = {
 	{SDLK_c, 0x0C},	{SDLK_d, 0x0D},	{SDLK_e, 0x0E},	{SDLK_f, 0x0F}
 };
 
+/*
+SDL_AudioDeviceID audio_id;
 
+void AudioCallback( void * userdata, Uint8* stream, int len )
+{
 
+}
+*/
 ResourceLayer::ResourceLayer()
 {
-	if( SDL_Init(  SDL_INIT_VIDEO | SDL_INIT_TIMER  ) != 0 )
-		throw InitError();
+	if( SDL_Init(  SDL_INIT_VIDEO | SDL_INIT_TIMER | (uint32_t)-1  ) != 0 )
+		throw std::runtime_error( SDL_GetError() );
 
 	if( SDL_CreateWindowAndRenderer( 640, 320, SDL_WINDOW_SHOWN, &m_window, &m_renderer ) != 0 )
-		throw InitError();
+		throw std::runtime_error( SDL_GetError() );
+
+/*
+	SDL_AudioSpec desired = {
+		.freq = 48000,
+		.format = AUDIO_F32,
+		.channels = 2,
+		.samples = 4096,
+		.callback = AudioCallback;  // you wrote this function elsewhere.
+	};
+
+	SDL_AudioSpec obtained = {};
+
+	audio_id = SDL_OpenAudioDevice( NULL, 0, &desired, &obtained, 0 );
+	if( audio_id == 0 )
+		throw std::runtime_error( SDL_GetError() );
+*/
 }
 
 ResourceLayer::~ResourceLayer()
 {
+	//SDL_CloseAudioDevice( audio_id );
+
     SDL_DestroyWindow( m_window );
     SDL_DestroyRenderer( m_renderer );
 
     SDL_Quit();
 }
 
-uint16_t ResourceLayer::check_events()
+ResourceLayer::Events ResourceLayer::check_events( uint16_t& keys )
 {
 	SDL_Event event;
+	Events the_event = Events::NO_EVENT;
 
 	while( SDL_PollEvent( &event ) ) {
-		if( switch_event( event ) )
+		if( switch_event( event, keys, the_event ) )
 			break;
 	}
 
-	return keys;
+	return the_event;
 }
 
-bool ResourceLayer::switch_event( SDL_Event& event )
+bool ResourceLayer::switch_event( SDL_Event& event, uint16_t& keys, ResourceLayer::Events& the_event )
 {
 	switch( event.type ) {
 	case SDL_KEYUP:
@@ -96,6 +112,15 @@ bool ResourceLayer::switch_event( SDL_Event& event )
 
 	case SDL_KEYDOWN:
 		try {
+			if( event.key.keysym.sym == SDLK_ESCAPE ) {
+				the_event = Events::QUIT_EVENT;
+				return true;
+			}
+			if( event.key.keysym.sym == SDLK_F1 ) {
+				the_event = Events::RESTART_EVENT;
+				return true;
+			}
+
 			uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
 
 			if( (keys & mask ) == 0 ) {
@@ -109,7 +134,7 @@ bool ResourceLayer::switch_event( SDL_Event& event )
 		break;
 
 	case SDL_QUIT:
-		quit = 1;
+		the_event = Events::QUIT_EVENT;
 		return true;
 	}
 
@@ -128,13 +153,17 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 	SDL_RenderFillRect( m_renderer, &pixel_loc );
 }
 
-void ResourceLayer::repaint()
+void ResourceLayer::draw_buffer( uint8_t *buffer, uint16_t total_pixels )
 {
+	for( uint16_t pixel = 0; pixel < total_pixels; ++ pixel )
+		draw_pixel( pixel % 64, pixel / 64, (buffer[pixel / 8] >> (pixel%8)) & 0x01 );
+
     SDL_RenderPresent( m_renderer );
 }
 
+/// @TODO
 void ResourceLayer::make_sound()
 {
-	if( audio_on)
-		std::cout << '\a';
+	//if( audio_on)
+//		std::cout << '\a';
 }

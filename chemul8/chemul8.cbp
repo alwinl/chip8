@@ -9,7 +9,7 @@
 			<Target title="Debug">
 				<Option output="bin/Debug/chemul8" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
-				<Option type="1" />
+				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option parameters="chip8-test-suite.ch8" />
 				<Compiler>
@@ -62,12 +62,6 @@
 		<Unit filename="sdlsrc/resourcelayer.h" />
 		<Unit filename="src/chip8.cc" />
 		<Unit filename="src/chip8.h" />
-		<Unit filename="src/display.cc" />
-		<Unit filename="src/display.h" />
-		<Unit filename="src/keyboard.cc" />
-		<Unit filename="src/keyboard.h" />
-		<Unit filename="src/timers.cc" />
-		<Unit filename="src/timers.h" />
 		<Unit filename="test_src/chemul8test.cc">
 			<Option target="Test" />
 		</Unit>

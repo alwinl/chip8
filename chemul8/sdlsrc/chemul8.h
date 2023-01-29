@@ -22,10 +22,33 @@
 #ifndef CHEMUL8_H
 #define CHEMUL8_H
 
+#include <cstdint>
+
+class ResourceLayer;
+
 class Chemul8
 {
 public:
 	int run( int argc, char *argv[] );
+
+    void clear_screen();
+    bool toggle_a_pixel( uint8_t x, uint8_t y );
+	bool is_key_pressed( uint8_t key_no );
+	bool key_captured( uint8_t& key_no );
+    void set_delay_timer( uint8_t value );
+    void set_sound_timer( uint8_t value );
+    uint8_t get_delay_timer( ) const;
+
+private:
+	static const uint8_t WIDTH = 64;
+	static const uint8_t HEIGHT = 32;
+    uint8_t display_buffer[ WIDTH * HEIGHT / 8 ];
+
+	uint16_t keys = 0;
+	uint16_t last_keys = 0;
+
+	uint8_t DelayTimer = 0;
+	uint8_t SoundTimer = 0;
 };
 
 #endif // CHEMUL8_H

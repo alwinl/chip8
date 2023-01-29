@@ -26,13 +26,38 @@
 #include <functional>
 #include <random>
 
-#include "display.h"
-#include "keyboard.h"
-#include "timers.h"
+#include "chemul8.h"
 
-Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ )
-	: Stack{}, memory{}, V{}, display(display_), keyboard(keyboard_), timers(timers_)
+Chip8::Chip8( Chemul8& hardware_ ) : hardware(hardware_)
 {
+	dispatchers.insert( std::make_pair(0x00, &Chip8::SYS) );
+	dispatchers.insert( std::make_pair(0x01, &Chip8::JP) );
+	dispatchers.insert( std::make_pair(0x02, &Chip8::CALL) );
+	dispatchers.insert( std::make_pair(0x03, &Chip8::SEI) );
+	dispatchers.insert( std::make_pair(0x04, &Chip8::SNI) );
+	dispatchers.insert( std::make_pair(0x05, &Chip8::SER) );
+	dispatchers.insert( std::make_pair(0x06, &Chip8::LD) );
+	dispatchers.insert( std::make_pair(0x07, &Chip8::ADD) );
+	dispatchers.insert( std::make_pair(0x08, &Chip8::MathOp) );
+	dispatchers.insert( std::make_pair(0x09, &Chip8::SNE) );
+	dispatchers.insert( std::make_pair(0x0A, &Chip8::LDI) );
+	dispatchers.insert( std::make_pair(0x0B, &Chip8::JMP) );
+	dispatchers.insert( std::make_pair(0x0C, &Chip8::RND) );
+	dispatchers.insert( std::make_pair(0x0D, &Chip8::DRW) );
+	dispatchers.insert( std::make_pair(0x0E, &Chip8::Key) );
+	dispatchers.insert( std::make_pair(0x0F, &Chip8::Misc) );
+}
+
+void Chip8::load_program( std::istream& is )
+{
+	// reset the stack, registers, program counter, stack pointer and memory
+	std::fill( std::begin(Stack), std::end(Stack), 0 );
+	std::fill( std::begin(V), std::end(V), 0 );
+	I = 0;
+	PC = 0x200;
+	SP = 0;
+	std::fill( std::begin(memory), std::end(memory), 0 );
+
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
 		/* 1 */ 0x20, 0x60, 0x20, 0x20, 0x70,
@@ -55,26 +80,6 @@ Chip8::Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ )
 	//load the font in memory
 	std::copy_n( &font[0], sizeof(font), &memory[font_sprite_base] );
 
-	dispatchers.insert( std::make_pair(0x00, &Chip8::SYS) );
-	dispatchers.insert( std::make_pair(0x01, &Chip8::JP) );
-	dispatchers.insert( std::make_pair(0x02, &Chip8::CALL) );
-	dispatchers.insert( std::make_pair(0x03, &Chip8::SEI) );
-	dispatchers.insert( std::make_pair(0x04, &Chip8::SNI) );
-	dispatchers.insert( std::make_pair(0x05, &Chip8::SER) );
-	dispatchers.insert( std::make_pair(0x06, &Chip8::LD) );
-	dispatchers.insert( std::make_pair(0x07, &Chip8::ADD) );
-	dispatchers.insert( std::make_pair(0x08, &Chip8::MathOp) );
-	dispatchers.insert( std::make_pair(0x09, &Chip8::SNE) );
-	dispatchers.insert( std::make_pair(0x0A, &Chip8::LDI) );
-	dispatchers.insert( std::make_pair(0x0B, &Chip8::JMP) );
-	dispatchers.insert( std::make_pair(0x0C, &Chip8::RND) );
-	dispatchers.insert( std::make_pair(0x0D, &Chip8::DRW) );
-	dispatchers.insert( std::make_pair(0x0E, &Chip8::Key) );
-	dispatchers.insert( std::make_pair(0x0F, &Chip8::Misc) );
-}
-
-void Chip8::load_program( std::istream& is )
-{
 	uint8_t ch =  is.get();
 
 	for( uint16_t address = 0x200; is.good(); ++address ) {
@@ -97,7 +102,7 @@ void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code r
 {
 	switch( opcode & 0xFFF ) {
 	case 0x0E0:							// CLS : clear screen
-		display.clear_screen();
+		hardware.clear_screen();
 		break;
 	case 0x0EE:							// RET : return from subroutine
 		PC = Stack[SP--];
@@ -266,7 +271,7 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 			if( sprite_byte & (1 << (7-bit_offset) ) )
-				V[0x0F] |= display.toggle_a_pixel( x, y );
+				V[0x0F] |= hardware.toggle_a_pixel( x, y );
 
 			++x;
 			if( x == 64 )
@@ -285,12 +290,12 @@ void Chip8::Key( uint16_t opcode )		//0xExkk
 	switch( opcode & 0xFF ) {
 	/* opcodes 0x00 .. 0x9D not defined */
 	case 0x9E:								// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		if( keyboard.is_key_pressed( V[reg_x] ) )
+		if( hardware.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
 	/* opcodes 0x9F .. 0xA0 not defined */
 	case 0xA1:								// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		if( ! keyboard.is_key_pressed( V[reg_x] ) )
+		if( ! hardware.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
 	/* opcodes 0xA2 .. 0xFF not defined */
@@ -305,12 +310,12 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 
 	switch( opcode & 0xFF ) {
 	/* opcodes 0x00 .. 0x06 not defined */
-	case 0x07: V[reg_x] = timers.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
+	case 0x07: V[reg_x] = hardware.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
 	/* opcodes 0x08 .. 0x09 not defined */
 	case 0x0A:
 		{
-			uint8_t key_no = keyboard.which_key_captured();
-			if( key_no != (uint8_t)-1 )
+			uint8_t key_no;
+			if( hardware.key_captured( key_no ) )
 				V[reg_x] = key_no;
 			else
 				PC -= 2;
@@ -319,9 +324,9 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 
 		//get_key( reg_x ); break;						// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 	/* opcodes 0x0B .. 0x1 not defined */
-	case 0x15: timers.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
+	case 0x15: hardware.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
 	/* opcodes 0x16 and 0x17 not defined */
-	case 0x18: timers.set_sound_timer( V[reg_x] ); break;	// Fx18 - LD ST, Vx : Set sound timer = Vx.
+	case 0x18: hardware.set_sound_timer( V[reg_x] ); break;	// Fx18 - LD ST, Vx : Set sound timer = Vx.
 	/* opcodes 0x19 .. 0x1D not defined */
 	case 0x1E: I += V[reg_x]; break;						// Fx1E - ADD I, Vx : Set I = I + Vx
 	/* opcodes 0x1F .. 0x28 not defined */

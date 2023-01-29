@@ -23,49 +23,29 @@
 #define RESOURCELAYER_H
 
 #include <cstdint>
-#include <string>
-#include <exception>
 
 struct SDL_Window;
 struct SDL_Renderer;
 union SDL_Event;
 
-class InitError : public std::exception
-{
-public:
-    InitError();
-    InitError( const std::string & m );
-    virtual const char * what() const noexcept;
-
-private:
-    std::string msg;
-};
-
 class ResourceLayer
 {
 public:
+	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
+
 	ResourceLayer();
 	virtual ~ResourceLayer();
 
-	uint16_t check_events();
-	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
-	void repaint();
-	bool frame_time();
 	void make_sound();
-
-	bool do_quit() { return quit; }
-	void audio( bool on ) { audio_on = on; };
+	void draw_buffer( uint8_t *buffer, uint16_t total_pixels );
+	Events check_events( uint16_t& keys );
 
 private:
     SDL_Window * m_window;
     SDL_Renderer * m_renderer;
 
-    bool audio_on = 0;
-
-	uint16_t keys = 0;
-	bool quit = false;
-
-	bool switch_event( SDL_Event& event );
+	bool switch_event( SDL_Event& event, uint16_t& keys, ResourceLayer::Events& the_event );
+	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
 };
 
 #endif // RESOURCELAYER_H

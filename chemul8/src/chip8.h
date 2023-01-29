@@ -27,14 +27,12 @@
 #include <iosfwd>
 #include <map>
 
-class Display;
-class Keyboard;
-class Timers;
+class Chemul8;
 
 class Chip8
 {
 public:
-	Chip8( Display& display_, Keyboard& keyboard_, Timers& timers_ );
+	Chip8( Chemul8& hardware_ );
 
 	void load_program( std::istream& is );
 	void execute_instruction();
@@ -49,9 +47,7 @@ private:
 	uint16_t PC = 0x200;
 	uint8_t SP = 0;
 
-	Display& display;
-	Keyboard& keyboard;
-	Timers& timers;
+	Chemul8& hardware;
 
 	const uint16_t font_sprite_base = 0x0100;
 	bool int_set;
