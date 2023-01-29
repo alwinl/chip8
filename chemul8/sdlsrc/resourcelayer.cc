@@ -70,13 +70,8 @@ uint16_t ResourceLayer::check_events()
 	SDL_Event event;
 
 	while( SDL_PollEvent( &event ) ) {
-		try{
-			if( switch_event( event ) )
-				return keys;
-		}
-		catch( std::out_of_range& e ) {
-			// ignore keys we are not interested in
-		}
+		if( switch_event( event ) )
+			break;
 	}
 
 	return keys;
@@ -85,7 +80,8 @@ uint16_t ResourceLayer::check_events()
 bool ResourceLayer::switch_event( SDL_Event& event )
 {
 	switch( event.type ) {
-	case SDL_KEYUP: {
+	case SDL_KEYUP:
+		try {
 			uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
 
 			if( (keys & mask) != 0 ) {
@@ -93,9 +89,13 @@ bool ResourceLayer::switch_event( SDL_Event& event )
 				return true;
 			}
 		}
+		catch( std::out_of_range& e ) {
+			// ignore keys we are not interested in
+		}
 		break;
 
-	case SDL_KEYDOWN: {
+	case SDL_KEYDOWN:
+		try {
 			uint16_t mask = (1 << mapping.at(event.key.keysym.sym) );
 
 			if( (keys & mask ) == 0 ) {
@@ -103,11 +103,14 @@ bool ResourceLayer::switch_event( SDL_Event& event )
 				return true;
 			}
 		}
+		catch( std::out_of_range& e ) {
+			// ignore keys we are not interested in
+		}
 		break;
 
 	case SDL_QUIT:
 		quit = 1;
-		break;
+		return true;
 	}
 
 	return false;
@@ -128,29 +131,6 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 void ResourceLayer::repaint()
 {
     SDL_RenderPresent( m_renderer );
-}
-
-bool ResourceLayer::frame_time()
-{
-#if 1
-	using namespace std::chrono;
-
-	static auto last_time = system_clock::now();
-
-	if( duration<double,std::milli>(system_clock::now() - last_time ).count() < 16 )
-		return false;
-
-	last_time = system_clock::now();
-	return true;
-
-#else
-	if( SDL_GetTicks64() <  mark_time + 17 )							// running at 60 FPS which is 16.6 ms
-		return false;
-
-	mark_time = SDL_GetTicks64();
-
-	return true;
-#endif // 1
 }
 
 void ResourceLayer::make_sound()

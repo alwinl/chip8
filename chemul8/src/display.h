@@ -35,7 +35,6 @@ public:
     void draw( ResourceLayer& res );
 
     bool toggle_a_pixel( uint8_t x, uint8_t y );
-	void wait_for_interrupt();
 
 private:
 	static const uint8_t WIDTH = 64;

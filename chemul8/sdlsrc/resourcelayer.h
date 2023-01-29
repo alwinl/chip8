@@ -60,7 +60,6 @@ private:
     SDL_Window * m_window;
     SDL_Renderer * m_renderer;
 
-    uint64_t mark_time = 0;
     bool audio_on = 0;
 
 	uint16_t keys = 0;

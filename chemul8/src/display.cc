@@ -58,10 +58,3 @@ bool Display::toggle_a_pixel( uint8_t x, uint8_t y )
 
 	return turned_off;
 }
-
-void Display::wait_for_interrupt()
-{
-	/* should actually be triggered by an interrupt, also 17ms is 60FPS */
-	std::this_thread::sleep_for(std::chrono::milliseconds(17));
-
-}
