@@ -46,6 +46,7 @@ int Chidisas8::run( int argc, char *argv[] )
 	Disassembler dis( argv[1], start_address );
 	dis.read_binary( is );
 	dis.disassemble( );
+	dis.collect_data_bytes();
 	dis.write_listing( os );
 
     return 0;

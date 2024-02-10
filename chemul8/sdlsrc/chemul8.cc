@@ -22,12 +22,16 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <random>
 
 #include "chemul8.h"
 
 #include "resourcelayer.h"
 
 #include "chip8.h"
+
+//#define IS_SCHIP
+//#define IS_XO_CHIP
 
 int Chemul8::run( int argc, char *argv[] )
 {
@@ -38,8 +42,39 @@ int Chemul8::run( int argc, char *argv[] )
 
 	ResourceLayer SDLRef;
 	auto last_time = std::chrono::system_clock::now();
-	bool interrupt = false;
 	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
+
+#ifdef IS_SCHIP
+	quirks = {
+		.reset_quirk = false,
+		.memory_quirk = false,
+		.display_wait_quirk = false,
+		.clipping_quirk = true,
+		.shifting_quirk = true,
+		.jumping_quirk = true,
+	};
+#else
+ #ifdef IS_XO_CHIP
+	quirks = {
+		.reset_quirk = false,
+		.memory_quirk = true,
+		.display_wait_quirk = false,
+		.clipping_quirk = false,
+		.shifting_quirk = false,
+		.jumping_quirk = false,
+	};
+ #else
+	quirks = {
+		.reset_quirk = true,
+		.memory_quirk = true,
+		.display_wait_quirk = true,
+		.clipping_quirk = true,
+		.shifting_quirk = false,
+		.jumping_quirk = false,
+	};
+ #endif
+#endif
+
 	Chip8 device( *this );
 
 	while( event != ResourceLayer::Events::QUIT_EVENT ) {
@@ -51,19 +86,30 @@ int Chemul8::run( int argc, char *argv[] )
 				return 1;
 			}
 
-			device.load_program( is );
-		}
+			//device.load_program( is );
+			uint8_t buffer[4096];
+			uint16_t address;
 
-		if( std::chrono::duration<double,std::milli>( std::chrono::system_clock::now() - last_time ).count() > 16 ) {
-			interrupt = true;
-			device.set_int_state( true );
-			last_time = std::chrono::system_clock::now();
+			uint8_t ch =  is.get();
+
+			for( address = 0; is.good(); ++address ) {
+				buffer[address] = ch;
+				ch = is.get();
+			}
+			device.load_program( buffer, address );
+
 		}
 
 		if( SoundTimer != 0 )
 			SDLRef.make_sound();
 
+		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
+		interrupt = ( std::chrono::duration<double,std::milli>( std::chrono::system_clock::now() - last_time ).count() > 16 );
+
 		if( interrupt ) {
+
+			last_time = std::chrono::system_clock::now();
+
 			if( DelayTimer )
 				--DelayTimer;
 
@@ -75,12 +121,7 @@ int Chemul8::run( int argc, char *argv[] )
 
 		event = SDLRef.check_events( keys );
 
-		device.execute_instruction();
-
-		if( interrupt ) {
-			interrupt = false;
-			device.set_int_state( false );
-		}
+		device.execute_instruction( );
 	}
 
 	return 0;
@@ -138,5 +179,32 @@ void Chemul8::set_sound_timer( uint8_t value )
 uint8_t Chemul8::get_delay_timer( ) const
 {
 	return DelayTimer;
+}
+
+bool Chemul8::has_quirk( Quirks test_quirk )
+{
+	switch( test_quirk ) {
+	case Quirks::RESET: return quirks.reset_quirk;
+	case Quirks::MEMORY: return quirks.memory_quirk;
+	case Quirks::DISP_WAIT: return quirks.display_wait_quirk;
+	case Quirks::CLIPPING: return quirks.clipping_quirk;
+	case Quirks::SHIFTING: return quirks.shifting_quirk;
+	case Quirks::JUMPING: return quirks.jumping_quirk;
+	};
+
+	return false;
+}
+
+uint8_t Chemul8::get_random_value()
+{
+	static std::mt19937 mt{ std::random_device{}() };
+
+	std::uniform_int_distribution<> dist(1,255);
+	return dist( mt );
+}
+
+bool Chemul8::block_drw()
+{
+	return quirks.display_wait_quirk && !interrupt;
 }
 

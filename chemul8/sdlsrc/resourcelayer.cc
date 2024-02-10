@@ -24,10 +24,6 @@
 #include <SDL.h>
 
 #include <map>
-#include <iostream>
-#include <chrono>
-#include <thread>
-
 #include <stdexcept>
 
 std::map<SDL_Keycode,uint8_t> mapping = {

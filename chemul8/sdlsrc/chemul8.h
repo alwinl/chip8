@@ -24,11 +24,12 @@
 
 #include <cstdint>
 
-class ResourceLayer;
+enum class Quirks { RESET, MEMORY, DISP_WAIT, CLIPPING, SHIFTING, JUMPING };
 
 class Chemul8
 {
 public:
+
 	int run( int argc, char *argv[] );
 
     void clear_screen();
@@ -38,6 +39,9 @@ public:
     void set_delay_timer( uint8_t value );
     void set_sound_timer( uint8_t value );
     uint8_t get_delay_timer( ) const;
+    bool has_quirk( Quirks test_quirk );
+	uint8_t get_random_value();
+	bool block_drw();
 
 private:
 	static const uint8_t WIDTH = 64;
@@ -47,8 +51,21 @@ private:
 	uint16_t keys = 0;
 	uint16_t last_keys = 0;
 
+	bool interrupt = false;
+
 	uint8_t DelayTimer = 0;
 	uint8_t SoundTimer = 0;
+
+	struct QuirkFlags {
+		bool reset_quirk;
+		bool memory_quirk;
+		bool display_wait_quirk;
+		bool clipping_quirk;
+		bool shifting_quirk;
+		bool jumping_quirk;
+	};
+
+	QuirkFlags quirks;
 };
 
 #endif // CHEMUL8_H

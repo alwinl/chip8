@@ -40,6 +40,13 @@ std::string format_byte( unsigned int byte )
 	return oss.str();
 }
 
+std::string format_naked_byte( unsigned int byte )
+{
+	std::ostringstream oss;
+	oss << std::setfill( '0') << std::setw(2) << std::uppercase << std::hex << byte;
+	return oss.str();
+}
+
 std::string format_address( unsigned int address )
 {
 	std::ostringstream oss;
@@ -51,12 +58,6 @@ std::string format_address( unsigned int address )
 /*
  * Input section
  */
-
-void Disassembler::add_raw_byte( uint16_t address, uint8_t value )
-{
-	data_set.insert( RawData( address, value, false ) );
-}
-
 void Disassembler::read_binary( std::istream& is )
 {
 	uint16_t address = origin;
@@ -64,7 +65,7 @@ void Disassembler::read_binary( std::istream& is )
 
 	while( is.good() ) {
 
-		add_raw_byte( address, ch );
+		data_set.insert( RawData( address, ch, false ) );
 		++address;
 
 		ch = is.get();
@@ -93,7 +94,7 @@ std::string Disassembler::add_target( uint16_t source_address, uint16_t target_a
 	switch( type ) {
 	case Target::eTargetKind::I_TARGET: label = "DATA" + std::to_string( data_sequence++ ); break;
 	case Target::eTargetKind::SUBROUTINE: label = "FUNC" + std::to_string( funct_sequence++ ); break;
-	case Target::eTargetKind::JUMP: label = "LAB" + std::to_string( label_sequence++ ); break;
+	case Target::eTargetKind::JUMP: label = "LABEL" + std::to_string( label_sequence++ ); break;
 	case Target::eTargetKind::INDEXED: label = "TABLE" + std::to_string( table_sequence++ ); break;
 	default: label = "Target Error"; break;
 	}
@@ -119,6 +120,7 @@ void Disassembler::mark_as_instruction( uint16_t address )
 Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 {
 	std::string mnemonic;
+	std::string label = "";
 
 	switch( opcode & 0xFFF ) {
 	/* opcodes 0000 .. 00DF not defined */
@@ -132,12 +134,15 @@ Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 		break;
 	/* opcodes 00EF .. 0FFF not defined */
 	default:
-		mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		//mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		mnemonic = "SYS";
+		label = add_target( address, opcode & 0xFFF, Target::eTargetKind::SUBROUTINE );
+
 		address_stack.push( address + 2 );
 		break;
 	}
 
-	return Instruction( address, mnemonic, "" );
+	return Instruction( address, mnemonic, label );
 }
 
 Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
@@ -151,7 +156,6 @@ Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
 	return Instruction( address, "JP", label );
 }
 
-
 Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 {
 	uint16_t jmp_target = opcode & 0xFFF;
@@ -161,7 +165,7 @@ Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 	address_stack.push( jmp_target );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "JSR", label );
+	return Instruction( address, "CALL", label );
 }
 
 Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )		//SE Vx, byte : Skip next instruction if Vx = kk.
@@ -172,10 +176,10 @@ Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )		//SE 
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SKPEQ", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, "SE", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
-Instruction Disassembler::decode_SNI( uint16_t address, uint16_t opcode )
+Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
 {
 	unsigned int reg_x = (opcode >> 8) & 0xF;
 	unsigned int byte = (opcode & 0xFF);
@@ -183,7 +187,7 @@ Instruction Disassembler::decode_SNI( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SKPNEQ", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, "SNE", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
@@ -196,7 +200,7 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 
 	switch( opcode & 0xF ) {
 	case 0x0 :
-		mnemonic = "SKPEQ";
+		mnemonic = "SE";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 4 );
 		address_stack.push( address + 2 );
@@ -218,6 +222,9 @@ Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
+	if( reg_x == 0 )
+		V0_content = byte;
+
 	return Instruction( address, "LD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
@@ -227,6 +234,9 @@ Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
 	unsigned int byte = (opcode & 0xFF);
 
 	address_stack.push( address + 2 );
+
+	if( reg_x == 0 )
+		V0_content += byte;
 
 	return Instruction( address, "ADD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
@@ -310,7 +320,7 @@ Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SKPNEQ", format_register( reg_x ) + ", " + format_register( reg_y ) );
+	return Instruction( address, "SNE", format_register( reg_x ) + ", " + format_register( reg_y ) );
 }
 
 Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
@@ -321,7 +331,7 @@ Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "LDI", label );
+	return Instruction( address, "LD", "I, " + label );
 }
 
 Instruction Disassembler::decode_JMP( uint16_t address, uint16_t opcode )
@@ -364,14 +374,14 @@ Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
 	switch( opcode & 0xFF ) {
 	/* opcodes Ex00 .. Ex9D not defined */
 	case 0x9E:								// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		mnemonic = "SKPK";
+		mnemonic = "SKP";
 		argument = format_register( reg_x );
 		address_stack.push( address + 4 );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Ex9F .. ExA0 not defined */
 	case 0xA1:								// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		mnemonic = "SKPNK";
+		mnemonic = "SKPN";
 		argument = format_register( reg_x );
 		address_stack.push( address + 4 );
 		address_stack.push( address + 2 );
@@ -479,7 +489,7 @@ void Disassembler::disassemble_instruction( uint16_t address )
 	case 0x1: instructions.insert( decode_JP( address, opcode ) ); break;
 	case 0x2: instructions.insert( decode_CALL( address, opcode ) ); break;
 	case 0x3: instructions.insert( decode_SEI( address, opcode ) ); break;
-	case 0x4: instructions.insert( decode_SNI( address, opcode ) ); break;
+	case 0x4: instructions.insert( decode_SNEI( address, opcode ) ); break;
 	case 0x5: instructions.insert( decode_SER( address, opcode ) ); break;
 	case 0x6: instructions.insert( decode_LD( address, opcode ) ); break;
 	case 0x7: instructions.insert( decode_ADD( address, opcode ) ); break;
@@ -500,20 +510,25 @@ void Disassembler::disassemble_instruction( uint16_t address )
 
 void Disassembler::disassemble( )
 {
-	address_stack.push( origin );		// push the start address
+	// Push the start address
+	address_stack.push( origin );
 
 	while( !address_stack.empty() ) {
+
 		uint16_t address = address_stack.top();
 		address_stack.pop();
 
 		disassemble_instruction( address ); /* this call can push between 0 and 2 new addresses on the address stack */
 	}
+}
 
-	// The raw bytes that have not been marked are thus data bytes
-	// Chuck them together into DataBytes objects
-
+void Disassembler::collect_data_bytes()
+{
 	std::vector<uint8_t> datarun;
 	uint16_t address = origin;
+
+	// The raw bytes that have not been marked as instruction bytes are thus data bytes
+	// Chuck them together into DataBytes objects
 
 	for( std::set<RawData>::iterator it = data_set.begin(); it != data_set.end(); ++it ) {
 
@@ -604,7 +619,10 @@ void Disassembler::output_instruction( std::ostream& os, Instruction inst ) cons
 	if( label_present( target_iter, inst.get_address()) )
 		(*target_iter).print( os );
 
-	inst.print( os );
+	std::set<RawData>::iterator high_byte = data_set.find( RawData(inst.get_address()) );
+	std::set<RawData>::iterator low_byte = data_set.find( RawData(inst.get_address() + 1) );
+
+	inst.print( os, (*high_byte).val(), (*low_byte).val() );
 }
 
 void Disassembler::output_datarun( std::ostream& os, DataBytes datarun ) const
@@ -634,9 +652,9 @@ void Target::print( std::ostream& os ) const
 	os << '\t' << label << ":\n";
 }
 
-void Instruction::print( std::ostream& os ) const
+void Instruction::print( std::ostream& os, uint8_t high_byte, uint8_t low_byte ) const
 {
-	os << address << "\t\t" << mnemonic << "\t" << argument << "\n";
+	os << address << "\t\t" << format_naked_byte(high_byte) << " " << format_naked_byte(low_byte) << "\t" << mnemonic << " " << argument << "\n";
 }
 
 void DataBytes::print( std::ostream& os ) const

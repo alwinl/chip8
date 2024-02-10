@@ -27,6 +27,8 @@
 #include <set>
 #include <stack>
 
+#include <cstdint>
+
 #include <iosfwd>
 
 class RawData
@@ -64,12 +66,12 @@ public:
 		this->argument = argument;
 	}
 
-	uint16_t get_address() const { return address; };
-
 	bool operator<( const Instruction& rhs ) const { return address < rhs.address; };
 	bool operator==( const Instruction& rhs ) const { return address == rhs.address; };
 
-	void print( std::ostream& os ) const;
+	uint16_t get_address() const { return address; };
+
+	void print( std::ostream& os, uint8_t high_byte, uint8_t low_byte ) const;
 
 private:
 	uint16_t address;
@@ -91,10 +93,10 @@ public:
 		this->byte_run = byte_run;
 	}
 
-	uint16_t get_address() const { return address; }
-
 	bool operator<( const DataBytes& rhs ) const { return address < rhs.address; };
 	bool operator==( const DataBytes& rhs ) const { return address == rhs.address; };
+
+	uint16_t get_address() const { return address; }
 
 	void print( std::ostream& os ) const;
 
@@ -140,6 +142,7 @@ public:
 
 	void read_binary( std::istream& is );
 	void disassemble( );
+	void collect_data_bytes();
 	void write_listing( std::ostream& os ) const;
 
 private:
@@ -152,6 +155,7 @@ private:
 	std::set<DataBytes> databytes;
 
 	std::stack<uint16_t> address_stack;
+	uint8_t V0_content; // need to keep a record of all registers, so we can push the correct address on JMP instruction
 
 	/* Don't like this whole block
 	 * maybe it should be encapsulated in a new object
@@ -162,9 +166,6 @@ private:
 	unsigned int data_sequence = 0;
 	unsigned int table_sequence = 0;
 	std::string add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type );
-
-
-	void add_raw_byte( uint16_t address, uint8_t value );
 
 	/*
 	 * Problem with all these decode functions is that they have two side effects
@@ -177,7 +178,7 @@ private:
 	Instruction decode_JP( uint16_t address, uint16_t opcode );
 	Instruction decode_CALL( uint16_t address, uint16_t opcode );
 	Instruction decode_SEI( uint16_t address, uint16_t opcode );
-	Instruction decode_SNI( uint16_t address, uint16_t opcode );
+	Instruction decode_SNEI( uint16_t address, uint16_t opcode );
 	Instruction decode_SER( uint16_t address, uint16_t opcode );
 	Instruction decode_LD( uint16_t address, uint16_t opcode );
 	Instruction decode_ADD( uint16_t address, uint16_t opcode );

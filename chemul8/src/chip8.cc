@@ -21,10 +21,7 @@
 
 #include "chip8.h"
 
-#include <iostream>
-#include <fstream>
 #include <functional>
-#include <random>
 
 #include "chemul8.h"
 
@@ -48,16 +45,8 @@ Chip8::Chip8( Chemul8& hardware_ ) : hardware(hardware_)
 	dispatchers.insert( std::make_pair(0x0F, &Chip8::Misc) );
 }
 
-void Chip8::load_program( std::istream& is )
+void Chip8::load_program( uint8_t program[], uint16_t program_size )
 {
-	// reset the stack, registers, program counter, stack pointer and memory
-	std::fill( std::begin(Stack), std::end(Stack), 0 );
-	std::fill( std::begin(V), std::end(V), 0 );
-	I = 0;
-	PC = 0x200;
-	SP = 0;
-	std::fill( std::begin(memory), std::end(memory), 0 );
-
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
 		/* 1 */ 0x20, 0x60, 0x20, 0x20, 0x70,
@@ -77,18 +66,20 @@ void Chip8::load_program( std::istream& is )
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
 
-	//load the font in memory
+	// reset the stack, registers, program counter, stack pointer and memory
+	std::fill( std::begin(Stack), std::end(Stack), 0 );
+	std::fill( std::begin(V), std::end(V), 0 );
+	I = 0;
+	PC = 0x200;
+	SP = 0;
+	std::fill( std::begin(memory), std::end(memory), 0 );
+
+	// load font and program code in memory
 	std::copy_n( &font[0], sizeof(font), &memory[font_sprite_base] );
-
-	uint8_t ch =  is.get();
-
-	for( uint16_t address = 0x200; is.good(); ++address ) {
-		memory[address] = ch;
-		ch = is.get();
-	}
+	std::copy_n( &program[0], program_size, &memory[program_base] );
 }
 
-void Chip8::execute_instruction()
+void Chip8::execute_instruction( )
 {
 	uint16_t opcode = (memory[PC] << 8) | memory[PC+1];
 
@@ -104,10 +95,13 @@ void Chip8::SYS( uint16_t opcode )	// 0nnn - SYS addr : Jump to a machine code r
 	case 0x0E0:							// CLS : clear screen
 		hardware.clear_screen();
 		break;
+
 	case 0x0EE:							// RET : return from subroutine
 		PC = Stack[SP--];
 		break;
+
 	default:
+		PC = opcode & 0xFFF;
 		break;
 	}
 }
@@ -150,7 +144,7 @@ void Chip8::SER( uint16_t opcode )	// 5xy0 - SE Vx, Vy : Skip next instruction i
 		if( V[reg_x] == V[reg_y] )
 			PC +=2;
 		break;
-	/* 0x1 .. 0xF not defined */
+																// 0x1 .. 0xF not defined
 	default:
 		break;
 	}
@@ -176,50 +170,74 @@ void Chip8::MathOp( uint16_t opcode )		// 8xyn - Various mathematical and logica
 	uint8_t reg_y = (opcode >> 4) & 0xF;
 
 	switch( opcode & 0xF ) {
-	case 0x0: V[reg_x]  = V[reg_y]; 				  break;		// LD Vx, Vy : Set Vx = Vy.
-	case 0x1: V[reg_x] |= V[reg_y]; vf_reset_quirk(); break;		// OR Vx, Vy : Set Vx = Vx OR Vy
-	case 0x2: V[reg_x] &= V[reg_y]; vf_reset_quirk(); break;		// AND Vx, Vy : Set Vx = Vx AND Vy
-	case 0x3: V[reg_x] ^= V[reg_y]; vf_reset_quirk(); break;		// XOR Vx, Vy : Set Vx = Vx XOR Vy
-	case 0x4: {														// ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
+	case 0x0:													// LD Vx, Vy : Set Vx = Vy.
+		V[reg_x] = V[reg_y];
+		break;
+
+	case 0x1:													// OR Vx, Vy : Set Vx = Vx OR Vy
+		V[reg_x] |= V[reg_y];
+		if( hardware.has_quirk( Quirks::RESET ) )
+			V[0x0F] = 0;
+		break;
+
+	case 0x2:													// AND Vx, Vy : Set Vx = Vx AND Vy
+		V[reg_x] &= V[reg_y];
+		if( hardware.has_quirk( Quirks::RESET ) )
+			V[0x0F] = 0;
+		break;
+
+	case 0x3:													// XOR Vx, Vy : Set Vx = Vx XOR Vy
+		V[reg_x] ^= V[reg_y];
+		if( hardware.has_quirk( Quirks::RESET ) )
+			V[0x0F] = 0;
+		break;
+
+	case 0x4:													// ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
+		{
 			uint16_t result = V[reg_x] + V[reg_y];
 			V[reg_x] = result & 0xFF;
 			V[0xF] = ( result > 255 ) ? 1 : 0;
 		}
 		break;
-	case 0x5: {														// SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
+
+	case 0x5:													// SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
+		{
 			uint16_t result = (V[reg_x] >= V[reg_y]) ? 1 : 0;
 			V[reg_x] -= V[reg_y];
 			V[0xF] = result;
 		}
 		break;
-	/*
-	 * Note from Wikipedia:
-	 *
-	 * 	CHIP-8's opcodes 8XY6 and 8XYE (the bit shift instructions), which were in fact undocumented opcodes in the original interpreter,
-	 *	shifted the value in the register VY and stored the result in VX. The CHIP-48 and SCHIP implementations instead ignored VY, and simply shifted VX
-	 */
-	case 0x6:	// SHR Vx {, Vy} : Set Vx = Vx SHR 1.	Error in documentation! should be Vx = Vy SHR 1
+
+	case 0x6:													// SHR Vx {, Vy} : Set Vx = Vx SHR 1 or Vx = Vy SHR 1
 		{
 			uint16_t result = V[reg_x] & 0x01;
-			V[reg_x] = V[reg_y] >> 1;
+			if( hardware.has_quirk( Quirks::SHIFTING ) )
+				V[reg_x] = V[reg_x] >> 1;
+			else
+				V[reg_x] = V[reg_y] >> 1;
 			V[0xF] = result;
-			break;
 		}
-	case 0x7: {										// SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
+		break;
+
+	case 0x7:													// SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
+		{
 			uint16_t result = (V[reg_y] > V[reg_x]) ? 1 : 0;
-			//V[reg_x] -= V[reg_y];
 			V[reg_x] = V[reg_y] - V[reg_x];
 			V[0xF] = result;
 		}
 		break;
-	/* opcodes 0x8 .. 0xD not defined */
-	case 0xE: {										// SHL Vx {, Vy} : Set Vx = Vx SHL 1. Error in documentation, should be Vx = Vy SHL 1
+																// opcodes 0x8 .. 0xD not defined
+	case 0xE:													// SHL Vx {, Vy} : Set Vx = Vx SHL 1 or Vx = Vy SHL 1
+		{
 			uint16_t result = (V[reg_x] & 0x80) ? 1 : 0;
-			V[reg_x] = V[reg_y] << 1;
+			if( hardware.has_quirk( Quirks::SHIFTING ) )
+				V[reg_x] = V[reg_x] << 1;
+			else
+				V[reg_x] = V[reg_y] << 1;
 			V[0xF] = result;
 		}
 		break;
-	/* opcodes 0xF not defined */
+																// opcodes 0xF not defined
 	default:
 		break;
 	}
@@ -239,16 +257,19 @@ void Chip8::LDI( uint16_t opcode )		// Annn - LD I, addr : Set I = nnn
 	I = opcode & 0xFFF;
 }
 
-void Chip8::JMP( uint16_t opcode )		// Bnnn - JP V0, addr : Jump to location nnn + V0
+void Chip8::JMP( uint16_t opcode )		// Bnnn - JP V0, addr : Jump to location nnn + V0 or Bxnn : Jump to location nn + V[x]
 {
-	PC = (opcode & 0xFFF) + V[0];
+	if( hardware.has_quirk( Quirks::JUMPING ) )
+		PC = (opcode & 0xFFF) + V[(opcode >> 8) & 0x0F];
+	else
+		PC = (opcode & 0xFFF) + V[0];
 }
 
 void Chip8::RND( uint16_t opcode )		// Cxkk - RND Vx, byte : Set Vx = random byte AND kk
 {
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
-	V[reg_x] = get_random_value() & (opcode & 0xFF );
+	V[reg_x] = hardware.get_random_value() & (opcode & 0xFF );
 }
 
 void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
@@ -259,7 +280,7 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 	V[0xF] = 0;
 	uint8_t y = V[reg_y] % 32;
 
-	if( ! int_set ) {
+	if( hardware.block_drw() ) {							// rate limit the DRW calls to 60fps
 		PC -= 2;
 		return;
 	}
@@ -271,14 +292,17 @@ void Chip8::DRW( uint16_t opcode )		// Dxyn - DRW Vx, Vy, nibble : Display n-byt
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 			if( sprite_byte & (1 << (7-bit_offset) ) )
-				V[0x0F] |= hardware.toggle_a_pixel( x, y );
+				V[0x0F] |= hardware.toggle_a_pixel( x % 64, y % 32 );
 
 			++x;
-			if( x == 64 )
+
+			if( hardware.has_quirk( Quirks::CLIPPING ) && ( x == 64 ) )
 				break;
 		}
+
 		++y;
-		if( y == 32 )
+
+		if( hardware.has_quirk( Quirks::CLIPPING ) && ( y == 32 ) )
 			break;
 	}
 }
@@ -288,17 +312,17 @@ void Chip8::Key( uint16_t opcode )		//0xExkk
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
 	switch( opcode & 0xFF ) {
-	/* opcodes 0x00 .. 0x9D not defined */
-	case 0x9E:								// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
+																// opcodes 0x00 .. 0x9D not defined
+	case 0x9E:													// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
 		if( hardware.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
-	/* opcodes 0x9F .. 0xA0 not defined */
-	case 0xA1:								// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
+																// opcodes 0x9F .. 0xA0 not defined
+	case 0xA1:													// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
 		if( ! hardware.is_key_pressed( V[reg_x] ) )
 			PC += 2;
 		break;
-	/* opcodes 0xA2 .. 0xFF not defined */
+																// opcodes 0xA2 .. 0xFF not defined
 	default:
 		break;
 	}
@@ -309,10 +333,12 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 	uint8_t reg_x = (opcode >> 8) & 0xF;
 
 	switch( opcode & 0xFF ) {
-	/* opcodes 0x00 .. 0x06 not defined */
-	case 0x07: V[reg_x] = hardware.get_delay_timer(); break;	// Fx07 - LD Vx, DT : Set Vx = delay timer value.
-	/* opcodes 0x08 .. 0x09 not defined */
-	case 0x0A:
+																// opcodes 0x00 .. 0x06 not defined
+	case 0x07:													// Fx07 - LD Vx, DT : Set Vx = delay timer value.
+		V[reg_x] = hardware.get_delay_timer();
+		break;
+																// opcodes 0x08 .. 0x09 not defined
+	case 0x0A:													// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 		{
 			uint8_t key_no;
 			if( hardware.key_captured( key_no ) )
@@ -321,61 +347,50 @@ void Chip8::Misc( uint16_t opcode )		//0xFxkk
 				PC -= 2;
 		}
 		break;
-
-		//get_key( reg_x ); break;						// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
-	/* opcodes 0x0B .. 0x1 not defined */
-	case 0x15: hardware.set_delay_timer( V[reg_x] ); break;	// Fx15 - LD DT, Vx : Set delay timer = Vx.
-	/* opcodes 0x16 and 0x17 not defined */
-	case 0x18: hardware.set_sound_timer( V[reg_x] ); break;	// Fx18 - LD ST, Vx : Set sound timer = Vx.
-	/* opcodes 0x19 .. 0x1D not defined */
-	case 0x1E: I += V[reg_x]; break;						// Fx1E - ADD I, Vx : Set I = I + Vx
-	/* opcodes 0x1F .. 0x28 not defined */
-	case 0x29: I = font_sprite_base + 5 * V[reg_x]; break;	// Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
-	/* opcodes 0x2A .. 0x32 not defined */
-	case 0x33 : 											// Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
+																// opcodes 0x0B .. 0x1 not defined
+	case 0x15:													// Fx15 - LD DT, Vx : Set delay timer = Vx.
+		hardware.set_delay_timer( V[reg_x] );
+		break;
+																// opcodes 0x16 and 0x17 not defined
+	case 0x18:													// Fx18 - LD ST, Vx : Set sound timer = Vx.
+		hardware.set_sound_timer( V[reg_x] );
+		break;
+																// opcodes 0x19 .. 0x1D not defined
+	case 0x1E:													// Fx1E - ADD I, Vx : Set I = I + Vx
+		I += V[reg_x];
+		break;
+																// opcodes 0x1F .. 0x28 not defined
+	case 0x29:													// Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
+		I = font_sprite_base + 5 * V[reg_x];
+		break;
+																// opcodes 0x2A .. 0x32 not defined
+	case 0x33 : 												// Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
 		memory[I] = V[reg_x] / 100;
 		memory[I+1] = (V[reg_x] / 10) % 10;
 		memory[I+2] = V[reg_x] % 10;
 		break;
-	/* opcodes 0x34 .. 0x54 not defined */
-	case 0x55: {											// Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
+																// opcodes 0x34 .. 0x54 not defined
+	case 0x55:													// Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
+		{
 			int i;
 			for( i=0; i<=reg_x; ++i )
 				memory[ I + i] = V[i];
-			memory_quirk( i );
+			if( hardware.has_quirk( Quirks::MEMORY ) )
+				I += i;
 		}
 		break;
-	/* opcodes 0x56 .. 0x64 not defined */
-	case 0x65: {											// Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
+																// opcodes 0x56 .. 0x64 not defined
+	case 0x65:													// Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
+		{
 			int i;
 			for( i=0; i<=reg_x; ++i )
 				V[i] = memory[ I + i];
-			memory_quirk( i );
+			if( hardware.has_quirk( Quirks::MEMORY ) )
+				I += i;
 		}
 		break;
-	/* opcodes 0x66 .. 0xFF not defined */
+																// opcodes 0x66 .. 0xFF not defined
 	default:
 		break;
 	}
 }
-
-uint8_t Chip8::get_random_value()
-{
-	static std::mt19937 mt{ std::random_device{}() };
-
-	std::uniform_int_distribution<> dist(1,255);
-	return dist( mt );
-}
-
-
-void Chip8::vf_reset_quirk()
-{
-	V[0x0F] = 0;
-}
-
-void Chip8::memory_quirk( int bytes_to_add )
-{
-	I += bytes_to_add;
-}
-
-

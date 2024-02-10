@@ -24,7 +24,6 @@
 #define CHIP8_H
 
 #include <cstdint>
-#include <iosfwd>
 #include <map>
 
 class Chemul8;
@@ -34,10 +33,8 @@ class Chip8
 public:
 	Chip8( Chemul8& hardware_ );
 
-	void load_program( std::istream& is );
+	void load_program( uint8_t program[], uint16_t program_size );
 	void execute_instruction();
-
-	void set_int_state( bool on ) { int_set = on; }
 
 private:
 	uint16_t Stack[16];
@@ -47,14 +44,12 @@ private:
 	uint16_t PC = 0x200;
 	uint8_t SP = 0;
 
-	Chemul8& hardware;
-
 	const uint16_t font_sprite_base = 0x0100;
-	bool int_set;
+	const uint16_t program_base = 0x0200;
+	Chemul8& hardware;
 
 	typedef void (Chip8::*FN_DISP)( uint16_t );
 	std::map<uint8_t,FN_DISP> dispatchers;
-
 
 	void SYS( uint16_t opcode );		// 0x0nnn
 	void JP( uint16_t opcode );			// 0x1nnn
@@ -72,11 +67,6 @@ private:
 	void DRW( uint16_t opcode );		// 0xDxyn
 	void Key( uint16_t opcode );		// 0xExkk
 	void Misc( uint16_t opcode );		// 0xFxkk
-
-	uint8_t get_random_value();
-
-	void vf_reset_quirk();
-	void memory_quirk( int bytes_to_add );
 };
 
 #endif // CHIP8_H
