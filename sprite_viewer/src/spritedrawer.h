@@ -19,39 +19,26 @@
  *
  */
 
-#ifndef RESOURCELAYER_H
-#define RESOURCELAYER_H
+#ifndef SPRITEDRAWER_H
+#define SPRITEDRAWER_H
 
 #include <cstdint>
-#include <cstdlib>
+#include <istream>
+#include <vector>
 
-struct SDL_Window;
-struct SDL_Renderer;
-
-class ResourceLayer
+class SpriteDrawer
 {
 public:
-	ResourceLayer( uint8_t width, uint8_t height );
-	virtual ~ResourceLayer();
+	// SpriteDrawer();
 
-	uint16_t check_key_event();
-	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
-	void repaint();
-	bool frame_time();
-
-	bool do_quit() { return quit; }
-	void audio( bool on ) { audio_on = on; };
-	uint8_t get_random_byte() { return std::rand() % 0xFF; };		// needs some work here
+	void read_data( std::istream &is );
+	void show();
 
 private:
-    SDL_Window * m_window;
-    SDL_Renderer * m_renderer;
+	// ResourceLayer res;
+	std::vector<uint8_t> data = {};
 
-    uint32_t mark_time = 0;
-    bool audio_on = 0;
-
-	uint16_t keys;
-	bool quit = false;
+	uint8_t sprite_height = 0;
 };
 
-#endif // RESOURCELAYER_H
+#endif // SPRITEDRAWER_H

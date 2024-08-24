@@ -23,48 +23,45 @@
 
 #include "resourcelayer.h"
 
-SpriteDrawer::SpriteDrawer( )
+void SpriteDrawer::read_data( std::istream &sprite_is )
 {
-}
+	char chr = '\0';
 
-void SpriteDrawer::read_data( std::istream& is )
-{
-	char ch = is.get();
+	sprite_is.get( chr );
 
-	if( !is.good() )
+	if( !sprite_is.good() )
 		return;
 
-	sprite_height = ch;
-	ch = is.get();
+	sprite_height = chr;
+	sprite_is.get( chr );
 
-	while( is.good() ) {
-		data.push_back( ch );
-		ch = is.get();
+	while( sprite_is.good() ) {
+		data.push_back( chr );
+		sprite_is.get( chr );
 	}
 }
 
 void SpriteDrawer::show()
 {
-	uint8_t no_of_sprites = data.size() / sprite_height;
+	const uint8_t no_of_sprites = data.size() / sprite_height;
 	ResourceLayer res = ResourceLayer( 8 * no_of_sprites, sprite_height );
 
-	uint8_t y = 0;
+	uint8_t y_pos = 0;
 	uint8_t x_offset = 0;
 
-	for( uint8_t data_byte : data ) {
-		for( int x = 0; x<8; ++x )
-			res.draw_pixel( x + x_offset, y, !(data_byte & ( 1 << (8-x))) );
+	for( const uint8_t data_byte : data ) {
+		for( int x_pos = 0; x_pos < 8; ++x_pos )
+			res.draw_pixel( x_pos + x_offset, y_pos, ( ( data_byte & ( 1 << ( 8 - x_pos ) ) ) == 0 ) );
 
-		++y;
+		++y_pos;
 
-		if( y == sprite_height ) {
+		if( y_pos == sprite_height ) {
 			x_offset += 8;
-			y = 0;
+			y_pos = 0;
 		}
 	}
 
 	res.repaint();
 
-	while( ! res.do_quit() )
-		res.check_key_event();
+	while( !res.do_quit() ) res.check_key_event();
 }

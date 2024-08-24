@@ -23,59 +23,55 @@
 
 #include <SDL.h>
 
-#include <map>
-#include <string>
 #include <exception>
 #include <iostream>
+#include <map>
+#include <string>
 
-std::map<SDL_Keycode,uint8_t> mapping = {
-	{SDLK_0, 0x00},	{SDLK_1, 0x01},	{SDLK_2, 0x02},	{SDLK_3, 0x03},
-	{SDLK_4, 0x04},	{SDLK_5, 0x05},	{SDLK_6, 0x06},	{SDLK_7, 0x07},
-	{SDLK_8, 0x08},	{SDLK_9, 0x09},	{SDLK_a, 0x0A},	{SDLK_b, 0x0B},
-	{SDLK_c, 0x0C},	{SDLK_d, 0x0D},	{SDLK_e, 0x0E},	{SDLK_f, 0x0F}
-};
+std::map<SDL_Keycode, uint8_t> mapping = { { SDLK_0, 0x00 }, { SDLK_1, 0x01 }, { SDLK_2, 0x02 }, { SDLK_3, 0x03 },
+										   { SDLK_4, 0x04 }, { SDLK_5, 0x05 }, { SDLK_6, 0x06 }, { SDLK_7, 0x07 },
+										   { SDLK_8, 0x08 }, { SDLK_9, 0x09 }, { SDLK_a, 0x0A }, { SDLK_b, 0x0B },
+										   { SDLK_c, 0x0C }, { SDLK_d, 0x0D }, { SDLK_e, 0x0E }, { SDLK_f, 0x0F } };
 
 class InitError : public std::exception
 {
 public:
-    InitError() : exception(), msg( SDL_GetError() ) {};
-    InitError( const std::string & m ) : exception(), msg( m ) { };
-    virtual ~InitError() throw() {};
-    virtual const char * what() const throw() { return msg.c_str(); };
+	InitError() : msg( SDL_GetError() ){};
+	explicit InitError( std::string message ) : msg( std::move( message ) ){};
+	const char *what() const noexcept override { return msg.c_str(); };
 
 private:
-    std::string msg;
+	std::string msg;
 };
-
 
 ResourceLayer::ResourceLayer( uint8_t width, uint8_t height )
 {
-	if( SDL_Init(  SDL_INIT_VIDEO | SDL_INIT_TIMER  ) != 0 )
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) != 0 )
 		throw InitError();
 
 	if( SDL_CreateWindowAndRenderer( width * 10, height * 10, SDL_WINDOW_SHOWN, &m_window, &m_renderer ) != 0 )
 		throw InitError();
 
-	srand( (unsigned) time(0) );
+	srand( static_cast<unsigned>( time( nullptr ) ) );
 }
 
 ResourceLayer::~ResourceLayer()
 {
-    SDL_DestroyWindow( m_window );
-    SDL_DestroyRenderer( m_renderer );
+	SDL_DestroyWindow( m_window );
+	SDL_DestroyRenderer( m_renderer );
 
-    SDL_Quit();
+	SDL_Quit();
 }
 
 uint16_t ResourceLayer::check_key_event()
 {
 	SDL_Event event;
 
-	while( SDL_PollEvent( &event ) ) {
+	while( SDL_PollEvent( &event ) != 0 ) {
 		switch( event.type ) {
-		case SDL_KEYUP: keys &= ~( 1 << mapping[event.key.keysym.sym]); break;
+		case SDL_KEYUP: keys &= ~( 1 << mapping[event.key.keysym.sym] ); break;
 		case SDL_KEYDOWN: keys |= 1 << mapping[event.key.keysym.sym]; break;
-		case SDL_QUIT: quit = 1;
+		case SDL_QUIT: quit = true;
 		}
 	}
 
@@ -88,29 +84,29 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 
 	pixel_loc.x = x_pos * 10;
 	pixel_loc.y = y_pos * 10;
-	pixel_loc.w = 10;		// world width is 64, physical is 640 pixels
-	pixel_loc.h = 10;		// world height is 32, physical is 320 pixels
+	pixel_loc.w = 10; // world width is 64, physical is 640 pixels
+	pixel_loc.h = 10; // world height is 32, physical is 320 pixels
 
 	if( white )
-		SDL_SetRenderDrawColor( m_renderer, 255, 255, 255, 255 );	// white
+		SDL_SetRenderDrawColor( m_renderer, 255, 255, 255, 255 ); // white
 	else
-		SDL_SetRenderDrawColor( m_renderer, 0, 0, 0, 255 );	// black
+		SDL_SetRenderDrawColor( m_renderer, 0, 0, 0, 255 ); // black
 
 	SDL_RenderFillRect( m_renderer, &pixel_loc );
 }
 
 void ResourceLayer::repaint()
 {
-    SDL_RenderPresent( m_renderer );
-    SDL_Delay(10);
+	SDL_RenderPresent( m_renderer );
+	SDL_Delay( 10 );
 }
 
 bool ResourceLayer::frame_time()
 {
-	if( audio_on)
+	if( audio_on )
 		std::cout << '\b';
 
-	if( SDL_GetTicks() <  mark_time + 17 )							// running at 60 FPS which is 16.6 ms
+	if( SDL_GetTicks() < mark_time + 17 ) // running at 60 FPS which is 16.6 ms
 		return false;
 
 	mark_time = SDL_GetTicks();

@@ -19,30 +19,39 @@
  *
  */
 
-#include <iostream>
-#include <fstream>
+#ifndef RESOURCELAYER_H
+#define RESOURCELAYER_H
 
-#include "resourcelayer.h"
-#include "spritedrawer.h"
+#include <cstdint>
+#include <cstdlib>
 
-int main( int argc, char * argv[] )
+struct SDL_Window;
+struct SDL_Renderer;
+
+class ResourceLayer
 {
-	if( argc < 2 ) {
-		std::cout << "Usage spriteviewer [program binary]" << std::endl;
-		return 1;
-	}
+public:
+	ResourceLayer( uint8_t width, uint8_t height );
+	virtual ~ResourceLayer();
 
-	std::ifstream is = std::ifstream( argv[1] );
-	if( !is.good() ) {
-		std::cout << "Cannot read sprite" << std::endl;
-		return 1;
-	}
+	uint16_t check_key_event();
+	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
+	void repaint();
+	bool frame_time();
 
+	bool do_quit() { return quit; }
+	void audio( bool on ) { audio_on = on; };
+	uint8_t get_random_byte() { return std::rand() % 0xFF; }; // needs some work here
 
-	SpriteDrawer drawer;
-	drawer.read_data( is );
+private:
+	SDL_Window *m_window = nullptr;
+	SDL_Renderer *m_renderer = nullptr;
 
-	drawer.show();
+	uint32_t mark_time = 0;
+	bool audio_on = 0;
 
-    return 0;
-}
+	uint16_t keys = 0;
+	bool quit = false;
+};
+
+#endif // RESOURCELAYER_H

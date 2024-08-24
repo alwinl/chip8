@@ -19,25 +19,32 @@
  *
  */
 
-#ifndef SPRITEDRAWER_H
-#define SPRITEDRAWER_H
+#include <fstream>
+#include <iostream>
+#include <span>
 
-#include <istream>
-#include <vector>
+#include "resourcelayer.h"
+#include "spritedrawer.h"
 
-class SpriteDrawer
+int main( int argc, char *argv[] )
 {
-public:
-    SpriteDrawer();
+	if( argc < 2 ) {
+		std::cout << "Usage spriteviewer [sprite file]" << std::endl;
+		return 1;
+	}
 
-    void read_data( std::istream& is );
-	void show();
+	std::span<char *> const args( argv, argc );
 
-private:
-	//ResourceLayer res;
-	std::vector<uint8_t> data;
+	std::ifstream sprite_is = std::ifstream( args[1] );
+	if( !sprite_is.good() ) {
+		std::cout << "Cannot read sprite" << std::endl;
+		return 1;
+	}
 
-	uint8_t sprite_height;
-};
+	SpriteDrawer drawer;
+	drawer.read_data( sprite_is );
 
-#endif // SPRITEDRAWER_H
+	drawer.show();
+
+	return 0;
+}
