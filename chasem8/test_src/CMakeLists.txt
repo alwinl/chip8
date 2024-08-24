@@ -17,12 +17,9 @@
 # MA 02110-1301, USA.
 #
 
-# set(CMAKE_CXX_STANDARD 20)
-
 find_package( cppunit REQUIRED )
 
 add_library( chasem8_test_setup INTERFACE )
-# target_compile_definitions( test_setup INTERFACE "TESTING")
 target_compile_definitions( chasem8_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
 target_include_directories( chasem8_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
 target_link_directories( chasem8_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )
@@ -39,7 +36,6 @@ add_executable(
 
 target_include_directories( chasem8_tests PUBLIC ../logic_src )
 target_link_libraries( chasem8_tests chasem8_test_setup chasem8_logic )
-
 
 add_test( FilenameExtractorTest::ValidCreation chasem8_tests FilenameExtractorTest::ValidCreation )
 add_test( FilenameExtractorTest::InvalidCreation chasem8_tests FilenameExtractorTest::InvalidCreation )

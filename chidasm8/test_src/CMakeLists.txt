@@ -17,12 +17,9 @@
 # MA 02110-1301, USA.
 #
 
-set(CMAKE_CXX_STANDARD 20)
-
 find_package( cppunit REQUIRED )
 
 add_library( chidasm8_test_setup INTERFACE )
-# target_compile_definitions( test_setup INTERFACE "TESTING")
 target_compile_definitions( chidasm8_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
 target_include_directories( chidasm8_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
 target_link_directories( chidasm8_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )

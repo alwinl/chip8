@@ -17,8 +17,6 @@
 # MA 02110-1301, USA.
 #
 
-set(CMAKE_CXX_STANDARD 20)
-
 find_package( cppunit REQUIRED )
 
 add_library( chemul8_test_setup INTERFACE )

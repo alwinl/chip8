@@ -17,19 +17,20 @@
 # MA 02110-1301, USA.
 #
 
-add_executable( spriteviewer_test
-	test.cc
+find_package( cppunit REQUIRED )
+
+add_library( sprite_viewer_test_setup INTERFACE )
+target_compile_definitions( sprite_viewer_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
+target_include_directories( sprite_viewer_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
+target_link_directories( sprite_viewer_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )
+target_link_libraries( sprite_viewer_test_setup INTERFACE ${CPPUNIT_LIBRARIES} )
+
+add_executable(
+	sprite_viewer_tests
+
+	test_runner.cc
 )
 
-find_package(SDL2 REQUIRED)
-
-# find_package(cppunit REQUIRED)
-# find_package(GTKmm REQUIRED)
-
-find_package(PkgConfig REQUIRED)
-
-pkg_check_modules( GTKMM REQUIRED gtkmm-3.0)
-
-target_include_directories( spriteviewer_test PRIVATE ${GTKMM_INCLUDE_DIRS})
-target_link_libraries(spriteviewer_test PRIVATE ${SDL2_LIBRARIES} ${GTKMM_LIBRARIES})
+target_link_libraries( sprite_viewer_tests sprite_viewer_test_setup )
+target_include_directories( sprite_viewer_tests PUBLIC ../src )
 
