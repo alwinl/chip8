@@ -19,43 +19,18 @@
  *
  */
 
-#ifndef CHEMUL8_H
-#define CHEMUL8_H
+#ifndef QUIRKS_H
+#define QUIRKS_H
 
-#include <cstdint>
+class Quirks {
+ public:
+	enum class eChipType { CHIP8, XOCHIP, SCHIP };
+	Quirks( Quirks::eChipType type);
 
-enum class Quirks { RESET, MEMORY, DISP_WAIT, CLIPPING, SHIFTING, JUMPING };
+	enum class eQuirks { RESET, MEMORY, DISP_WAIT, CLIPPING, SHIFTING, JUMPING };
+	bool has_quirk( eQuirks test_quirk );
 
-class Chemul8
-{
-public:
-
-	int run( int argc, char *argv[] );
-
-    void clear_screen();
-    bool toggle_a_pixel( uint8_t x, uint8_t y );
-	bool is_key_pressed( uint8_t key_no );
-	bool key_captured( uint8_t& key_no );
-    void set_delay_timer( uint8_t value );
-    void set_sound_timer( uint8_t value );
-    uint8_t get_delay_timer( ) const;
-    bool has_quirk( Quirks test_quirk );
-	uint8_t get_random_value();
-	bool block_drw();
-
-private:
-	static const uint8_t WIDTH = 64;
-	static const uint8_t HEIGHT = 32;
-    uint8_t display_buffer[ WIDTH * HEIGHT / 8 ];
-
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool interrupt = false;
-
-	uint8_t DelayTimer = 0;
-	uint8_t SoundTimer = 0;
-
+ private:
 	struct QuirkFlags {
 		bool reset_quirk;
 		bool memory_quirk;
@@ -65,7 +40,34 @@ private:
 		bool jumping_quirk;
 	};
 
+	static constexpr QuirkFlags CHIP8_quirks = {
+		.reset_quirk = true,
+		.memory_quirk = true,
+		.display_wait_quirk = true,
+		.clipping_quirk = true,
+		.shifting_quirk = false,
+		.jumping_quirk = false,
+	};
+	static constexpr QuirkFlags XOCHIP8_quirks = {
+		.reset_quirk = false,
+		.memory_quirk = true,
+		.display_wait_quirk = false,
+		.clipping_quirk = false,
+		.shifting_quirk = false,
+		.jumping_quirk = false,
+
+	};
+	static constexpr QuirkFlags SCHIP8_quirks = {
+		.reset_quirk = false,
+		.memory_quirk = false,
+		.display_wait_quirk = false,
+		.clipping_quirk = true,
+		.shifting_quirk = true,
+		.jumping_quirk = true,
+
+	};
+
 	QuirkFlags quirks;
 };
 
-#endif // CHEMUL8_H
+#endif  // QUIRKS_H

@@ -19,33 +19,29 @@
  *
  */
 
-#ifndef RESOURCELAYER_H
-#define RESOURCELAYER_H
+#include "quirks.h"
 
-#include <cstdint>
-
-struct SDL_Window;
-struct SDL_Renderer;
-union SDL_Event;
-
-class ResourceLayer
+Quirks::Quirks ( Quirks::eChipType type )
 {
-public:
-	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
+	switch (type)
+	{
+	case eChipType::CHIP8: quirks = CHIP8_quirks; break;
+	case eChipType::XOCHIP: quirks = XOCHIP8_quirks; break;
+	case eChipType::SCHIP: quirks = SCHIP8_quirks; break;
+	}
+}
 
-	ResourceLayer();
-	virtual ~ResourceLayer();
+bool Quirks::has_quirk( Quirks::eQuirks test_quirk )
+{
+	switch( test_quirk ) {
+	case eQuirks::RESET: return quirks.reset_quirk;
+	case eQuirks::MEMORY: return quirks.memory_quirk;
+	case eQuirks::DISP_WAIT: return quirks.display_wait_quirk;
+	case eQuirks::CLIPPING: return quirks.clipping_quirk;
+	case eQuirks::SHIFTING: return quirks.shifting_quirk;
+	case eQuirks::JUMPING: return quirks.jumping_quirk;
+	};
 
-	void make_sound();
-	void draw_buffer( uint8_t *buffer, uint16_t total_pixels );
-	Events check_events( uint16_t& keys );
+	return false;
+}
 
-private:
-    SDL_Window * m_window;
-    SDL_Renderer * m_renderer;
-
-	bool switch_event( SDL_Event& event, uint16_t& keys, ResourceLayer::Events& the_event );
-	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
-};
-
-#endif // RESOURCELAYER_H

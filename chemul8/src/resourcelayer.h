@@ -19,13 +19,33 @@
  *
  */
 
-#ifndef CHEMUL8TEST_H
-#define CHEMUL8TEST_H
+#ifndef RESOURCELAYER_H
+#define RESOURCELAYER_H
 
-class Chemul8Test
+#include <cstdint>
+
+struct SDL_Window;
+struct SDL_Renderer;
+union SDL_Event;
+
+class ResourceLayer
 {
 public:
-	int run( int argc, char *argv[] );
+	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
+
+	ResourceLayer();
+	virtual ~ResourceLayer();
+
+	void make_sound();
+	void draw_buffer( uint8_t *buffer, uint16_t total_pixels );
+	Events check_events( uint16_t &keys );
+
+private:
+	SDL_Window *m_window;
+	SDL_Renderer *m_renderer;
+
+	bool switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event );
+	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
 };
 
-#endif // CHEMUL8TEST_H
+#endif // RESOURCELAYER_H

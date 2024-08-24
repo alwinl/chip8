@@ -19,17 +19,38 @@
  *
  */
 
-#include "chemul8.h"
+#ifndef CHEMUL8_H
+#define CHEMUL8_H
 
-#ifdef TESTING
-#include "test_src/chemul8test.h"
-#define AppClass Chemul8Test
-#else
-#include "sdlsrc/chemul8.h"
-#define AppClass Chemul8
-#endif
+#include <cstdint>
 
-int main( int argc, char * argv[] )
+class Chemul8
 {
-	return AppClass().run( argc, argv );
-}
+public:
+	int run( int argc, char *argv[] );
+
+	void clear_screen();
+	bool toggle_a_pixel( uint8_t x, uint8_t y );
+	bool is_key_pressed( uint8_t key_no );
+	bool key_captured( uint8_t &key_no );
+	void set_delay_timer( uint8_t value );
+	void set_sound_timer( uint8_t value );
+	uint8_t get_delay_timer() const;
+	uint8_t get_random_value();
+	bool block_drw();
+
+private:
+	static const uint8_t WIDTH = 64;
+	static const uint8_t HEIGHT = 32;
+	uint8_t display_buffer[WIDTH * HEIGHT / 8];
+
+	uint16_t keys = 0;
+	uint16_t last_keys = 0;
+
+	bool interrupt = false;
+
+	uint8_t DelayTimer = 0;
+	uint8_t SoundTimer = 0;
+};
+
+#endif // CHEMUL8_H
