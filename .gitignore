@@ -1,14 +1,4 @@
-chasem8/bin/*
-chasem8/obj/*
-chemul8/bin/*
-chemul8/obj/*
-chidisas8/bin/*
-chidisas8/obj/*
-SpriteViewer/bin/*
-SpriteViewer/obj/*
-Resources/backup/chip8_assemble/bin
-Resources/backup/chip8_assemble/obj
-chip8-test-suite/*
+**/resources/chip8-test-suite/*
 *.lst
 *.depend
 *.layout
