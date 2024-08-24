@@ -1,0 +1,9 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.clang-format": "yaml",
+    "*.tcc": "cpp",
+    ".clang-format": "yaml",
+    "CHIPPER.C": "cpp"
+  }
+}
