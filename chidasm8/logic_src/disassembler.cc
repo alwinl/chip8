@@ -19,10 +19,10 @@
  *
  */
 
-#include <iostream>
-#include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
 #include "disassembler.h"
 
@@ -36,29 +36,28 @@ std::string format_register( unsigned int reg )
 std::string format_byte( unsigned int byte )
 {
 	std::ostringstream oss;
-	oss << "0x" << std::setfill( '0') << std::setw(2) << std::uppercase << std::hex << byte;
+	oss << "0x" << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
 	return oss.str();
 }
 
 std::string format_naked_byte( unsigned int byte )
 {
 	std::ostringstream oss;
-	oss << std::setfill( '0') << std::setw(2) << std::uppercase << std::hex << byte;
+	oss << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
 	return oss.str();
 }
 
 std::string format_address( unsigned int address )
 {
 	std::ostringstream oss;
-	oss << "0x" << std::setfill( '0') << std::setw(3) << std::uppercase << std::hex << address;
+	oss << "0x" << std::setfill( '0' ) << std::setw( 3 ) << std::uppercase << std::hex << address;
 	return oss.str();
 }
-
 
 /*
  * Input section
  */
-void Disassembler::read_binary( std::istream& is )
+void Disassembler::read_binary( std::istream &is )
 {
 	uint16_t address = origin;
 	uint8_t ch = is.get();
@@ -71,7 +70,6 @@ void Disassembler::read_binary( std::istream& is )
 		ch = is.get();
 	}
 }
-
 
 /*
  * Processing section
@@ -86,7 +84,7 @@ std::string Disassembler::add_target( uint16_t source_address, uint16_t target_a
 	std::set<Target>::iterator it = jmp_targets.find( Target( target_address ) );
 
 	if( it != jmp_targets.end() )
-		return (*it).get_label();
+		return ( *it ).get_label();
 
 	// not in target list, create a new entry
 	std::string label;
@@ -109,9 +107,9 @@ void Disassembler::mark_as_instruction( uint16_t address )
 	std::set<RawData>::iterator it = data_set.find( RawData( address ) );
 
 	if( it == data_set.end() )
-		return;		// not allowed to happen, should throw a big wobbly here
+		return; // not allowed to happen, should throw a big wobbly here
 
-	RawData new_key = RawData( (*it).get_location(), (*it).val(), true );
+	RawData new_key = RawData( ( *it ).get_location(), ( *it ).val(), true );
 
 	data_set.erase( it );
 	data_set.insert( new_key );
@@ -124,17 +122,17 @@ Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 
 	switch( opcode & 0xFFF ) {
 	/* opcodes 0000 .. 00DF not defined */
-	case 0x0E0:							// CLS : clear screen
+	case 0x0E0: // CLS : clear screen
 		mnemonic = "CLS";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes 00E1 .. 00ED not defined */
-	case 0x0EE:							// RET : return from subroutine
+	case 0x0EE: // RET : return from subroutine
 		mnemonic = "RET";
 		break;
 	/* opcodes 00EF .. 0FFF not defined */
 	default:
-		//mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
+		// mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
 		mnemonic = "SYS";
 		label = add_target( address, opcode & 0xFFF, Target::eTargetKind::SUBROUTINE );
 
@@ -168,10 +166,11 @@ Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 	return Instruction( address, "CALL", label );
 }
 
-Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )		//SE Vx, byte : Skip next instruction if Vx = kk.
+Instruction Disassembler::decode_SEI( uint16_t address,
+									  uint16_t opcode ) // SE Vx, byte : Skip next instruction if Vx = kk.
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int byte = (opcode & 0xFF);
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int byte = ( opcode & 0xFF );
 
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
@@ -181,8 +180,8 @@ Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )		//SE 
 
 Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int byte = (opcode & 0xFF);
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int byte = ( opcode & 0xFF );
 
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
@@ -195,11 +194,11 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 	std::string mnemonic;
 	std::string argument;
 
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int reg_y = (opcode >> 4) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int reg_y = ( opcode >> 4 ) & 0xF;
 
 	switch( opcode & 0xF ) {
-	case 0x0 :
+	case 0x0:
 		mnemonic = "SE";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 4 );
@@ -217,8 +216,8 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 
 Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int byte = (opcode & 0xFF);
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int byte = ( opcode & 0xFF );
 
 	address_stack.push( address + 2 );
 
@@ -230,8 +229,8 @@ Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
 
 Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int byte = (opcode & 0xFF);
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int byte = ( opcode & 0xFF );
 
 	address_stack.push( address + 2 );
 
@@ -246,36 +245,36 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 	std::string mnemonic;
 	std::string argument;
 
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int reg_y = (opcode >> 4) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int reg_y = ( opcode >> 4 ) & 0xF;
 
 	switch( opcode & 0xF ) {
-	case 0x0: 							// LD Vx, Vy : Set Vx = Vy.
+	case 0x0: // LD Vx, Vy : Set Vx = Vy.
 		mnemonic = "LD";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
-	case 0x1:		// OR Vx, Vy : Set Vx = Vx OR Vy
+	case 0x1: // OR Vx, Vy : Set Vx = Vx OR Vy
 		mnemonic = "OR";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
-	case 0x2:				// AND Vx, Vy : Set Vx = Vx AND Vy
+	case 0x2: // AND Vx, Vy : Set Vx = Vx AND Vy
 		mnemonic = "AND";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
-	case 0x3:				// XOR Vx, Vy : Set Vx = Vx XOR Vy
+	case 0x3: // XOR Vx, Vy : Set Vx = Vx XOR Vy
 		mnemonic = "XOR";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
-	case 0x4:				// ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
+	case 0x4: // ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
 		mnemonic = "ADD";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
-	case 0x5:				// SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
+	case 0x5: // SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
 		mnemonic = "SUB";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
@@ -283,21 +282,22 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 	/*
 	 * Note from Wikipedia:
 	 *
-	 * 	CHIP-8's opcodes 8XY6 and 8XYE (the bit shift instructions), which were in fact undocumented opcodes in the original interpreter,
-	 *	shifted the value in the register VY and stored the result in VX. The CHIP-48 and SCHIP implementations instead ignored VY, and simply shifted VX
+	 * 	CHIP-8's opcodes 8XY6 and 8XYE (the bit shift instructions), which were in fact undocumented opcodes in the
+	 *original interpreter, shifted the value in the register VY and stored the result in VX. The CHIP-48 and SCHIP
+	 *implementations instead ignored VY, and simply shifted VX
 	 */
 	case 0x6: // SHR Vx {, Vy} : Set Vx = Vx SHR 1.	Error in documentation! should be Vx = Vy SHR 1
 		mnemonic = "SHR";
 		argument = format_register( reg_x ) + " {, " + format_register( reg_y ) + "}";
 		address_stack.push( address + 2 );
 		break;
-	case 0x7: 										// SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
+	case 0x7: // SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
 		mnemonic = "SUBN";
 		argument = format_register( reg_x ) + ", " + format_register( reg_y );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes 8xy8 .. 8xyD not defined */
-	case 0xE:										// SHL Vx {, Vy} : Set Vx = Vx SHL 1. Error in documentation, should be Vx = Vy SHL 1
+	case 0xE: // SHL Vx {, Vy} : Set Vx = Vx SHL 1. Error in documentation, should be Vx = Vy SHL 1
 		mnemonic = "SHL";
 		argument = format_register( reg_x ) + " {, " + format_register( reg_y ) + "}";
 		address_stack.push( address + 2 );
@@ -314,8 +314,8 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 
 Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int reg_y = (opcode >> 4) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int reg_y = ( opcode >> 4 ) & 0xF;
 
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
@@ -336,18 +336,18 @@ Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
 
 Instruction Disassembler::decode_JMP( uint16_t address, uint16_t opcode )
 {
-	unsigned int target = (opcode >> 0) & 0xFFF;
+	unsigned int target = ( opcode >> 0 ) & 0xFFF;
 
 	std::string label = add_target( address, target, Target::eTargetKind::INDEXED );
-	//address_stack.push( target + V0 ); //this is a problem, we do not know the value of V0
+	// address_stack.push( target + V0 ); //this is a problem, we do not know the value of V0
 
-	return Instruction( address, "JMP", std::string( "V0, ") + label );
+	return Instruction( address, "JMP", std::string( "V0, " ) + label );
 }
 
 Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x = (opcode >> 8) & 0xF;
-	unsigned int byte  = (opcode >> 0) & 0xFF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int byte = ( opcode >> 0 ) & 0xFF;
 
 	address_stack.push( address + 2 );
 
@@ -356,31 +356,32 @@ Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
 
 Instruction Disassembler::decode_DRW( uint16_t address, uint16_t opcode )
 {
-	unsigned int reg_x  = (opcode >> 8) & 0xF;
-	unsigned int reg_y  = (opcode >> 4) & 0xF;
-	unsigned int nibble = (opcode >> 0) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
+	unsigned int reg_y = ( opcode >> 4 ) & 0xF;
+	unsigned int nibble = ( opcode >> 0 ) & 0xF;
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "DRW", format_register( reg_x ) + ", " + format_register( reg_y ) + ", " + std::to_string( nibble ) );
+	return Instruction( address, "DRW",
+						format_register( reg_x ) + ", " + format_register( reg_y ) + ", " + std::to_string( nibble ) );
 }
 
 Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
 {
 	std::string mnemonic;
 	std::string argument;
-	unsigned int reg_x = (opcode >> 8) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
 
 	switch( opcode & 0xFF ) {
 	/* opcodes Ex00 .. Ex9D not defined */
-	case 0x9E:								// Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
+	case 0x9E: // Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
 		mnemonic = "SKP";
 		argument = format_register( reg_x );
 		address_stack.push( address + 4 );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Ex9F .. ExA0 not defined */
-	case 0xA1:								// ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
+	case 0xA1: // ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
 		mnemonic = "SKPN";
 		argument = format_register( reg_x );
 		address_stack.push( address + 4 );
@@ -400,59 +401,59 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 {
 	std::string mnemonic;
 	std::string argument;
-	unsigned int reg_x = (opcode >> 8) & 0xF;
+	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
 
 	switch( opcode & 0xFF ) {
 	/* opcodes Fx00 .. Fx06 not defined */
-	case 0x07:				// Fx07 - LD Vx, DT : Set Vx = delay timer value.
+	case 0x07: // Fx07 - LD Vx, DT : Set Vx = delay timer value.
 		mnemonic = "LD";
 		argument = format_register( reg_x ) + ", DT";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx08 .. Fx09 not defined */
-	case 0x0A:												// Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
+	case 0x0A: // Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 		mnemonic = "LD";
 		argument = format_register( reg_x ) + ", K";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx0B .. Fx14 not defined */
-	case 0x15: 												// Fx15 - LD DT, Vx : Set delay timer = Vx.
+	case 0x15: // Fx15 - LD DT, Vx : Set delay timer = Vx.
 		mnemonic = "LD";
 		argument = std::string( "DT, " ) + format_register( reg_x );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx16 and Fx17 not defined */
-	case 0x18: 												// Fx18 - LD ST, Vx : Set sound timer = Vx.
+	case 0x18: // Fx18 - LD ST, Vx : Set sound timer = Vx.
 		mnemonic = "LD";
 		argument = std::string( "ST, " ) + format_register( reg_x );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx19 .. Fx1D not defined */
-	case 0x1E:												// Fx1E - ADD I, Vx : Set I = I + Vx
+	case 0x1E: // Fx1E - ADD I, Vx : Set I = I + Vx
 		mnemonic = "ADD";
 		argument = std::string( "I, " ) + format_register( reg_x );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx1F .. Fx28 not defined */
-	case 0x29:												// Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
+	case 0x29: // Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
 		mnemonic = "LD";
 		argument = std::string( "I, CHR[" ) + format_register( reg_x ) + "]";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx2A .. Fx32 not defined */
-	case 0x33 : 											// Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
+	case 0x33: // Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
 		mnemonic = "LD";
 		argument = std::string( "I, BCD[" ) + format_register( reg_x ) + "]";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx34 .. Fx54 not defined */
-	case 0x55:												// Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
+	case 0x55: // Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
 		mnemonic = "LD";
 		argument = std::string( "[I], " ) + format_register( reg_x );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx56 .. Fx64 not defined */
-	case 0x65:												// Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
+	case 0x65: // Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
 		mnemonic = "LD";
 		argument = format_register( reg_x ) + ", [I]";
 		address_stack.push( address + 2 );
@@ -470,19 +471,19 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 void Disassembler::disassemble_instruction( uint16_t address )
 {
 	if( instructions.find( Instruction( address ) ) != instructions.end() )
-		return;	// the instruction has already been pushed so all is good
+		return; // the instruction has already been pushed so all is good
 
 	// find this address (and the next one) in our raw data set
-	std::set<RawData>::iterator first_byte = data_set.find( RawData(address) );
-	std::set<RawData>::iterator second_byte = data_set.find( RawData(address + 1) );
+	std::set<RawData>::iterator first_byte = data_set.find( RawData( address ) );
+	std::set<RawData>::iterator second_byte = data_set.find( RawData( address + 1 ) );
 
-	if( (first_byte == data_set.end()) || (second_byte == data_set.end()) ) {
+	if( ( first_byte == data_set.end() ) || ( second_byte == data_set.end() ) ) {
 		// not in raw bytes and not in instruction set. Worthy of an exception
 		return;
 	}
 
 	// Create instruction here, dissemble and add to the instruction set.
-	unsigned int opcode = ((*first_byte).val() << 8) | (*second_byte).val();
+	unsigned int opcode = ( ( *first_byte ).val() << 8 ) | ( *second_byte ).val();
 
 	switch( opcode >> 12 ) {
 	case 0x0: instructions.insert( decode_SYS( address, opcode ) ); break;
@@ -508,7 +509,7 @@ void Disassembler::disassemble_instruction( uint16_t address )
 	mark_as_instruction( address + 1 );
 }
 
-void Disassembler::disassemble( )
+void Disassembler::disassemble()
 {
 	// Push the start address
 	address_stack.push( origin );
@@ -532,18 +533,18 @@ void Disassembler::collect_data_bytes()
 
 	for( std::set<RawData>::iterator it = data_set.begin(); it != data_set.end(); ++it ) {
 
-		if( ! (*it).instruction() ) {
+		if( !( *it ).instruction() ) {
 			// if we are not collecting data, start now
 			if( datarun.empty() )
-				address = (*it).get_location();
+				address = ( *it ).get_location();
 			// if the location has a data label associated with it, we need to break the run
-			else if( jmp_targets.find( Target( (*it).get_location() ) ) != jmp_targets.end() ) {
+			else if( jmp_targets.find( Target( ( *it ).get_location() ) ) != jmp_targets.end() ) {
 				databytes.insert( DataBytes( address, datarun ) );
 				datarun.clear();
-				address = (*it).get_location();
+				address = ( *it ).get_location();
 			}
 
-			datarun.push_back( (*it).val() );
+			datarun.push_back( ( *it ).val() );
 
 			// collect a maximum of 16 bytes
 			if( datarun.size() == 16 ) {
@@ -558,25 +559,23 @@ void Disassembler::collect_data_bytes()
 				datarun.clear();
 			}
 		}
-
 	}
 }
-
 
 /*
  * Output section
  */
-void Disassembler::write_listing( std::ostream& os ) const
+void Disassembler::write_listing( std::ostream &os ) const
 {
-    configure_stream( os );
-    write_header( os );
+	configure_stream( os );
+	write_header( os );
 
 	std::set<Instruction>::iterator instruction_iter = instructions.begin();
 	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
 
 	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
 
-		if( (*instruction_iter).get_address() < (*datarun_iter).get_address() ) {
+		if( ( *instruction_iter ).get_address() < ( *datarun_iter ).get_address() ) {
 			output_instruction( os, *instruction_iter );
 			++instruction_iter;
 		} else {
@@ -597,54 +596,52 @@ void Disassembler::write_listing( std::ostream& os ) const
 	}
 }
 
-void Disassembler::configure_stream( std::ostream& os ) const
+void Disassembler::configure_stream( std::ostream &os ) const
 {
-	os << std::setfill( '0');
+	os << std::setfill( '0' );
 	os << std::setw( 3 );
 	os << std::hex << std::uppercase;
 }
 
-void Disassembler::write_header( std::ostream& os ) const
+void Disassembler::write_header( std::ostream &os ) const
 {
 	os << "; Disasembly of " << bin_name << "\n";
 	os << "; Generated by chidisas8\n";
 	os << ";\n\n";
-	os << "\t.ORG " << format_address(origin) << "\n\n";
+	os << "\t.ORG " << format_address( origin ) << "\n\n";
 }
 
-void Disassembler::output_instruction( std::ostream& os, Instruction inst ) const
+void Disassembler::output_instruction( std::ostream &os, Instruction inst ) const
 {
 	std::set<Target>::iterator target_iter;
 
-	if( label_present( target_iter, inst.get_address()) )
-		(*target_iter).print( os );
+	if( label_present( target_iter, inst.get_address() ) )
+		( *target_iter ).print( os );
 
-	std::set<RawData>::iterator high_byte = data_set.find( RawData(inst.get_address()) );
-	std::set<RawData>::iterator low_byte = data_set.find( RawData(inst.get_address() + 1) );
+	std::set<RawData>::iterator high_byte = data_set.find( RawData( inst.get_address() ) );
+	std::set<RawData>::iterator low_byte = data_set.find( RawData( inst.get_address() + 1 ) );
 
-	inst.print( os, (*high_byte).val(), (*low_byte).val() );
+	inst.print( os, ( *high_byte ).val(), ( *low_byte ).val() );
 }
 
-void Disassembler::output_datarun( std::ostream& os, DataBytes datarun ) const
+void Disassembler::output_datarun( std::ostream &os, DataBytes datarun ) const
 {
 	std::set<Target>::iterator target_iter;
 
-	if( label_present( target_iter, datarun.get_address()) )
-		(*target_iter).print( os );
+	if( label_present( target_iter, datarun.get_address() ) )
+		( *target_iter ).print( os );
 
 	datarun.print( os );
 }
 
-bool Disassembler::label_present( std::set<Target>::iterator& it, uint16_t address ) const
+bool Disassembler::label_present( std::set<Target>::iterator &it, uint16_t address ) const
 {
 	it = jmp_targets.find( Target( address ) );
 
 	return it != jmp_targets.end();
 }
 
-
-
-void Target::print( std::ostream& os ) const
+void Target::print( std::ostream &os ) const
 {
 	if( type == eTargetKind::SUBROUTINE )
 		os << '\n';
@@ -652,17 +649,18 @@ void Target::print( std::ostream& os ) const
 	os << '\t' << label << ":\n";
 }
 
-void Instruction::print( std::ostream& os, uint8_t high_byte, uint8_t low_byte ) const
+void Instruction::print( std::ostream &os, uint8_t high_byte, uint8_t low_byte ) const
 {
-	os << address << "\t\t" << format_naked_byte(high_byte) << " " << format_naked_byte(low_byte) << "\t" << mnemonic << " " << argument << "\n";
+	os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
+	   << mnemonic << " " << argument << "\n";
 }
 
-void DataBytes::print( std::ostream& os ) const
+void DataBytes::print( std::ostream &os ) const
 {
-	os << address << "\t\t" << ".DB\t";
+	os << address << "\t\t"
+	   << ".DB\t";
 
-	for( uint8_t byte : byte_run )
-		os << format_byte( byte ) << " ";
+	for( uint8_t byte : byte_run ) os << format_byte( byte ) << " ";
 
 	os << '\n';
 }

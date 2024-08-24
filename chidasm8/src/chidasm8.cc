@@ -19,14 +19,33 @@
  *
  */
 
-#ifndef CHIDISAS8_H
-#define CHIDISAS8_H
+#include <fstream>
+#include <iostream>
 
+#include "disassembler.h"
 
-class Chidisas8
+int main( int argc, char *argv[] )
 {
-public:
-	int run( int argc, char *argv[] );
-};
+	static const unsigned int start_address = 0x200;
 
-#endif // CHIDISAS8_H
+	if( argc < 2 ) {
+		std::cout << "Usage dis_chip8 [program binary]" << std::endl;
+		return 1;
+	}
+
+	std::ofstream os = std::ofstream( std::string( argv[1] ) + ".lst" );
+	std::ifstream is = std::ifstream( argv[1] );
+
+	if( !is.good() || !os.good() ) {
+		std::cout << "Cannot open files" << std::endl;
+		return 1;
+	}
+
+	Disassembler dis( argv[1], start_address );
+	dis.read_binary( is );
+	dis.disassemble();
+	dis.collect_data_bytes();
+	dis.write_listing( os );
+
+	return 0;
+}

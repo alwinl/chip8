@@ -19,15 +19,13 @@
  *
  */
 
-#ifdef TESTING
-#include "test_src/chidisas8test.h"
-#define AppClass Chidisas8Test
-#else
-#include "src/chidisas8.h"
-#define AppClass Chidisas8
-#endif // TESTING
+#ifndef CHIDISAS8TEST_H
+#define CHIDISAS8TEST_H
 
-int main(int argc, char ** argv )
+class Chidisas8Test
 {
-	return AppClass().run( argc, argv );
-}
+public:
+	int run( int argc, char *argv[] );
+};
+
+#endif // CHIDISAS8TEST_H

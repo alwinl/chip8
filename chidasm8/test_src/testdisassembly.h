@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,26 @@
  *
  */
 
-#ifndef CHIDISAS8TEST_H
-#define CHIDISAS8TEST_H
+#ifndef TESTDISASSEMBLY_H
+#define TESTDISASSEMBLY_H
 
-class Chidisas8Test
+#include <cppunit/TestFixture.h>
+#include <cppunit/extensions/HelperMacros.h>
+
+class TestDisassembly : public CppUnit::TestFixture
 {
 public:
-	int run( int argc, char *argv[] );
+	TestDisassembly(){};
+	virtual ~TestDisassembly(){};
 
+	CPPUNIT_TEST_SUITE( TestDisassembly );
+
+	CPPUNIT_TEST( DisassembleBLINKY );
+
+	CPPUNIT_TEST_SUITE_END();
+
+private:
+	void DisassembleBLINKY();
 };
 
-#endif // CHIDISAS8TEST_H
+#endif // TESTDISASSEMBLY_H

@@ -22,10 +22,10 @@
 #ifndef DISASSEMBLER_H
 #define DISASSEMBLER_H
 
-#include <string>
-#include <vector>
 #include <set>
 #include <stack>
+#include <string>
+#include <vector>
 
 #include <cstdint>
 
@@ -34,16 +34,16 @@
 class RawData
 {
 public:
-    /* Default arguments so we can make a RawData object for comparison (find ) */
-	RawData( uint16_t location, uint8_t value = 0, bool is_instruction  = false )
+	/* Default arguments so we can make a RawData object for comparison (find ) */
+	RawData( uint16_t location, uint8_t value = 0, bool is_instruction = false )
 	{
 		this->location = location;
 		this->value = value;
 		this->is_instruction = is_instruction;
 	};
 
-	bool operator<( const RawData& rhs ) const { return location < rhs.location; }
-	bool operator==( const RawData& rhs ) const { return location == rhs.location; }
+	bool operator<( const RawData &rhs ) const { return location < rhs.location; }
+	bool operator==( const RawData &rhs ) const { return location == rhs.location; }
 
 	uint8_t val() const { return value; }
 	uint16_t get_location() const { return location; }
@@ -58,7 +58,7 @@ private:
 class Instruction
 {
 public:
-    /* Default arguments so we can make an Instruction object for comparison (find) */
+	/* Default arguments so we can make an Instruction object for comparison (find) */
 	Instruction( unsigned int address, std::string mnemonic = "", std::string argument = "" )
 	{
 		this->address = address;
@@ -66,12 +66,12 @@ public:
 		this->argument = argument;
 	}
 
-	bool operator<( const Instruction& rhs ) const { return address < rhs.address; };
-	bool operator==( const Instruction& rhs ) const { return address == rhs.address; };
+	bool operator<( const Instruction &rhs ) const { return address < rhs.address; };
+	bool operator==( const Instruction &rhs ) const { return address == rhs.address; };
 
 	uint16_t get_address() const { return address; };
 
-	void print( std::ostream& os, uint8_t high_byte, uint8_t low_byte ) const;
+	void print( std::ostream &os, uint8_t high_byte, uint8_t low_byte ) const;
 
 private:
 	uint16_t address;
@@ -93,12 +93,12 @@ public:
 		this->byte_run = byte_run;
 	}
 
-	bool operator<( const DataBytes& rhs ) const { return address < rhs.address; };
-	bool operator==( const DataBytes& rhs ) const { return address == rhs.address; };
+	bool operator<( const DataBytes &rhs ) const { return address < rhs.address; };
+	bool operator==( const DataBytes &rhs ) const { return address == rhs.address; };
 
 	uint16_t get_address() const { return address; }
 
-	void print( std::ostream& os ) const;
+	void print( std::ostream &os ) const;
 
 private:
 	uint16_t address;
@@ -108,27 +108,27 @@ private:
 class Target
 {
 public:
-    enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
+	enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
 
-    /* Default arguments so we can make a Target object for comparison (find) */
-    Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" )
-    {
-        this->address = address;
-        this->type = type;
-        this->label = label;
-    };
+	/* Default arguments so we can make a Target object for comparison (find) */
+	Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" )
+	{
+		this->address = address;
+		this->type = type;
+		this->label = label;
+	};
 
-    bool operator<( const Target& rhs ) const { return address < rhs.address; }
-    bool operator==( const Target& rhs ) const { return address == rhs.address; }
+	bool operator<( const Target &rhs ) const { return address < rhs.address; }
+	bool operator==( const Target &rhs ) const { return address == rhs.address; }
 
-    std::string get_label() const { return label; }
+	std::string get_label() const { return label; }
 
-    void print( std::ostream& os ) const;
+	void print( std::ostream &os ) const;
 
 private:
-    uint16_t address;
-    eTargetKind type;
-    std::string label;
+	uint16_t address;
+	eTargetKind type;
+	std::string label;
 };
 
 class Disassembler
@@ -140,13 +140,12 @@ public:
 		this->origin = origin;
 	};
 
-	void read_binary( std::istream& is );
-	void disassemble( );
+	void read_binary( std::istream &is );
+	void disassemble();
 	void collect_data_bytes();
-	void write_listing( std::ostream& os ) const;
+	void write_listing( std::ostream &os ) const;
 
 private:
-
 	uint16_t origin;
 	std::string bin_name;
 
@@ -193,13 +192,13 @@ private:
 	void mark_as_instruction( uint16_t address );
 	void disassemble_instruction( uint16_t address );
 
-    void configure_stream( std::ostream& os ) const;
-    void write_header( std::ostream& os ) const;
+	void configure_stream( std::ostream &os ) const;
+	void write_header( std::ostream &os ) const;
 
-	void output_instruction( std::ostream& os, Instruction inst ) const;
-	void output_datarun( std::ostream& os, DataBytes datarun ) const;
+	void output_instruction( std::ostream &os, Instruction inst ) const;
+	void output_datarun( std::ostream &os, DataBytes datarun ) const;
 
-	bool label_present( std::set<Target>::iterator& it, uint16_t address ) const;
+	bool label_present( std::set<Target>::iterator &it, uint16_t address ) const;
 };
 
 #endif // DISASSEMBLER_H
