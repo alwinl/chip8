@@ -13,3 +13,4 @@ chip8-test-suite/*
 *.depend
 *.layout
 *~
+**/build/*
