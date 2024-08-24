@@ -28,12 +28,20 @@ class ProgramParserTest : public CppUnit::TestFixture
 {
 public:
     CPPUNIT_TEST_SUITE( ProgramParserTest );
+    CPPUNIT_TEST( TestRemoveSlashR );
+    CPPUNIT_TEST( TestRemoveComments );
+    CPPUNIT_TEST( TestSplit );
+    CPPUNIT_TEST( TestIdentify );
     CPPUNIT_TEST( TestJP );
     CPPUNIT_TEST( TestClearScreen );
     CPPUNIT_TEST_SUITE_END();
 
 private:
-	void TestClearScreen();
+	void TestRemoveSlashR();
+    void TestRemoveComments();
+    void TestSplit();
+    void TestIdentify();
+    void TestClearScreen();
 	void TestJP();
 };
 

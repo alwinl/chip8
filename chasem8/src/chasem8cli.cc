@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * chasem8cli.cc Copyright 2021 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,28 +15,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
-
-#include "chasem8cli.h"
 
 #include "instruction.h"
 #include "program.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "filenameextractor.h"
 
-int Chasem8CLI::run( int argc, char ** argv )
+int main( int argc, char **argv )
 {
 	if( argc < 2 ) {
 		std::cout << "Usage chasem8 source [binary [listing] ]" << std::endl;
 		return 1;
 	}
 
-    FilenameExtractor filenames( argc, argv );
+	Program prog;
+	FilenameExtractor filenames( argc, argv );
 
 	std::ifstream source = std::ifstream( filenames.get_source_name().c_str() );
 	if( source.bad() ) {
@@ -44,38 +41,21 @@ int Chasem8CLI::run( int argc, char ** argv )
 		return 2;
 	}
 
+	prog.read_source( source );
+
 	std::ofstream binary = std::ofstream( filenames.get_binary_name().c_str() );
 	if( binary.bad() ) {
 		std::cout << "Cannot open output file" << std::endl;
 		return 3;
 	}
 
-	bool no_listing = false;
+	prog.write_binary( binary );
+
 	std::ofstream listing = std::ofstream( filenames.get_listing_name().c_str() );
-	if( listing.bad() ) {
-		std::cout << "Cannot open lisintg file. Listing will  not be generated" << std::endl;
-		no_listing = true;
-	}
-
-
-#if 0
-	std::ifstream source = std::ifstream( argv[1] );
-	if( !source.good() ) {
-		std::cout << "Cannot read program" << std::endl;
-		return 1;
-	}
-
-	Program prog;
-
-	prog.read_source( source );
-
-	std::ofstream binary_file = std
-	prog.write_binary( )
-
-	Instruction inst;
-
-	prog.add_instruction( inst );
-#endif // 0
+	if( ! listing.bad() )
+		prog.write_listing( listing );
+	else
+		std::cout << "Cannot open lisintg file. Listing is not generated" << std::endl;
 
 	return 0;
 }

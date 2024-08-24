@@ -19,28 +19,45 @@
  *
  */
 
-#include "chasem8test.h"
+#ifndef PROGRAM_H
+#define PROGRAM_H
 
-#include <cppunit/CompilerOutputter.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/ui/text/TestRunner.h>
-#include <cppunit/TestFixture.h>
-#include <cppunit/extensions/HelperMacros.h>
+#include <cstdint>
+#include <istream>
+#include <ostream>
+#include <vector>
 
-#include <iostream>
+#include "instruction.h"
+
+struct program_parts {
+	std::string label;
+	std::string mnemonic;
+	std::string arguments;
+};
 
 
-int Chasem8Test::run( int argc, char ** argv )
+class Program
 {
-	 // Get the top level suite from the registry
-	CppUnit::Test *suite = CppUnit::TestFactoryRegistry::getRegistry().makeTest();
+public:
+	Program() = default;
 
-	// Adds the test to the list of test to run
-	CppUnit::TextUi::TestRunner runner;
-	runner.addTest( suite );
+	void remove_slash_r( std::string &input );
+	void remove_comments( std::string &input );
 
-	// Change the default outputter to a compiler error format outputter
-	runner.setOutputter( new CppUnit::CompilerOutputter( &runner.result(), std::cerr ) );
+	std::vector<std::string> split( std::string input );
 
-	return runner.run() ? 0 : 1;		// Return error code 1 if the one of test failed.
-}
+	program_parts identify(std::vector<std::string> parts);
+
+	void read_source( std::istream &source );
+
+	void write_binary( std::ostream &target );
+	void write_listing( std::ostream &target );
+
+private:
+	void add_instruction( Instruction &inst ) { instructions.push_back( inst ); }
+
+	std::vector<Instruction> instructions;
+	std::vector<uint8_t> codes;
+};
+
+#endif // PROGRAM_H
