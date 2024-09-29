@@ -17,6 +17,20 @@
 # MA 02110-1301, USA.
 #
 
-add_subdirectory(src)
-add_subdirectory(guisrc)
-add_subdirectory(test_src)
+find_package( PkgConfig REQUIRED )
+
+pkg_check_modules( GTKmm REQUIRED gtkmm-4.0 )
+
+add_executable(
+	gchemul8
+
+	gchemul8.cc
+)
+
+target_include_directories( gchemul8 PUBLIC ${GTKmm_INCLUDE_DIRS} )
+target_link_libraries( gchemul8 PUBLIC ${GTKmm_LIBRARIES})
+
+add_custom_command(
+	TARGET gchemul8 POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/gchemul8.ui $<TARGET_FILE_DIR:gchemul8>
+)
