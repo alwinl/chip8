@@ -17,21 +17,32 @@
 # MA 02110-1301, USA.
 #
 
-set(CMAKE_CXX_STANDARD 20)
+set( RESOURCE_BASE gchemul8 )
 
-add_library(
-	chasem8_logic
+find_program( GLIB_COMPILE_RESOURCES NAMES glib-compile-resources REQUIRED )
 
-	filenameextractor.cc
-	instruction.cc
-	program.cc
-	token.cc
+set( GRESOURCE_C ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_BASE}.gresource.c )
+set( GRESOURCE_XML ${RESOURCE_BASE}.gresource.xml )
+set( GRESOURCE_TARGET ${RESOURCE_BASE}-resource )
+
+set( GRESOURCE_DEPEND
+	gchemul8.ui
 )
 
-# add_executable(
-# 	chasem8
+add_custom_command(
+	OUTPUT ${GRESOURCE_C}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMAND ${GLIB_COMPILE_RESOURCES}
+	ARGS
+		--target=${GRESOURCE_C}
+		--generate-source
+		${GRESOURCE_XML}
+	VERBATIM
+	MAIN_DEPENDENCY ${GRESOURCE_XML}
+	DEPENDS ${GRESOURCE_DEPEND}
+)
 
-# 	chasem8cli.cc
-# )
+set_source_files_properties( ${GRESOURCE_C} PROPERTIES GENERATED TRUE )
+add_custom_target( ${GRESOURCE_TARGET} DEPENDS ${GRESOURCE_C} )
 
-# target_link_libraries( chasem8 PUBLIC chasem8_logic )
+set( GRESOURCE_C "${GRESOURCE_C}" PARENT_SCOPE )

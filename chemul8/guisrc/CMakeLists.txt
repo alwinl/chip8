@@ -17,20 +17,31 @@
 # MA 02110-1301, USA.
 #
 
-find_package( PkgConfig REQUIRED )
+add_subdirectory(resources)
 
-pkg_check_modules( GTKmm REQUIRED gtkmm-4.0 )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules( GTKMM REQUIRED gtkmm-4.0)
+
+SET( LIB_SETUP gchemul8_setup )
+
+# define a setup with all the crud that needs to be added to the gcc call
+add_library( ${LIB_SETUP} INTERFACE )
+target_include_directories( ${LIB_SETUP} INTERFACE ${GTKMM_INCLUDE_DIRS} )
+target_compile_options( ${LIB_SETUP} INTERFACE ${GTKMM_CFLAGS_OTHER} )
+target_link_directories( ${LIB_SETUP} INTERFACE ${GTKMM_LIBRARY_DIRS} )
+target_link_libraries( ${LIB_SETUP}  INTERFACE ${GTKMM_LIBRARIES} )
+
+set_source_files_properties( ${GRESOURCE_C} PROPERTIES GENERATED TRUE )
 
 add_executable(
 	gchemul8
 
 	gchemul8.cc
+
+	${GRESOURCE_C}
 )
 
-target_include_directories( gchemul8 PUBLIC ${GTKmm_INCLUDE_DIRS} )
-target_link_libraries( gchemul8 PUBLIC ${GTKmm_LIBRARIES})
+add_dependencies( gchemul8 gchemul8-resource )
 
-add_custom_command(
-	TARGET gchemul8 POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/gchemul8.ui $<TARGET_FILE_DIR:gchemul8>
-)
+target_link_libraries( gchemul8 ${LIB_SETUP} )
+# chessparser_logic )

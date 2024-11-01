@@ -17,8 +17,6 @@
 # MA 02110-1301, USA.
 #
 
-add_subdirectory(logic_src)
+add_subdirectory(logic)
 add_subdirectory(src)
-add_subdirectory(test_src)
-
-# include_directories(src logic_src)
+add_subdirectory(test)

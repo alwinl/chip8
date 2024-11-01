@@ -17,13 +17,8 @@
 # MA 02110-1301, USA.
 #
 
-find_package( cppunit REQUIRED )
-
-add_library( chasem8_test_setup INTERFACE )
-target_compile_definitions( chasem8_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
-target_include_directories( chasem8_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
-target_link_directories( chasem8_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )
-target_link_libraries( chasem8_test_setup INTERFACE ${CPPUNIT_LIBRARIES} )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules( CPPUNIT REQUIRED cppunit )
 
 add_executable(
 	chasem8_tests
@@ -34,8 +29,7 @@ add_executable(
 	testprogram.cc
 )
 
-target_include_directories( chasem8_tests PUBLIC ../logic_src )
-target_link_libraries( chasem8_tests chasem8_test_setup chasem8_logic )
+target_link_libraries( chasem8_tests ${CPPUNIT_LIBRARIES} chasem8_logic )
 
 add_test( FilenameExtractorTest::ValidCreation chasem8_tests FilenameExtractorTest::ValidCreation )
 add_test( FilenameExtractorTest::InvalidCreation chasem8_tests FilenameExtractorTest::InvalidCreation )

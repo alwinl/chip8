@@ -17,13 +17,9 @@
 # MA 02110-1301, USA.
 #
 
-find_package( cppunit REQUIRED )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules( CPPUNIT REQUIRED cppunit )
 
-add_library( chidasm8_test_setup INTERFACE )
-target_compile_definitions( chidasm8_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
-target_include_directories( chidasm8_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
-target_link_directories( chidasm8_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )
-target_link_libraries( chidasm8_test_setup INTERFACE ${CPPUNIT_LIBRARIES} )
 
 add_executable(
 	chidasm8_tests
@@ -31,8 +27,7 @@ add_executable(
 	test_runner.cc
 )
 
-target_link_libraries( chidasm8_tests chidasm8_test_setup )
-target_include_directories( chidasm8_tests PUBLIC ../src )
+target_link_libraries( chidasm8_tests ${CPPUNIT_LIBRARIES} )
 
 
 # add_test( FilenameExtractorTest::ValidCreation chemul8_tests FilenameExtractorTest::ValidCreation )

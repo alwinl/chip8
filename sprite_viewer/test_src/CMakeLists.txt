@@ -17,20 +17,14 @@
 # MA 02110-1301, USA.
 #
 
-find_package( cppunit REQUIRED )
-
-add_library( sprite_viewer_test_setup INTERFACE )
-target_compile_definitions( sprite_viewer_test_setup INTERFACE ${CPPUNIT_CFLAGS_OTHER} )
-target_include_directories( sprite_viewer_test_setup INTERFACE ${CPPUNIT_INCLUDE_DIRS} )
-target_link_directories( sprite_viewer_test_setup INTERFACE ${CPPUNIT_LIBRARY_DIRS} )
-target_link_libraries( sprite_viewer_test_setup INTERFACE ${CPPUNIT_LIBRARIES} )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules( CPPUNIT REQUIRED cppunit )
 
 add_executable(
-	sprite_viewer_tests
+	spriteviewer_test
 
 	test_runner.cc
 )
 
-target_link_libraries( sprite_viewer_tests sprite_viewer_test_setup )
-target_include_directories( sprite_viewer_tests PUBLIC ../src )
+target_link_libraries( spriteviewer_test ${CPPUNIT_LIBRARIES} )
 

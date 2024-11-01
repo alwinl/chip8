@@ -17,19 +17,13 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.5.0)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+add_library(
+	chasem8_logic
 
-set(CMAKE_CXX_STANDARD 20)
+	filenameextractor.cc
+	instruction.cc
+	program.cc
+	token.cc
+)
 
-include(CTest)
-enable_testing()
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(sprite_viewer)
+target_include_directories( chasem8_logic INTERFACE ./ )

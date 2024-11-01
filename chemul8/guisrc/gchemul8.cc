@@ -42,7 +42,8 @@ void activate( Glib::RefPtr<Gtk::Application> app )
 	auto window = builder->get_widget<Gtk::ApplicationWindow>( "appwindow" );
 	auto canvas = builder->get_widget<Gtk::DrawingArea>( "canvas" );
 
-	canvas->set_draw_func( sigc::fun(on_draw) );
+	canvas->set_draw_func( sigc::ptr_fun(on_draw) );
+	canvas->set_size_request( 640, 320 );
 
 	window->show();
 
