@@ -20,28 +20,3 @@
  */
 
 #include "quirks.h"
-
-Quirks::Quirks ( Quirks::eChipType type )
-{
-	switch (type)
-	{
-	case eChipType::CHIP8: quirks = CHIP8_quirks; break;
-	case eChipType::XOCHIP: quirks = XOCHIP8_quirks; break;
-	case eChipType::SCHIP: quirks = SCHIP8_quirks; break;
-	}
-}
-
-bool Quirks::has_quirk( Quirks::eQuirks test_quirk )
-{
-	switch( test_quirk ) {
-	case eQuirks::RESET: return quirks.reset_quirk;
-	case eQuirks::MEMORY: return quirks.memory_quirk;
-	case eQuirks::DISP_WAIT: return quirks.display_wait_quirk;
-	case eQuirks::CLIPPING: return quirks.clipping_quirk;
-	case eQuirks::SHIFTING: return quirks.shifting_quirk;
-	case eQuirks::JUMPING: return quirks.jumping_quirk;
-	};
-
-	return false;
-}
-

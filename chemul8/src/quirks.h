@@ -22,52 +22,58 @@
 #ifndef QUIRKS_H
 #define QUIRKS_H
 
+#include <map>
+
 class Quirks {
  public:
 	enum class eChipType { CHIP8, XOCHIP, SCHIP };
-	Quirks( Quirks::eChipType type);
+	Quirks( Quirks::eChipType type) : type( type ) {};
 
 	enum class eQuirks { RESET, MEMORY, DISP_WAIT, CLIPPING, SHIFTING, JUMPING };
-	bool has_quirk( eQuirks test_quirk );
+	bool has_quirk( eQuirks test_quirk )
+	{
+		try {
+			return quirk_map.at(type).at(test_quirk);
+		}
+		catch(...) {
+			return false;
+		}
+	}
 
  private:
-	struct QuirkFlags {
-		bool reset_quirk;
-		bool memory_quirk;
-		bool display_wait_quirk;
-		bool clipping_quirk;
-		bool shifting_quirk;
-		bool jumping_quirk;
-	};
+	Quirks::eChipType type;
 
-	static constexpr QuirkFlags CHIP8_quirks = {
-		.reset_quirk = true,
-		.memory_quirk = true,
-		.display_wait_quirk = true,
-		.clipping_quirk = true,
-		.shifting_quirk = false,
-		.jumping_quirk = false,
-	};
-	static constexpr QuirkFlags XOCHIP8_quirks = {
-		.reset_quirk = false,
-		.memory_quirk = true,
-		.display_wait_quirk = false,
-		.clipping_quirk = false,
-		.shifting_quirk = false,
-		.jumping_quirk = false,
+	using QuirkMap = std::map<eQuirks,bool>;
 
+	std::map<eChipType, QuirkMap> quirk_map = {
+		{ eChipType::CHIP8, {
+				{ eQuirks::RESET, true },
+				{ eQuirks::MEMORY, true },
+				{ eQuirks::DISP_WAIT, true },
+				{ eQuirks::CLIPPING, true },
+				{ eQuirks::SHIFTING, false },
+				{ eQuirks::JUMPING, false }
+			}
+		},
+		{ eChipType::XOCHIP, {
+				{ eQuirks::RESET, false },
+				{ eQuirks::MEMORY, true },
+				{ eQuirks::DISP_WAIT, false },
+				{ eQuirks::CLIPPING, false },
+				{ eQuirks::SHIFTING, false },
+				{ eQuirks::JUMPING, false }
+			}
+		},
+		{ eChipType::SCHIP, {
+				{ eQuirks::RESET, false },
+				{ eQuirks::MEMORY, false },
+				{ eQuirks::DISP_WAIT, false },
+				{ eQuirks::CLIPPING, true },
+				{ eQuirks::SHIFTING, true },
+				{ eQuirks::JUMPING, true }
+			}
+		}
 	};
-	static constexpr QuirkFlags SCHIP8_quirks = {
-		.reset_quirk = false,
-		.memory_quirk = false,
-		.display_wait_quirk = false,
-		.clipping_quirk = true,
-		.shifting_quirk = true,
-		.jumping_quirk = true,
-
-	};
-
-	QuirkFlags quirks;
 };
 
 #endif  // QUIRKS_H
