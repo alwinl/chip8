@@ -19,15 +19,15 @@
 
 set( RESOURCE_BASE gchemul8 )
 
+set( GRESOURCE_DEPEND
+	gchemul8.ui
+)
+
 find_program( GLIB_COMPILE_RESOURCES NAMES glib-compile-resources REQUIRED )
 
 set( GRESOURCE_C ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_BASE}.gresource.c )
 set( GRESOURCE_XML ${RESOURCE_BASE}.gresource.xml )
 set( GRESOURCE_TARGET ${RESOURCE_BASE}-resource )
-
-set( GRESOURCE_DEPEND
-	gchemul8.ui
-)
 
 add_custom_command(
 	OUTPUT ${GRESOURCE_C}
