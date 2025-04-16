@@ -21,15 +21,15 @@
 
 #include "resourcelayer.h"
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <map>
 #include <stdexcept>
 
 std::map<SDL_Keycode, uint8_t> mapping = { { SDLK_0, 0x00 }, { SDLK_1, 0x01 }, { SDLK_2, 0x02 }, { SDLK_3, 0x03 },
 										   { SDLK_4, 0x04 }, { SDLK_5, 0x05 }, { SDLK_6, 0x06 }, { SDLK_7, 0x07 },
-										   { SDLK_8, 0x08 }, { SDLK_9, 0x09 }, { SDLK_a, 0x0A }, { SDLK_b, 0x0B },
-										   { SDLK_c, 0x0C }, { SDLK_d, 0x0D }, { SDLK_e, 0x0E }, { SDLK_f, 0x0F } };
+										   { SDLK_8, 0x08 }, { SDLK_9, 0x09 }, { SDLK_A, 0x0A }, { SDLK_B, 0x0B },
+										   { SDLK_C, 0x0C }, { SDLK_D, 0x0D }, { SDLK_E, 0x0E }, { SDLK_F, 0x0F } };
 
 /*
 SDL_AudioDeviceID audio_id;
@@ -41,10 +41,10 @@ void AudioCallback( void * userdata, Uint8* stream, int len )
 */
 ResourceLayer::ResourceLayer()
 {
-	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER | (uint32_t)-1 ) != 0 )
+	if( ! SDL_Init( SDL_INIT_VIDEO ) )
 		throw std::runtime_error( SDL_GetError() );
 
-	if( SDL_CreateWindowAndRenderer( 640, 320, SDL_WINDOW_SHOWN, &m_window, &m_renderer ) != 0 )
+	if( ! SDL_CreateWindowAndRenderer( "Chemul8", 640, 320, 0, &m_window, &m_renderer ) != 0 )
 		throw std::runtime_error( SDL_GetError() );
 
 	/*
@@ -90,9 +90,9 @@ ResourceLayer::Events ResourceLayer::check_events( uint16_t &keys )
 bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event )
 {
 	switch( event.type ) {
-	case SDL_KEYUP:
+	case SDL_EVENT_KEY_UP:
 		try {
-			uint16_t mask = ( 1 << mapping.at( event.key.keysym.sym ) );
+			uint16_t mask = ( 1 << mapping.at( event.key.key ) );
 
 			if( ( keys & mask ) != 0 ) {
 				keys &= ~mask;
@@ -103,18 +103,18 @@ bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLaye
 		}
 		break;
 
-	case SDL_KEYDOWN:
+	case SDL_EVENT_KEY_DOWN:
 		try {
-			if( event.key.keysym.sym == SDLK_ESCAPE ) {
+			if( event.key.key == SDLK_ESCAPE ) {
 				the_event = Events::QUIT_EVENT;
 				return true;
 			}
-			if( event.key.keysym.sym == SDLK_F1 ) {
+			if( event.key.key == SDLK_F1 ) {
 				the_event = Events::RESTART_EVENT;
 				return true;
 			}
 
-			uint16_t mask = ( 1 << mapping.at( event.key.keysym.sym ) );
+			uint16_t mask = ( 1 << mapping.at( event.key.key ) );
 
 			if( ( keys & mask ) == 0 ) {
 				keys |= mask;
@@ -125,7 +125,7 @@ bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLaye
 		}
 		break;
 
-	case SDL_QUIT:
+	case SDL_EVENT_QUIT:
 		the_event = Events::QUIT_EVENT;
 		return true;
 	}
@@ -135,7 +135,7 @@ bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLaye
 
 void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 {
-	SDL_Rect pixel_loc = { .x = ( x_pos * 10 ), .y = ( y_pos * 10 ), .w = 10, .h = 10 };
+	const SDL_FRect pixel_loc = { .x = ( x_pos * 10.0F ), .y = ( y_pos * 10.0F ), .w = 10, .h = 10 };
 
 	if( white )
 		SDL_SetRenderDrawColor( m_renderer, 255, 255, 255, 255 ); // white

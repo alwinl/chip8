@@ -23,7 +23,7 @@ add_executable( spriteviewer
 	spritedrawer.cc
 )
 
-find_package(SDL2 REQUIRED)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 
-target_link_libraries(spriteviewer PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(spriteviewer SDL3::SDL3-shared)
 
