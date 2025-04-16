@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * cmdline_processor.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,45 +15,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef CHEMUL8_H
-#define CHEMUL8_H
+#pragma once
 
-#include <cstdint>
 #include <string>
+
+#include "../vendor/cxxopts/cxxopts.hpp"
 
 #include "quirks.h"
 
-class Chemul8
+class CmdlineProcessor
 {
 public:
-	int run( std::string program, Quirks::eChipType chip_type );
+	CmdlineProcessor( int argc, char ** argv );
 
-	void clear_screen();
-	bool toggle_a_pixel( uint8_t x, uint8_t y );
-	bool is_key_pressed( uint8_t key_no );
-	bool key_captured( uint8_t &key_no );
-	void set_delay_timer( uint8_t value );
-	void set_sound_timer( uint8_t value );
-	uint8_t get_delay_timer() const;
-	uint8_t get_random_value();
-	bool block_drw();
+	Quirks::eChipType get_chip_type() { return chip_type; };
+	std::string get_program() { return program; };
 
 private:
-	static const uint8_t WIDTH = 64;
-	static const uint8_t HEIGHT = 32;
-	uint8_t display_buffer[WIDTH * HEIGHT / 8];
+	Quirks::eChipType chip_type = Quirks::eChipType::CHIP8;
+	std::string program;
 
-	uint16_t keys = 0;
-	uint16_t last_keys = 0;
-
-	bool interrupt = false;
-
-	uint8_t DelayTimer = 0;
-	uint8_t SoundTimer = 0;
+	cxxopts::Options build_options();
+	bool validate( cxxopts::Options options, cxxopts::ParseResult result );
+	Quirks::eChipType decode_chip_type( cxxopts::ParseResult result );
 };
 
-#endif // CHEMUL8_H

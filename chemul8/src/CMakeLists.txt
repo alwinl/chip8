@@ -26,6 +26,7 @@ add_executable(
 	chemul8
 
 	chemul8.cc
+	cmdline_processor.cc
 	resourcelayer.cc
 	chip8.cc
 	quirks.cc

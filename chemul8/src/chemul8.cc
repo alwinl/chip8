@@ -28,29 +28,30 @@
 #include "resourcelayer.h"
 #include "quirks.h"
 #include "chip8.h"
+#include "cmdline_processor.h"
 
 int main( int argc, char *argv[] )
 {
-	return Chemul8().run( argc, argv );
+	CmdlineProcessor cmd_line( argc, argv );
+
+	if( cmd_line.get_program().empty() )
+		return -1;
+
+	return Chemul8().run( cmd_line.get_program(), cmd_line.get_chip_type() );
 }
 
-int Chemul8::run( int argc, char *argv[] )
+int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 {
-	if( argc < 2 ) {
-		std::cout << "Usage chemul8 [program binary]" << std::endl;
-		return 1;
-	}
-
 	ResourceLayer SDLRef;
 	auto last_time = std::chrono::system_clock::now();
 	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
 
-	Chip8 device( *this, Quirks::eChipType::CHIP8 );
+	Chip8 device( *this, chip_type );
 
 	while( event != ResourceLayer::Events::QUIT_EVENT ) {
 
 		if( event == ResourceLayer::Events::RESTART_EVENT ) {
-			std::ifstream is = std::ifstream( argv[1] );
+			std::ifstream is = std::ifstream( program );
 			if( !is.good() ) {
 				std::cout << "Cannot read program" << std::endl;
 				return 1;
