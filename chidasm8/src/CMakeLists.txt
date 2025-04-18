@@ -24,8 +24,5 @@ add_executable(
 )
 
 target_include_directories( chidasm8 PUBLIC ../logic_src )
-# find_package(SDL2 REQUIRED)
-
-# target_link_libraries(chemul8 PRIVATE ${SDL2_LIBRARIES})
 
 target_link_libraries(chidasm8 PUBLIC chidasm8_logic )
