@@ -37,7 +37,7 @@ int main( int argc, char **argv )
 
 void activate( Glib::RefPtr<Gtk::Application> app )
 {
-	auto builder = Gtk::Builder::create_from_file( "gchemul8.ui" );
+	auto builder = Gtk::Builder::create_from_resource( "/net/dnatechnologies/gchemul8/gchemul8.ui" );
 
 	auto window = builder->get_widget<Gtk::ApplicationWindow>( "appwindow" );
 	auto canvas = builder->get_widget<Gtk::DrawingArea>( "canvas" );
