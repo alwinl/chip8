@@ -17,14 +17,13 @@
 # MA 02110-1301, USA.
 #
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules( CPPUNIT REQUIRED cppunit )
+include(GoogleTest)
 
 add_executable(
 	spriteviewer_test
 
-	test_runner.cc
+	loadtest.cc
 )
 
-target_link_libraries( spriteviewer_test ${CPPUNIT_LIBRARIES} )
-
+target_link_libraries( spriteviewer_test gtest gtest_main )
+gtest_discover_tests(spriteviewer_test)
