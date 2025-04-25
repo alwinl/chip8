@@ -103,6 +103,8 @@ void Program::remove_comments( std::string& input )
 
 std::vector<std::string> Program::split( std::string input )
 {
+	remove_comments( input );
+	
 	std::vector<std::string> fields;
 	std::stringstream stream( input );
 	std::string field;

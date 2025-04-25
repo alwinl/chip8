@@ -17,81 +17,20 @@
  * MA 02110-1301, USA.
  */
 
-#include "programparsertest.h"
-
 #include "program.h"
 
 #include <vector>
 #include <iterator>
 #include <cstdio>
+#include <fstream>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( ProgramParserTest );
-
-
-void ProgramParserTest::TestRemoveSlashR( )
-{
-	std::string actual( "a string with\n\r" );
-	std::string expected( "a string with\n" );
-
-	Program().remove_slash_r( actual );
-
-	CPPUNIT_ASSERT_EQUAL( expected, actual );
-
-}
-
-
-
-void ProgramParserTest::TestRemoveComments()
-{
-
-}
-
-void ProgramParserTest::TestSplit()
-{
-
-}
-
-void ProgramParserTest::TestIdentify()
-{
-
-}
-
-void ProgramParserTest::TestClearScreen()
-{
-	std::string input = "cls\nret\n";
-	std::stringstream source( input );
-
-	Program prog;
-
-	prog.read_source( source );
-
-	std::ofstream outfile( "temp.hex", std::ios_base::binary | std::ios_base::out );
-	prog.write_binary( outfile );
-	outfile.close();
-
-	std::ifstream result_file("temp.hex", std::ios_base::binary | std::ios_base::in );
-	std::istream_iterator<uint8_t> file_end;
-	std::istream_iterator<uint8_t> file_begin(result_file);
-
-	std::vector<uint8_t> actual;
-	std::copy( file_begin, file_end, std::back_inserter(actual) );
-
-	std::remove( "temp.hex" );
-
-	std::vector<uint8_t> expected { 0x00, 0xE0, 0x00, 0xEE };
-
-	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Not the expected size", expected.size(), actual.size() );
-
-	for( unsigned int index = 0; index < expected.size(); ++index ) {
-		std::string message = "Byte mismatch at index " + std::to_string( index );
-		CPPUNIT_ASSERT_EQUAL_MESSAGE( message, expected[index], actual[index] );
-	}
-}
+#include <gtest/gtest.h>
 
 class vector_streambuf : public std::streambuf
 {
 public:
 	vector_streambuf( std::vector<uint8_t>& buffer ) : buffer(buffer) {};
+
 protected:
 	std::streambuf::int_type overflow( std::streambuf::int_type ch ) override
 	{
@@ -101,16 +40,101 @@ protected:
 		return ch;
 	}
 
-    std::streamsize xsputn(const char* s, std::streamsize count) override {
+    std::streamsize xsputn(const char* s, std::streamsize count) override
+	{
         buffer.insert( buffer.end(), s, s + count );
         return count;
     }
 private:
 	std::vector<uint8_t>& buffer;
-
 };
 
-void ProgramParserTest::TestJP()
+
+
+class ProgramParserTest : public ::testing::Test {
+protected:
+	void SetUp() override {
+		
+	}
+	void TearDown() override {
+	}
+};
+
+TEST_F(ProgramParserTest, RemoveSlashR)
+{
+	std::string actual( "a string with\n\r" );
+	std::string expected( "a string with\n" );
+
+	Program().remove_slash_r( actual );
+
+	EXPECT_EQ( expected, actual );
+}
+
+
+TEST_F(ProgramParserTest, RemoveComments)
+{
+	std::string actual( "a string with ; a comment\n" );
+	std::string expected( "a string with " );
+
+	Program().remove_comments( actual );
+
+	EXPECT_EQ( expected, actual );
+}
+
+TEST_F(ProgramParserTest, Split)
+{
+	std::string input = "a string with ; a comment\n";
+	std::vector<std::string> expected { "a", "string", "with" };
+
+	Program prog;
+	std::vector<std::string> actual = prog.split( input );
+
+	EXPECT_EQ( expected.size(), actual.size() );
+
+	for( unsigned int index = 0; index < expected.size(); ++index ) {
+		EXPECT_EQ( expected[index], actual[index] );
+	}
+}
+
+TEST_F(ProgramParserTest, Identify)
+{
+	std::string input = "a string with ; a comment\n";
+	std::vector<std::string> expected { "a", "string", "with" };
+
+	Program prog;
+	std::vector<std::string> actual = prog.split( input );
+
+	EXPECT_EQ( expected.size(), actual.size() );
+
+	for( unsigned int index = 0; index < expected.size(); ++index ) {
+		EXPECT_EQ( expected[index], actual[index] );
+	}
+}
+
+TEST_F(ProgramParserTest, ClearScreen)
+{
+	std::string input = "cls\nret\n";
+	std::stringstream source( input );
+
+	Program prog;
+
+	prog.read_source( source );
+
+	std::vector<uint8_t> actual;
+	vector_streambuf vsbuf( actual );
+	std::ostream output( &vsbuf );
+
+	prog.write_binary( output );
+
+	std::vector<uint8_t> expected { 0x00, 0xE0, 0x00, 0xEE };
+
+	EXPECT_EQ( expected.size(), actual.size() );
+
+	for( unsigned int index = 0; index < expected.size(); ++index ) {
+		EXPECT_EQ( expected[index], actual[index] );
+	}
+}
+TEST_F(ProgramParserTest, JP)
 {
 	std::string input = "\tjp 0x212\n";
 	std::stringstream source( input );
@@ -127,10 +151,9 @@ void ProgramParserTest::TestJP()
 
 	std::vector<uint8_t> expected { 0x12, 0x12 };
 
-	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Not the expected size", expected.size(), actual.size() );
+	EXPECT_EQ( expected.size(), actual.size() );
 
 	for( unsigned int index = 0; index < expected.size(); ++index ) {
-		std::string message = "Byte mismatch at index " + std::to_string( index );
-		CPPUNIT_ASSERT_EQUAL_MESSAGE( message, expected[index], actual[index] );
+		EXPECT_EQ( expected[index], actual[index] );
 	}
 }

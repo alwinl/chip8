@@ -17,13 +17,10 @@
 # MA 02110-1301, USA.
 #
 
-add_library(
-	chasem8_logic
+add_executable(
+	chasem8
 
-	filenameextractor.cc
-	instruction.cc
-	program.cc
-	token.cc
+	chasem8cli.cc
 )
 
-target_include_directories( chasem8_logic INTERFACE ./ )
+target_link_libraries( chasem8 PUBLIC chasem8_logic )

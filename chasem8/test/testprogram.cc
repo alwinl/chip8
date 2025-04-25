@@ -19,13 +19,20 @@
  *
  */
 
-#include "testprogram.h"
-
+#include <gtest/gtest.h>
+ 
 #include "program.h"
 
-CPPUNIT_TEST_SUITE_REGISTRATION( TestProgram );
+class ProgramTest : public ::testing::Test {
+protected:
+	 void SetUp() override {
+	 }
 
-void TestProgram::a_test()
+	 void TearDown() override {
+	 }
+};
+ 
+TEST_F(ProgramTest, aTest)
 {
-	CPPUNIT_ASSERT( true );
+	 
 }

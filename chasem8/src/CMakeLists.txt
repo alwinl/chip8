@@ -17,22 +17,13 @@
 # MA 02110-1301, USA.
 #
 
-# set(CMAKE_CXX_STANDARD 20)
+add_library(
+	chasem8_logic
 
-# add_library(
-# 	chasem8_logic
-
-# 	filenameextractor.cc
-# 	instruction.cc
-# 	program.cc
-# 	token.cc
-# )
-
-add_executable(
-	chasem8
-
-	chasem8cli.cc
+	filenameextractor.cc
+	instruction.cc
+	program.cc
+	token.cc
 )
 
-target_include_directories( chasem8 PUBLIC ../logic_src)
-target_link_libraries( chasem8 PUBLIC chasem8_logic )
+target_include_directories( chasem8_logic INTERFACE ./ )

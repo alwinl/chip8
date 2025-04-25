@@ -19,13 +19,11 @@
  *
  */
 
-#include "filenameextractortest.h"
-
 #include "filenameextractor.h"
 
 #include <algorithm>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FilenameExtractorTest );
+#include <gtest/gtest.h>
 
 std::string random_string( size_t length )
 {
@@ -41,13 +39,23 @@ std::string random_string( size_t length )
 	return str;
 }
 
-void FilenameExtractorTest::ValidCreation()
+class FileNameExtractorTest : public ::testing::Test {
+protected:
+	void SetUp() override {
+		
+	}
+	void TearDown() override {
+	}
+};
+
+TEST_F(FileNameExtractorTest, ValidCreation)
 {
 	std::vector<std::string> argument_list = { random_string( 8 ) + ".src" };
 	FilenameExtractor filenames( argument_list );
+	
 }
 
-void FilenameExtractorTest::InvalidCreation()
+TEST_F(FileNameExtractorTest, InvalidCreation)
 {
 	std::vector<std::string> argument_list = {};
 	try {
@@ -56,10 +64,10 @@ void FilenameExtractorTest::InvalidCreation()
 		return;
 	}
 
-	CPPUNIT_FAIL( "Constructor should have thrown" );
+	FAIL() << "Constructor should have thrown";
 }
 
-void FilenameExtractorTest::OldStyleArgsCreation()
+TEST_F(FileNameExtractorTest, OldStyleArgsCreation)
 {
 	std::string prog_name = "chasm8";
 	std::string basename = random_string( 8 );
@@ -82,28 +90,33 @@ void FilenameExtractorTest::OldStyleArgsCreation()
 
 	char *arg3 = new char[listing_name.size() + 1];
 	std::copy( listing_name.begin(), listing_name.end(), arg3 );
-	arg1[listing_name.size()] = '\0';
+	arg3[listing_name.size()] = '\0';
 
 	char *argv[] = { arg0, arg1, arg2, arg3, NULL };
 
 	FilenameExtractor filenames( 4, argv );
 
-	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Not the right source file name", source_name, filenames.get_source_name() );
-	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Not the right binary file name", binary_name, filenames.get_binary_name() );
-	CPPUNIT_ASSERT_EQUAL_MESSAGE( "Not the right listing file name", listing_name, filenames.get_listing_name() );
+	EXPECT_EQ( source_name, filenames.get_source_name() ) << "Not the right source file name: " << source_name << " != " << filenames.get_source_name();
+	EXPECT_EQ( binary_name, filenames.get_binary_name() ) << "Not the right binary file name: " << binary_name << " != " << filenames.get_binary_name();
+	EXPECT_EQ( listing_name, filenames.get_listing_name() ) << "Not the right listing file name: " << listing_name << " != " << filenames.get_listing_name();
+
+	delete[] arg0;
+	delete[] arg1;
+	delete[] arg2;
+	delete[] arg3;
 }
 
-void FilenameExtractorTest::GetSourceTest()
+TEST_F(FileNameExtractorTest, GetSourceTest)
 {
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( basename + ".src", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
 }
 
-void FilenameExtractorTest::GetBinaryFromArgTest()
+TEST_F(FileNameExtractorTest, GetBinaryFromArgTest)
 {
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
@@ -111,20 +124,20 @@ void FilenameExtractorTest::GetBinaryFromArgTest()
 	std::vector<std::string> argument_list = { source_basename + ".src", binary_basename + ".bin" };
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( binary_basename + ".bin", filenames.get_binary_name() );
+	EXPECT_EQ( binary_basename + ".bin", filenames.get_binary_name() );
 }
 
-void FilenameExtractorTest::GetBinaryFromSourceTest()
+TEST_F(FileNameExtractorTest, GetBinaryFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( basename + ".bin", filenames.get_binary_name() );
+	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
 }
 
-void FilenameExtractorTest::GetListingFromArgTest()
+TEST_F(FileNameExtractorTest, GetListingFromArgTest)
 {
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
@@ -134,20 +147,20 @@ void FilenameExtractorTest::GetListingFromArgTest()
 											   listing_basename + ".lst" };
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( listing_basename + ".lst", filenames.get_listing_name() );
+	EXPECT_EQ( listing_basename + ".lst", filenames.get_listing_name() );
 }
 
-void FilenameExtractorTest::GetListingFromSourceTest()
+TEST_F(FileNameExtractorTest, GetListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( basename + ".lst", filenames.get_listing_name() );
+	EXPECT_EQ( basename + ".lst", filenames.get_listing_name() );
 }
 
-void FilenameExtractorTest::GetAllFromOneArgument()
+TEST_F(FileNameExtractorTest, GetAllFromOneArgument)
 {
 	std::string basename = random_string( 8 );
 
@@ -159,12 +172,12 @@ void FilenameExtractorTest::GetAllFromOneArgument()
 
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( source_name, filenames.get_source_name() );
-	CPPUNIT_ASSERT_EQUAL( binary_name, filenames.get_binary_name() );
-	CPPUNIT_ASSERT_EQUAL( listing_name, filenames.get_listing_name() );
+	EXPECT_EQ( source_name, filenames.get_source_name() );
+	EXPECT_EQ( binary_name, filenames.get_binary_name() );
+	EXPECT_EQ( listing_name, filenames.get_listing_name() );
 }
 
-void FilenameExtractorTest::GetAllFromTwoArguments()
+TEST_F(FileNameExtractorTest, GetAllFromTwoArguments)
 {
 	std::string basename = random_string( 8 );
 
@@ -176,12 +189,12 @@ void FilenameExtractorTest::GetAllFromTwoArguments()
 
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( source_name, filenames.get_source_name() );
-	CPPUNIT_ASSERT_EQUAL( binary_name, filenames.get_binary_name() );
-	CPPUNIT_ASSERT_EQUAL( listing_name, filenames.get_listing_name() );
+	EXPECT_EQ( source_name, filenames.get_source_name() );
+	EXPECT_EQ( binary_name, filenames.get_binary_name() );
+	EXPECT_EQ( listing_name, filenames.get_listing_name() );
 }
 
-void FilenameExtractorTest::GetAllFromThreeArguments()
+TEST_F(FileNameExtractorTest, GetAllFromThreeArguments)
 {
 	std::string source_name = random_string( 8 ) + "." + random_string( 3 );
 	std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
@@ -191,7 +204,7 @@ void FilenameExtractorTest::GetAllFromThreeArguments()
 
 	FilenameExtractor filenames( argument_list );
 
-	CPPUNIT_ASSERT_EQUAL( source_name, filenames.get_source_name() );
-	CPPUNIT_ASSERT_EQUAL( binary_name, filenames.get_binary_name() );
-	CPPUNIT_ASSERT_EQUAL( listing_name, filenames.get_listing_name() );
+	EXPECT_EQ( source_name, filenames.get_source_name() );
+	EXPECT_EQ( binary_name, filenames.get_binary_name() );
+	EXPECT_EQ( listing_name, filenames.get_listing_name() );
 }
