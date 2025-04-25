@@ -17,7 +17,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "program.h"
+#include "assembler.h"
 
 #include <vector>
 #include <iterator>
@@ -51,7 +51,7 @@ private:
 
 
 
-class ProgramParserTest : public ::testing::Test {
+class AssemblerTest : public ::testing::Test {
 protected:
 	void SetUp() override {
 		
@@ -60,33 +60,33 @@ protected:
 	}
 };
 
-TEST_F(ProgramParserTest, RemoveSlashR)
+TEST_F(AssemblerTest, RemoveSlashR)
 {
 	std::string actual( "a string with\n\r" );
 	std::string expected( "a string with\n" );
 
-	Program().remove_slash_r( actual );
+	Assembler().remove_slash_r( actual );
 
 	EXPECT_EQ( expected, actual );
 }
 
 
-TEST_F(ProgramParserTest, RemoveComments)
+TEST_F(AssemblerTest, RemoveComments)
 {
 	std::string actual( "a string with ; a comment\n" );
 	std::string expected( "a string with " );
 
-	Program().remove_comments( actual );
+	Assembler().remove_comments( actual );
 
 	EXPECT_EQ( expected, actual );
 }
 
-TEST_F(ProgramParserTest, Split)
+TEST_F(AssemblerTest, Split)
 {
 	std::string input = "a string with ; a comment\n";
 	std::vector<std::string> expected { "a", "string", "with" };
 
-	Program prog;
+	Assembler prog;
 	std::vector<std::string> actual = prog.split( input );
 
 	EXPECT_EQ( expected.size(), actual.size() );
@@ -96,12 +96,12 @@ TEST_F(ProgramParserTest, Split)
 	}
 }
 
-TEST_F(ProgramParserTest, Identify)
+TEST_F(AssemblerTest, Identify)
 {
 	std::string input = "a string with ; a comment\n";
 	std::vector<std::string> expected { "a", "string", "with" };
 
-	Program prog;
+	Assembler prog;
 	std::vector<std::string> actual = prog.split( input );
 
 	EXPECT_EQ( expected.size(), actual.size() );
@@ -111,12 +111,12 @@ TEST_F(ProgramParserTest, Identify)
 	}
 }
 
-TEST_F(ProgramParserTest, ClearScreen)
+TEST_F(AssemblerTest, ClearScreen)
 {
 	std::string input = "cls\nret\n";
 	std::stringstream source( input );
 
-	Program prog;
+	Assembler prog;
 
 	prog.read_source( source );
 
@@ -134,12 +134,12 @@ TEST_F(ProgramParserTest, ClearScreen)
 		EXPECT_EQ( expected[index], actual[index] );
 	}
 }
-TEST_F(ProgramParserTest, JP)
+TEST_F(AssemblerTest, JP)
 {
 	std::string input = "\tjp 0x212\n";
 	std::stringstream source( input );
 
-	Program prog;
+	Assembler prog;
 
 	prog.read_source( source );
 

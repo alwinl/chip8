@@ -15,49 +15,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#pragma once
 
-#include <cstdint>
-#include <istream>
-#include <ostream>
+#include "../vendor/cxxopts/cxxopts.hpp"
+
+#include <string>
 #include <vector>
 
-#include "instruction.h"
-
-struct program_parts {
-	std::string label;
-	std::string mnemonic;
-	std::string arguments;
-};
-
-
-class Program
+class CommandLineParser
 {
 public:
-	Program() = default;
+    CommandLineParser( std::vector<std::string> arguments );
+    CommandLineParser( int argc, char ** argv );
 
-	void remove_slash_r( std::string &input );
-	void remove_comments( std::string &input );
-
-	std::vector<std::string> split( std::string input );
-
-	program_parts identify(std::vector<std::string> parts);
-
-	void read_source( std::istream &source );
-
-	void write_binary( std::ostream &target );
-	void write_listing( std::ostream &target );
+    std::string get_source_name();
+	std::string get_binary_name();
+	std::string get_listing_name();
+    bool is_verbose() const;
+    bool show_help() const;
 
 private:
-	void add_instruction( Instruction &inst ) { instructions.push_back( inst ); }
+    cxxopts::Options options;
+    cxxopts::ParseResult result;
 
-	std::vector<Instruction> instructions;
-	std::vector<uint8_t> codes;
+	const std::string get_output_prefix();
 };
-
-#endif // PROGRAM_H

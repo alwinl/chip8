@@ -19,24 +19,45 @@
  *
  */
 
-#ifndef FILENAMEEXTRACTOR_H
-#define FILENAMEEXTRACTOR_H
+#ifndef PROGRAM_H
+#define PROGRAM_H
 
-#include <string>
+#include <cstdint>
+#include <istream>
+#include <ostream>
 #include <vector>
 
-class FilenameExtractor
-{
-public:
-    FilenameExtractor( std::vector<std::string> arguments );
-    FilenameExtractor( int argc, char ** argv );
+#include "instruction.h"
 
-    std::string get_source_name();
-    std::string get_binary_name();
-    std::string get_listing_name();
-
-private:
-    std::vector<std::string> arguments;
+struct program_parts {
+	std::string label;
+	std::string mnemonic;
+	std::string arguments;
 };
 
-#endif // FILENAMEEXTRACTOR_H
+
+class Assembler
+{
+public:
+	Assembler() = default;
+
+	void remove_slash_r( std::string &input );
+	void remove_comments( std::string &input );
+
+	std::vector<std::string> split( std::string input );
+
+	program_parts identify(std::vector<std::string> parts);
+
+	void read_source( std::istream &source );
+
+	void write_binary( std::ostream &target );
+	void write_listing( std::ostream &target );
+
+private:
+	void add_instruction( Instruction &inst ) { instructions.push_back( inst ); }
+
+	std::vector<Instruction> instructions;
+	std::vector<uint8_t> codes;
+};
+
+#endif // PROGRAM_H

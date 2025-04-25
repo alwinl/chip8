@@ -20,9 +20,9 @@
 add_library(
 	chasem8_logic
 
-	filenameextractor.cc
+	commandlineparser.cc
 	instruction.cc
-	program.cc
+	assembler.cc
 	token.cc
 )
 

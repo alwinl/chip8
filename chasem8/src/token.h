@@ -19,18 +19,15 @@
  *
  */
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#pragma once
 
-
-class Token
+class Lexer
 {
 public:
-    Token();
+    Lexer();
 
 protected:
 
 private:
 };
 
-#endif // TOKEN_H

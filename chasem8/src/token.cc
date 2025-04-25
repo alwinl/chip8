@@ -21,7 +21,7 @@
 
 #include "token.h"
 
-Token::Token()
+Lexer::Lexer()
 {
     //ctor
 }

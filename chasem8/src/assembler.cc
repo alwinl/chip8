@@ -19,7 +19,7 @@
  *
  */
 
-#include "program.h"
+#include "assembler.h"
 
 #include <algorithm>
 #include <map>
@@ -88,20 +88,20 @@ std::map<std::string, std::shared_ptr<Interpreter>> keyword_dispatcher = {
 const std::string whitespace = " \n\r\t\f\v";
 const std::string comment = ";";
 
-void Program::remove_slash_r( std::string& input )
+void Assembler::remove_slash_r( std::string& input )
 {
 	if( *( input.end() - 1 ) == '\r' ) // Remove possible \r (strange Windows convention)
 		input.pop_back();
 }
 
-void Program::remove_comments( std::string& input )
+void Assembler::remove_comments( std::string& input )
 {
 	const size_t comment_start = input.find_first_of( comment );
 	if( comment_start != std::string::npos )
 		input = input.substr( 0, comment_start );
 }
 
-std::vector<std::string> Program::split( std::string input )
+std::vector<std::string> Assembler::split( std::string input )
 {
 	remove_comments( input );
 	
@@ -115,7 +115,7 @@ std::vector<std::string> Program::split( std::string input )
 	return fields;
 }
 
-program_parts Program::identify( std::vector<std::string> parts )
+program_parts Assembler::identify( std::vector<std::string> parts )
 {
 	program_parts result;
 
@@ -127,7 +127,7 @@ program_parts Program::identify( std::vector<std::string> parts )
 	return result;
 }
 
-void Program::read_source( std::istream &source )
+void Assembler::read_source( std::istream &source )
 {
 	std::string line;
 
@@ -155,9 +155,9 @@ void Program::read_source( std::istream &source )
 	}
 }
 
-void Program::write_binary( std::ostream &target )
+void Assembler::write_binary( std::ostream &target )
 {
 	std::for_each( codes.begin(), codes.end(), [&target]( uint8_t code ) { target << code; } );
 }
 
-void Program::write_listing( std::ostream &target ) {}
+void Assembler::write_listing( std::ostream &target ) {}

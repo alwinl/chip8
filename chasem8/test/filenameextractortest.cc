@@ -19,7 +19,7 @@
  *
  */
 
-#include "filenameextractor.h"
+#include "commandlineparser.h"
 
 #include <algorithm>
 
@@ -50,16 +50,26 @@ protected:
 
 TEST_F(FileNameExtractorTest, ValidCreation)
 {
-	std::vector<std::string> argument_list = { random_string( 8 ) + ".src" };
-	FilenameExtractor filenames( argument_list );
+	std::string basename = random_string( 8 );
+
+	std::vector<std::string> argument_list = { basename + ".src" };
+	CommandLineParser filenames( argument_list );
 	
+	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
+	EXPECT_EQ( "", filenames.get_listing_name() );
+}
+
+TEST_F(FileNameExtractorTest, Help)
+{
+	CommandLineParser args( { "-h" } );
 }
 
 TEST_F(FileNameExtractorTest, InvalidCreation)
 {
 	std::vector<std::string> argument_list = {};
 	try {
-		FilenameExtractor filenames( argument_list );
+		CommandLineParser filenames( argument_list );
 	} catch( std::invalid_argument const &ex ) {
 		return;
 	}
@@ -76,34 +86,24 @@ TEST_F(FileNameExtractorTest, OldStyleArgsCreation)
 	std::string binary_name = basename + "." + random_string( 3 );
 	std::string listing_name = basename + "." + random_string( 3 );
 
-	char *arg0 = new char[prog_name.size() + 1];
-	std::copy( prog_name.begin(), prog_name.end(), arg0 );
-	arg0[prog_name.size()] = '\0';
+	std::vector<std::string> args = {
+		prog_name, "-o", binary_name, "--listing=" + listing_name, source_name
+	};
 
-	char *arg1 = new char[source_name.size() + 1];
-	std::copy( source_name.begin(), source_name.end(), arg1 );
-	arg1[source_name.size()] = '\0';
+	std::vector<char*> argv_ptrs;
+	argv_ptrs.reserve(args.size()); // +1 for a fake program name
 
-	char *arg2 = new char[binary_name.size() + 1];
-	std::copy( binary_name.begin(), binary_name.end(), arg2 );
-	arg2[binary_name.size()] = '\0';
+	for (std::string& arg : args)
+		argv_ptrs.push_back(arg.data());
 
-	char *arg3 = new char[listing_name.size() + 1];
-	std::copy( listing_name.begin(), listing_name.end(), arg3 );
-	arg3[listing_name.size()] = '\0';
+	int argc = static_cast<int>(argv_ptrs.size());
+	char** argv = argv_ptrs.data();
 
-	char *argv[] = { arg0, arg1, arg2, arg3, NULL };
-
-	FilenameExtractor filenames( 4, argv );
+	CommandLineParser filenames( argc, argv );
 
 	EXPECT_EQ( source_name, filenames.get_source_name() ) << "Not the right source file name: " << source_name << " != " << filenames.get_source_name();
 	EXPECT_EQ( binary_name, filenames.get_binary_name() ) << "Not the right binary file name: " << binary_name << " != " << filenames.get_binary_name();
 	EXPECT_EQ( listing_name, filenames.get_listing_name() ) << "Not the right listing file name: " << listing_name << " != " << filenames.get_listing_name();
-
-	delete[] arg0;
-	delete[] arg1;
-	delete[] arg2;
-	delete[] arg3;
 }
 
 TEST_F(FileNameExtractorTest, GetSourceTest)
@@ -111,7 +111,7 @@ TEST_F(FileNameExtractorTest, GetSourceTest)
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
 }
@@ -121,8 +121,8 @@ TEST_F(FileNameExtractorTest, GetBinaryFromArgTest)
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { source_basename + ".src", binary_basename + ".bin" };
-	FilenameExtractor filenames( argument_list );
+	std::vector<std::string> argument_list = { "-o", binary_basename + ".bin", source_basename + ".src" };
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( binary_basename + ".bin", filenames.get_binary_name() );
 }
@@ -132,7 +132,7 @@ TEST_F(FileNameExtractorTest, GetBinaryFromSourceTest)
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
 }
@@ -143,20 +143,32 @@ TEST_F(FileNameExtractorTest, GetListingFromArgTest)
 	std::string binary_basename = random_string( 8 );
 	std::string listing_basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { source_basename + ".src", binary_basename + ".bin",
-											   listing_basename + ".lst" };
-	FilenameExtractor filenames( argument_list );
+	std::vector<std::string> argument_list = { "-o", binary_basename + ".bin", "--listing=" + listing_basename + ".lst", source_basename + ".src" };
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( listing_basename + ".lst", filenames.get_listing_name() );
 }
 
-TEST_F(FileNameExtractorTest, GetListingFromSourceTest)
+TEST_F(FileNameExtractorTest, GetBlankListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
 	std::vector<std::string> argument_list = { basename + ".src" };
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
 
+	EXPECT_EQ( "", filenames.get_listing_name() );
+
+}
+
+TEST_F(FileNameExtractorTest, GetDefaultListingFromSourceTest)
+{
+	std::string basename = random_string( 8 );
+
+	std::vector<std::string> argument_list = { "-l", basename + ".src" };
+	CommandLineParser filenames( argument_list );
+
+	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
 	EXPECT_EQ( basename + ".lst", filenames.get_listing_name() );
 }
 
@@ -166,15 +178,15 @@ TEST_F(FileNameExtractorTest, GetAllFromOneArgument)
 
 	std::string source_name = basename + "." + random_string( 3 );
 	std::string binary_name = basename + ".bin";
-	std::string listing_name = basename + ".lst";
+	// std::string listing_name = basename + ".lst";
 
 	std::vector<std::string> argument_list = { source_name };
 
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( source_name, filenames.get_source_name() );
 	EXPECT_EQ( binary_name, filenames.get_binary_name() );
-	EXPECT_EQ( listing_name, filenames.get_listing_name() );
+	EXPECT_EQ( "", filenames.get_listing_name() );
 }
 
 TEST_F(FileNameExtractorTest, GetAllFromTwoArguments)
@@ -183,26 +195,47 @@ TEST_F(FileNameExtractorTest, GetAllFromTwoArguments)
 
 	std::string source_name = basename + "." + random_string( 3 );
 	std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
-	std::string listing_name = basename + ".lst";
+	// std::string listing_name = basename + ".lst";
 
-	std::vector<std::string> argument_list = { source_name, binary_name };
+	std::vector<std::string> argument_list = { "-o", binary_name, source_name };
 
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
+
+	EXPECT_EQ( source_name, filenames.get_source_name() );
+	EXPECT_EQ( binary_name, filenames.get_binary_name() );
+	EXPECT_EQ( "", filenames.get_listing_name() );
+}
+
+	// std::string source_name = random_string( 8 ) + "." + random_string( 3 );
+	// std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
+	// std::string listing_name = random_string( 8 ) + "." + random_string( 3 );
+
+TEST_F(FileNameExtractorTest, GetAllFromThreeArguments)
+{
+	std::string source_name = "source." + random_string( 3 );
+	std::string binary_name = "binary." + random_string( 3 );
+	std::string listing_name = "list." + random_string( 3 );
+
+	std::vector<std::string> argument_list = { "-o", binary_name, "--listing=" + listing_name, source_name };
+
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( source_name, filenames.get_source_name() );
 	EXPECT_EQ( binary_name, filenames.get_binary_name() );
 	EXPECT_EQ( listing_name, filenames.get_listing_name() );
 }
 
-TEST_F(FileNameExtractorTest, GetAllFromThreeArguments)
+TEST_F(FileNameExtractorTest, GetDefaultListName)
 {
-	std::string source_name = random_string( 8 ) + "." + random_string( 3 );
+	std::string basename = random_string( 8 );
+
+	std::string source_name = basename + "." + random_string( 3 );
 	std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
-	std::string listing_name = random_string( 8 ) + "." + random_string( 3 );
+	std::string listing_name = basename + ".lst";
 
-	std::vector<std::string> argument_list = { source_name, binary_name, listing_name };
+	std::vector<std::string> argument_list = { "-lo", binary_name, source_name };
 
-	FilenameExtractor filenames( argument_list );
+	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( source_name, filenames.get_source_name() );
 	EXPECT_EQ( binary_name, filenames.get_binary_name() );

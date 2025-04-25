@@ -17,45 +17,48 @@
  * MA 02110-1301, USA.
  */
 
-#include "instruction.h"
-#include "program.h"
-
 #include <fstream>
 #include <iostream>
 
-#include "filenameextractor.h"
+#include "commandlineparser.h"
+#include "assembler.h"
 
 int main( int argc, char **argv )
 {
 	if( argc < 2 ) {
-		std::cout << "Usage chasem8 source [binary [listing] ]" << std::endl;
+		std::cout << "Usage: chasem8 source [binary [listing] ]" << std::endl;
 		return 1;
 	}
 
-	Program prog;
-	FilenameExtractor filenames( argc, argv );
+	CommandLineParser args( argc, argv );
 
-	std::ifstream source = std::ifstream( filenames.get_source_name().c_str() );
-	if( source.bad() ) {
+	std::ifstream source = std::ifstream( args.get_source_name() );
+	if( source.fail() ) {
 		std::cout << "Cannot open source file" << std::endl;
 		return 2;
 	}
+	
+	if( source.peek() == std::ifstream::traits_type::eof() ) {
+		std::cout << "Source file is empty" << std::endl;
+		return 2;
+	}
 
-	prog.read_source( source );
-
-	std::ofstream binary = std::ofstream( filenames.get_binary_name().c_str() );
+	std::ofstream binary = std::ofstream( args.get_binary_name() );
 	if( binary.bad() ) {
 		std::cout << "Cannot open output file" << std::endl;
 		return 3;
 	}
 
-	prog.write_binary( binary );
+	std::ofstream listing = std::ofstream( args.get_listing_name() );
+	if( listing.bad() )
+		std::cout << "Cannot open listing file. Listing is not generated" << std::endl;
 
-	std::ofstream listing = std::ofstream( filenames.get_listing_name().c_str() );
+	Assembler worker;
+	worker.read_source( source );
+	worker.write_binary( binary );
+
 	if( ! listing.bad() )
-		prog.write_listing( listing );
-	else
-		std::cout << "Cannot open lisintg file. Listing is not generated" << std::endl;
+		worker.write_listing( listing );
 
 	return 0;
 }

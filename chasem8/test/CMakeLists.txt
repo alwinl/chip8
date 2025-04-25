@@ -23,8 +23,7 @@ add_executable(
 	chasem8_tests
 
 	filenameextractortest.cc
-	programparsertest.cc
-	testprogram.cc
+	assemblertest.cc
 )
 
 target_link_libraries( chasem8_tests PRIVATE gtest gtest_main chasem8_logic )
