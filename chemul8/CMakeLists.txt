@@ -18,5 +18,5 @@
 #
 
 add_subdirectory(src)
-add_subdirectory(guisrc)
-add_subdirectory(test_src)
+add_subdirectory(ui)
+add_subdirectory(test)

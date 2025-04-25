@@ -45,3 +45,4 @@ add_dependencies( gchemul8 gchemul8-resource )
 
 target_link_libraries( gchemul8 ${LIB_SETUP} )
 # chessparser_logic )
+

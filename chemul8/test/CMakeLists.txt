@@ -17,16 +17,16 @@
 # MA 02110-1301, USA.
 #
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules( CPPUNIT REQUIRED cppunit )
+include(GoogleTest)
 
 add_executable(
 	chemul8_tests
 
-	test_runner.cc
+	chemul8_tests.cc
 )
 
-target_link_libraries( chemul8_tests ${CPPUNIT_LIBRARIES}  )
+target_link_libraries( chemul8_tests PRIVATE gtest gtest_main )
+gtest_discover_tests( chemul8_tests )
 
 
 # add_test( FilenameExtractorTest::ValidCreation chemul8_tests FilenameExtractorTest::ValidCreation )

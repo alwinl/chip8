@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Alwin Leerling <alwin@jambo>
+ * chemul8_tests.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,29 +15,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
+#include <gtest/gtest.h>
 
-#include <span>
+class Chemul8Test : public ::testing::Test {
+protected:
+    void SetUp() override {
+        
+    }
+    void TearDown() override {
+    }
+};
 
-#include <cppunit/TestFixture.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/ui/text/TestRunner.h>
-
-#include <iostream>
-
-using namespace std;
-
-int main( int argc, char *argv[] )
-{
-	CppUnit::Test *suite = CppUnit::TestFactoryRegistry::getRegistry().makeTest();
-	CppUnit::TextUi::TestRunner runner;
-
-	runner.addTest( suite );
-
-	std::span<char *> const args( argv, argc );
-
-	// invert the return value from run()
-	return runner.run( ( args.size() > 1 ) ? args[1] : "", false, true, false ) ? 0 : 1;
+TEST_F(Chemul8Test, aTest) {
+    
 }

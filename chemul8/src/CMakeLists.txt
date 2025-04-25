@@ -17,19 +17,27 @@
 # MA 02110-1301, USA.
 #
 
-find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 
-add_library( chemul8_setup INTERFACE )
-target_link_libraries( chemul8_setup INTERFACE SDL3::SDL3-shared )
+add_library(
+	chemul8_logic
 
-add_executable(
-	chemul8
-
-	chemul8.cc
 	cmdline_processor.cc
 	resourcelayer.cc
 	chip8.cc
 	quirks.cc
 )
 
-target_link_libraries( chemul8 chemul8_setup )
+target_link_directories( chemul8_logic INTERFACE ./ )
+
+add_executable(
+	chemul8
+
+	chemul8.cc
+)
+
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+
+add_library( chemul8_setup INTERFACE )
+target_link_libraries( chemul8_setup INTERFACE SDL3::SDL3-shared )
+
+target_link_libraries( chemul8 chemul8_setup chemul8_logic)
