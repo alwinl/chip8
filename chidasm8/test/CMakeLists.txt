@@ -17,15 +17,13 @@
 # MA 02110-1301, USA.
 #
 
-set(CMAKE_CXX_STANDARD 20)
+include(GoogleTest)
 
-add_library(
-	chidasm8_logic
+add_executable(
+	chidasm8_tests
 
-	disassembler.cc
-	# filenameextractor.cc
-	# instruction.cc
-	# program.cc
-	# token.cc
+	testdisassembly.cc
 )
 
+target_link_libraries( chidasm8_tests PRIVATE gtest gtest_main chidasm8_logic)
+gtest_discover_tests( chidasm8_tests )

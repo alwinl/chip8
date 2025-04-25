@@ -17,17 +17,12 @@
 # MA 02110-1301, USA.
 #
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules( CPPUNIT REQUIRED cppunit )
-
-
 add_executable(
-	chidasm8_tests
+	chidasm8
 
-	test_runner.cc
+	chidasm8.cc
 )
 
-target_link_libraries( chidasm8_tests ${CPPUNIT_LIBRARIES} )
+# target_include_directories( chidasm8 PUBLIC ../logic_src )
 
-
-# add_test( FilenameExtractorTest::ValidCreation chemul8_tests FilenameExtractorTest::ValidCreation )
+target_link_libraries(chidasm8 PUBLIC chidasm8_logic )

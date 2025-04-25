@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Alwin Leerling <dna.leerling@gmail.com>
+ * testdisassembly.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,21 +15,24 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#include "testdisassembly.h"
+#include <gtest/gtest.h>
 
 #include "disassembler.h"
 
-#include <iostream>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( TestDisassembly );
+class ChidasmTest : public ::testing::Test {
+protected:
+	void SetUp() override {
+		
+	}
+	void TearDown() override {
+	}
+};
 
-void TestDisassembly::DisassembleBLINKY()
+TEST_F(ChidasmTest, blinky)
 {
-
 	std::vector<uint8_t> program = {
 		0x00, 0xE0, // CLS
 		0x01, 0x04, // SYS 104
@@ -76,5 +79,10 @@ void TestDisassembly::DisassembleBLINKY()
 	dis.read_binary( iss );
 	dis.disassemble();
 	dis.collect_data_bytes();
-	dis.write_listing( std::cout );
+
+	std::ostringstream oss;
+	dis.write_listing( oss );
+
+	std::string expected_output = R"(0000: 00E0  CLS)";
+	EXPECT_EQ(oss.str().substr(0, 12), expected_output);
 }

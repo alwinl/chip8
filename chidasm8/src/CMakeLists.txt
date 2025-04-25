@@ -17,12 +17,17 @@
 # MA 02110-1301, USA.
 #
 
-add_executable(
-	chidasm8
+set(CMAKE_CXX_STANDARD 20)
 
-	chidasm8.cc
+add_library(
+	chidasm8_logic
+
+	disassembler.cc
+	# filenameextractor.cc
+	# instruction.cc
+	# program.cc
+	# token.cc
 )
 
-target_include_directories( chidasm8 PUBLIC ../logic_src )
+target_include_directories( chidasm8_logic INTERFACE ./ )
 
-target_link_libraries(chidasm8 PUBLIC chidasm8_logic )
