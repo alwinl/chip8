@@ -33,22 +33,22 @@ void push_uint8_t( std::ostream &target, uint8_t value )
     target << static_cast<uint8_t>(value);
 }
 
-std::pair<uint16_t, uint16_t> parse_register_pair(const std::vector<std::string>& parameters, const std::string& mnemonic)
-{
-    if( parameters.empty() )
-        throw std::runtime_error(mnemonic + " requires two register arguments");
+// std::pair<uint16_t, uint16_t> parse_register_pair(const std::vector<std::string>& parameters, const std::string& mnemonic)
+// {
+//     if( parameters.empty() )
+//         throw std::runtime_error(mnemonic + " requires two register arguments");
 
-    if( parameters[0][0] != 'V' || parameters[1][0] != 'V' )
-        throw std::runtime_error(mnemonic + ": Both arguments must be registers (e.g., V1)");
+//     if( parameters[0][0] != 'V' || parameters[1][0] != 'V' )
+//         throw std::runtime_error(mnemonic + ": Both arguments must be registers (e.g., V1)");
 
-    uint16_t x_reg = static_cast<uint16_t>(std::stoi(&parameters[0][0], nullptr, 16));
-    uint16_t y_reg = static_cast<uint16_t>(std::stoi(&parameters[1][0], nullptr, 16));
+//     uint16_t x_reg = static_cast<uint16_t>(std::stoi(&parameters[0][0], nullptr, 16));
+//     uint16_t y_reg = static_cast<uint16_t>(std::stoi(&parameters[1][0], nullptr, 16));
 
-    if (x_reg > 0x0F || y_reg > 0x0F)
-        throw std::runtime_error(mnemonic + ": Register index out of range (0-F)");
+//     if (x_reg > 0x0F || y_reg > 0x0F)
+//         throw std::runtime_error(mnemonic + ": Register index out of range (0-F)");
 
-    return {x_reg, y_reg};
-}
+//     return {x_reg, y_reg};
+// }
 
 Instruction::Instruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : sym_table(sym_table)
 {
@@ -66,14 +66,19 @@ Instruction::Instruction( const std::vector<std::string>& arguments, const Symbo
     }
 }
 
-uint16_t Instruction::get_address( const std::string& argument )
+uint16_t Instruction::get_address( const std::string& argument, bool syscall )
 {
     uint16_t address;
     try {
         address = std::stoi( argument, nullptr, 0 );
 
-        if( (address < 0x200) || (address > 0xFFF) )
-            throw std::runtime_error( "Address out of range" );
+        if( syscall ) {
+            if(address >= 0x200)
+                throw std::runtime_error( "Address out of range" );
+        } else {
+            if( (address < 0x200) || (address > 0xFFF) )
+                throw std::runtime_error( "Address out of range" );
+        }
     }
     catch( const std::invalid_argument &ex ) {
         address = sym_table.get_address( argument );    // is it a label?
@@ -87,20 +92,49 @@ uint16_t Instruction::get_address( const std::string& argument )
     return address;
 }
 
+uint8_t Instruction::get_register( const std::string& argument )
+{
+    if( argument[0] != 'V' )
+        throw std::runtime_error( "Invalid register name" );
+
+    int reg = std::stoi( &argument[1], nullptr, 16 );
+
+    if( reg > 0x0F )
+        throw std::runtime_error( "Register index out of range (0-F)" );
+
+    return static_cast<uint8_t>(reg);
+}
+
+uint8_t Instruction::get_byte( const std::string &argument )
+{
+    int byte = std::stoi( argument, nullptr, 0 );
+
+    if( byte > 0xFF )
+        throw std::runtime_error( "Byte value out of range (0-FF)" );
+
+    return static_cast<uint8_t>(byte);
+}
+
+uint8_t Instruction::get_nibble( const std::string &argument )
+{
+    int byte = std::stoi( argument, nullptr, 16 );
+
+    if( byte > 0x0F )
+        throw std::runtime_error( "Nibble value out of range (0-F)" );
+
+    return static_cast<uint8_t>(byte);
+}
+
+
+
+
 DBInstruction::DBInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table )
 {
     if( parameters.empty() )
         throw std::runtime_error( "DB instruction requires values as arguments" );
 
-    for( auto& value : parameters) {
-
-        int parsed = std::stoi( value, nullptr, 0 );
-
-        if( parsed < 0 || parsed > 0xFF )
-            throw std::runtime_error("DB value out of 8-bit range: " + value);        
-
-        data.push_back( static_cast<uint8_t>(parsed) );
-    }
+    for( auto& value : parameters)
+        data.push_back( get_byte( value ) );
 }
 
 void DBInstruction::emit_binary( std::ostream &target )
@@ -111,12 +145,18 @@ void DBInstruction::emit_binary( std::ostream &target )
 
 void CLSInstruction::emit_binary( std::ostream &target )
 {
+    if( ! parameters.empty() )
+        throw std::runtime_error( "CLS instruction requires no arguments" );
+
     // CLS = 00E0
     push_uint16_t( target, 0x00E0 );
 }
 
 void RETInstruction::emit_binary( std::ostream &target )
 {
+    if( ! parameters.empty() )
+        throw std::runtime_error( "RET instruction requires no arguments" );
+
     // RET = 00EE
     push_uint16_t( target, 0x00EE );
 }
@@ -127,7 +167,7 @@ void SYSInstruction::emit_binary( std::ostream &target )
     if( parameters.size() != 1 )
         throw std::runtime_error( "SYS instruction requires an address as an argument" );
 
-    push_uint16_t( target, get_address( parameters[0] ) );
+    push_uint16_t( target, get_address( parameters[0], true ) );
 }
 
 void JPInstruction::emit_binary( std::ostream &target )
@@ -136,10 +176,16 @@ void JPInstruction::emit_binary( std::ostream &target )
         throw std::runtime_error( "JP instruction requires an address as an argument" );
 
     // 1nnn - JP addr
-    // Bnnn - JP V0,addr
-    uint16_t address = ( std::toupper(parameters[0][0]) == 'V') ? (0xB000 | get_address( parameters[1] )) : (0x1000 | get_address( parameters[0] ));
+    if( std::toupper(parameters[0][0]) != 'V') {
+        push_uint16_t( target, (0x1000 | get_address( parameters[0] )) );
+        return;
+    }
 
-    push_uint16_t( target, address );
+    // Bnnn - JP V0,addr    
+    if( parameters.size() != 2 || parameters[0][1] != '0')
+        throw std::runtime_error( "JP instruction requires the register to be V0" );
+
+    push_uint16_t( target, (0xB000 | get_address( parameters[1] )) );
 }
 
 void CALLInstruction::emit_binary( std::ostream &target )
@@ -148,9 +194,7 @@ void CALLInstruction::emit_binary( std::ostream &target )
     if( parameters.empty() )
         throw std::runtime_error( "CALL instruction requires an address as an argument" );
 
-    uint16_t address = (0x2000 | get_address( parameters[0] ) );
- 
-    push_uint16_t( target, address );
+    push_uint16_t( target, (0x2000 | get_address( parameters[0] ) ) );
 }
 
 void SEInstruction::emit_binary( std::ostream &target )
@@ -161,20 +205,19 @@ void SEInstruction::emit_binary( std::ostream &target )
     if( parameters[0][0] != 'V' )
         throw std::runtime_error( "SE instruction requires a register as the first argument" );
 
-    uint16_t x_reg = std::stoi( &parameters[0][1], nullptr, 16 );
+    uint8_t x_reg = get_register( parameters[0] );
 
     if( parameters[1][0] == 'V' ) {
+
         // 5xy0 - SE Vx, Vy
-        uint16_t y_reg = std::stoi( &parameters[1][1], nullptr, 16);
-        uint16_t code = 0x5000 | (x_reg << 8) | (y_reg << 4);
+        uint8_t y_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0x5000 | (x_reg << 8) | (y_reg << 4)) );   
 
-        push_uint16_t(target, code);   
     } else {
-        // 3xkk - SE Vx, byte
-        uint16_t byte = std::stoi( parameters[1], nullptr, 0 );    
-        uint16_t code = 0x3000 | (x_reg << 8) | byte;
 
-        push_uint16_t( target, code );   
+        // 3xkk - SE Vx, byte
+        uint16_t byte = get_byte( parameters[1] );
+        push_uint16_t( target, (0x3000 | (x_reg << 8) | byte) );   
     }
 }
 
@@ -190,134 +233,273 @@ void SNEInstruction::emit_binary( std::ostream &target )
 
     if( parameters[1][0] == 'V' ) {
         // 9xy0 - SNE Vx, Vy
-        uint16_t y_reg = std::stoi( &parameters[1][1], nullptr, 16);
-        uint16_t code = 0x9000 | (x_reg << 8) | (y_reg << 4);
-
-        push_uint16_t(target, code);   
+        uint8_t y_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0x9000 | (x_reg << 8) | (y_reg << 4)) );   
     } else {
         // 4xkk - SNE Vx, byte
-        uint16_t byte = std::stoi( parameters[1], nullptr, 0 );    
-        uint16_t code = 0x4000 | (x_reg << 8) | byte;
-
-        push_uint16_t( target, code );   
+        uint16_t byte = get_byte( parameters[1] );
+        push_uint16_t( target, (0x4000 | (x_reg << 8) | byte) );   
     }
 }
 
 void LDInstruction::emit_binary( std::ostream &target )
 {
-// 6xkk - LD Vx, byte
-// 8xy0 - LD Vx, Vy
-// Annn - LD I, addr
-// Fx07 - LD Vx, DT
-// Fx0A - LD Vx, K
-// Fx15 - LD DT, Vx
-// Fx18 - LD ST, Vx
-// Fx29 - LD F, Vx
-// Fx33 - LD B, Vx
-// Fx55 - LD [I], Vx
-// Fx65 - LD Vx, [I]
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "LD requires two operands" );
 
+    if( parameters[0][0] == 'V' ) {
+
+        uint8_t x_reg = get_register(parameters[0]);
+
+        // 8xy2 - LD Vx, Vy
+        if( parameters[1][0] == 'V' ) {
+            uint8_t y_reg = get_register( parameters[1] );
+            push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4)) );
+            return;
+        }
+
+        // Fx07 - LD Vx, DT
+        if( parameters[1] == "DT") {
+            push_uint16_t( target, (0xF007 | (x_reg << 8)) );
+            return;
+        }
+
+        // Fx0A - LD Vx, K
+        if( parameters[1] == "K") {
+            push_uint16_t( target, (0xF00A | (x_reg << 8)) );
+            return;
+        }
+
+        // Fx65 - LD Vx, [I]
+        if( parameters[1] == "[I]") {
+            push_uint16_t( target, (0xF065 | (x_reg << 8)) );
+            return;
+        }
+
+        // 6xkk - LD Vx, byte
+        uint8_t byte = get_byte( parameters[1] );
+        push_uint16_t( target, (0x6000 | (x_reg << 8) | byte) );
+        return;
+    }
+
+    if( parameters[0] == "I" ) {
+        // LD I, Addr
+        uint16_t address = get_address( parameters[1] );
+        push_uint16_t( target, (0xA000 | address) );
+        return;
+    }
+
+    if( parameters[0] == "DT" ) {
+        // LD DT, Vx
+        if( parameters[1][0] != 'V' )
+            throw std::runtime_error( "LD instruction requires a register as the second argument" );
+
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF015 | (x_reg << 8)) );
+        return;
+    }
+
+    if( parameters[0] == "ST" ) {
+        // LD ST, Vx
+        if( parameters[1][0] != 'V' )
+            throw std::runtime_error( "LD instruction requires a register as the second argument" );
+
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF018 | (x_reg << 8)) );
+        return;
+    }
+
+    if( parameters[0] == "F" ) {
+        // LD F, Vx
+        if( parameters[1][0] != 'V' )
+            throw std::runtime_error( "LD instruction requires a register as the second argument" );
+
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF029 | (x_reg << 8)) );
+        return;
+    }
+
+    if( parameters[0] == "B" ) {
+        // LD B, Vx
+        if( parameters[1][0] != 'V' )
+            throw std::runtime_error( "LD B instruction requires a register as the second argument" );
+
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF033 | (x_reg << 8)) );
+        return;
+    }
+
+    if( parameters[0] == "[I]" ) {
+        // LD [I], Vx
+        if( parameters[1][0] != 'V' )
+            throw std::runtime_error( "LD [I] instruction requires a register as the second argument" );
+
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF055 | (x_reg << 8)) );
+        return;
+    }
+
+    throw std::runtime_error( "Unknown LD instruction" );
 }
 
 void ADDInstruction::emit_binary( std::ostream &target )
 {
-// 7xkk - ADD Vx, byte
-// 8xy4 - ADD Vx, Vy
-// Fx1E - ADD I, Vx
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "ADD requires two operands" );
 
+    // Fx1E - ADD I, Vx
+    if(std::toupper(parameters[0][0]) == 'I') {
+        uint8_t x_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0xF01E | (x_reg << 8)) );
+        return;
+    }
+
+    if( std::toupper(parameters[0][0]) != 'V' )
+        throw std::runtime_error( "ADD instruction requires a register or 'I' as the first argument" );
+
+    uint8_t x_reg = get_register( parameters[0] );
+
+    if( parameters[1][0] == 'V' ) {
+        // 8xy4 - ADD Vx, Vy
+        uint8_t y_reg = get_register( parameters[1] );
+        push_uint16_t( target, (0x8004 | (x_reg << 8) | (y_reg << 4)) );
+    } else {
+        // 7xkk - ADD Vx, byte
+        uint8_t byte = get_byte( parameters[1] );
+        push_uint16_t( target, (0x7000 | (x_reg << 8) | byte) );
+    }
 }
 
 void ORInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "OR" );
+    // auto [vx, vy] = parse_register_pair( parameters, "OR" );
+
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "OR requires two register arguments" );
+
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
 
     // 8xy1 - OR Vx, Vy
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0001;
-    push_uint16_t( target, code );
+    // uint16_t code = (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0001);
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0001) );
 }
 
 void ANDInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "AND" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "AND requires two register arguments" );
 
     // 8xy2 - AND Vx, Vy
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0002;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0002) );
 }
 
 void XORInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "XOR" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "XOR requires two register arguments" );
 
     // 8xy3 - XOR Vx, Vy
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0003;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0003) );
 }
 
 void SUBInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "SUB" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "SUB requires two register arguments" );
 
     // 8xy5 - SUB Vx, Vy
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0005;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0005) );
 }
 
 void SHRInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "SHR" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "SHR requires two register arguments" );
 
     // 8xy6 - SHR Vx {, Vy}
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0006;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0006) );
 }
 
 void SUBNInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "SUBN" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "SUBN requires two register arguments" );
 
     // 8xy7 - SUBN Vx, Vy
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x0007;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x0007) );
 }
 
 void SHLInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "SHL" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "SHL requires two register arguments" );
 
     // 8xyE - SHL Vx {, Vy}
-    uint16_t code = 0x8000 | (vx << 8) | (vy << 4) | 0x000E;
-    push_uint16_t( target, code );
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+
+    push_uint16_t( target, (0x8000 | (x_reg << 8) | (y_reg << 4) | 0x000E) );
 }
 
 void RNDInstruction::emit_binary( std::ostream &target )
 {
-// Cxkk - RND Vx, byte
-    // if( parameter.empty() )
-    //     throw std::runtime_error( "RND instruction requires a byte as an argument" );
+    if( parameters.size() != 2 )
+        throw std::runtime_error( "RND requires a register and a byte argument" );
 
-    // uint8_t value = static_cast<uint8_t>(std::stoi( parameter, nullptr, 0 ));
+    // Cxkk - RND Vx, byte
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t mask = get_byte( parameters[1] );
 
-    // target << static_cast<uint8_t>(0xC0 | (value & 0x0F));
-    // target << value;
+    push_uint16_t( target, (0xC000 | (x_reg << 8) | mask) );
 }
 
 void DRWInstruction::emit_binary( std::ostream &target )
 {
-    auto [vx, vy] = parse_register_pair( parameters, "DRW" );
+    if( parameters.size() != 3 )
+        throw std::runtime_error( "DRW requires two register and a nibble argument" );
 
     // Dxyn - DRW Vx, Vy, nibble
+    uint8_t x_reg = get_register( parameters[0] );
+    uint8_t y_reg = get_register( parameters[1] );
+    uint8_t lines = get_nibble( parameters[2] );
 
+    push_uint16_t( target, (0xD000 | (x_reg << 8) | (y_reg << 4) | lines) );
 }
 
 void SKPInstruction::emit_binary( std::ostream &target )
 {
-// Ex9E - SKP Vx
+    if( parameters.size() != 1 )
+        throw std::runtime_error( "SKP requires a register argument" );
 
+    // Ex9E - SKP Vx
+    uint8_t x_reg = get_register( parameters[0] );
+
+    push_uint16_t( target, (0xE09E | (x_reg << 8)) );
 }
 
 void SKNPInstruction::emit_binary( std::ostream &target )
 {
-// ExA1 - SKNP Vx
+    if( parameters.size() != 1 )
+        throw std::runtime_error( "SKNP requires a register argument" );
 
+    // ExA1 - SKNP Vx
+    uint8_t x_reg = get_register( parameters[0] );
+
+    push_uint16_t( target, (0xE0A1 | (x_reg << 8)) );
 }

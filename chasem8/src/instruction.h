@@ -44,7 +44,10 @@ protected:
     std::vector<std::string> parameters;
     const SymbolTable& sym_table;
 
-    uint16_t get_address( const std::string& argument );
+    uint16_t get_address( const std::string& argument, bool syscall = false );
+    uint8_t get_register( const std::string& argument );
+    uint8_t get_byte( const std::string& argument );
+    uint8_t get_nibble( const std::string &argument );
 };
 
 class DBInstruction : public Instruction
