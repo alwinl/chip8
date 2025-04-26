@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * symboltable.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,40 +15,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
 #include <cstdint>
 #include <istream>
-#include <ostream>
-#include <vector>
-#include <memory>
 
-#include <unordered_map>
-
-#include "instruction.h"
-
-#include "symboltable.h"
-
-class Assembler
+class SymbolTable
 {
 public:
-	Assembler() = default;
+	SymbolTable() = default;
 
-	void read_source( std::istream &source );
-	void write_binary( std::ostream &target );
-	void write_listing( std::ostream &target );
+	void add_label( std::string label, uint16_t address );
 
-protected:
-	void extract_label( std::vector<std::string> &tokens, uint16_t current_address );
-	uint16_t extract_instruction( std::vector<std::string> &tokens );
-	uint16_t get_instruction_count() const { return instructions.size(); }
-	uint16_t get_symbol( const std::string &label ) const { return symbol_table.get_address( label ); }
+	uint16_t get_address( std::string label ) const;
+	size_t size() const { return symbol_table.size(); }
 
 private:
-	std::vector<std::unique_ptr<Instruction>> instructions;
-	SymbolTable symbol_table;
+	std::unordered_map<std::string, uint16_t> symbol_table;
 };
+

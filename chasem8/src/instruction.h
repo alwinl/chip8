@@ -15,23 +15,83 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef INSTRUCTION_H
-#define INSTRUCTION_H
+#pragma once
 
+#include "symboltable.h"
+
+#include <cstdint>
+#include <istream>
+#include <ostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <sstream>
+#include <algorithm>
 
 class Instruction
 {
 public:
-    Instruction();
+    Instruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : arguments( std::move( arguments ) ), sym_table(sym_table) {};
     virtual ~Instruction() {};
 
-protected:
+    virtual void emit_binary( std::ostream &target ) = 0;
+    virtual void emit_listing( std::ostream &target ) {};
+    virtual size_t length() const = 0;
 
-private:
+protected:
+    std::vector<std::string> arguments;
+    const SymbolTable& sym_table;
+
+    uint16_t get_address( const std::string& argument );
 };
 
-#endif // INSTRUCTION_H
+class DBInstruction : public Instruction
+{
+public:
+    DBInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table );
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return data.size(); }
+
+private:
+    std::vector<uint8_t> data;
+};
+
+class CLSInstruction : public Instruction
+{
+public:
+    CLSInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return 2; }
+};
+
+class RETInstruction : public Instruction
+{
+public:
+    RETInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return 2; }
+};
+
+class SYSInstruction : public Instruction
+{
+public:
+    SYSInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return 2; }
+};
+
+class JPInstruction : public Instruction
+{
+public:
+    JPInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return 2; }
+};
+

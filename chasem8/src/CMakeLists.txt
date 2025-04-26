@@ -21,9 +21,10 @@ add_library(
 	chasem8_logic
 
 	commandlineparser.cc
-	instruction.cc
 	assembler.cc
-	token.cc
+	symboltable.cc
+	instruction.cc
+	linepreprocessor.cc
 )
 
 target_include_directories( chasem8_logic INTERFACE ./ )

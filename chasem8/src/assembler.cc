@@ -15,149 +15,99 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
 #include "assembler.h"
+
+#include "linepreprocessor.h"
 
 #include <algorithm>
 #include <map>
 #include <memory>
 #include <vector>
 #include <sstream>
+#include <functional>
 
 #include <iostream>
 
-class Interpreter
+std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const std::vector<std::string>&, const SymbolTable&)>> keyword_dispatcher =
 {
-public:
-	Interpreter( uint8_t byte1, uint8_t byte2 ) : byte1( byte1 ), byte2( byte2 ) {}
-	Interpreter( Interpreter &other ) = delete;
-	Interpreter( Interpreter &&other ) = delete;
-
-	Interpreter &operator=( Interpreter &other ) = delete;
-	Interpreter &operator=( Interpreter &&other ) = delete;
-
-	virtual ~Interpreter() = default;
-
-	virtual void add_arguments( std::string argument ) = 0;
-
-	void push_bytes( std::vector<uint8_t> &target ) const
-	{
-		target.push_back( byte1 );
-		target.push_back( byte2 );
-	}
-
-protected:
-	void add_address( uint16_t address ) {
-		byte1 |= (address >> 8);
-		byte2 |= (address & 0xFF );
-	}
-
-private:
-	uint8_t byte1;
-	uint8_t byte2;
+	{ ".DB", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction >(args, sym_table); } },
+	{ "CLS", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<CLSInstruction>(args, sym_table); } },
+	{ "RET", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RETInstruction>(args, sym_table); } },
+	{ "SYS", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SYSInstruction>(args, sym_table); } },
+	{ "JP",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<JPInstruction >(args, sym_table); } }
 };
-
-class SimpleCommand : public Interpreter
-{
-public:
-	SimpleCommand( uint8_t byte1, uint8_t byte2 ) : Interpreter( byte1, byte2 ){};
-
-	void add_arguments( std::string argument ) override{};
-};
-
-class JumpCommand : public Interpreter
-{
-public:
-	JumpCommand( uint8_t byte1, uint8_t byte2 ) : Interpreter( byte1, byte2 ){};
-
-	void add_arguments( std::string argument ) override
-	{
-		add_address( 0x212 );
-	};
-};
-
-std::map<std::string, std::shared_ptr<Interpreter>> keyword_dispatcher = {
-	{ "CLS", std::shared_ptr<Interpreter>( new SimpleCommand( 0x00, 0xE0 ) ) },
-	{ "RET", std::shared_ptr<Interpreter>( new SimpleCommand( 0x00, 0xEE ) ) },
-	{ "JP", std::shared_ptr<Interpreter>( new JumpCommand( 0x10, 0x00 ) ) }
-};
-
-const std::string whitespace = " \n\r\t\f\v";
-const std::string comment = ";";
-
-void Assembler::remove_slash_r( std::string& input )
-{
-	if( *( input.end() - 1 ) == '\r' ) // Remove possible \r (strange Windows convention)
-		input.pop_back();
-}
-
-void Assembler::remove_comments( std::string& input )
-{
-	const size_t comment_start = input.find_first_of( comment );
-	if( comment_start != std::string::npos )
-		input = input.substr( 0, comment_start );
-}
-
-std::vector<std::string> Assembler::split( std::string input )
-{
-	remove_comments( input );
-	
-	std::vector<std::string> fields;
-	std::stringstream stream( input );
-	std::string field;
-
-	while( stream >> field )
-		fields.push_back( field );
-
-	return fields;
-}
-
-program_parts Assembler::identify( std::vector<std::string> parts )
-{
-	program_parts result;
-
-	// part one could be a label but for the moment lets assume it is a mnemonic
-	result.label = "";
-	result.mnemonic = parts[0];
-	result.arguments = ( parts.size() > 1 ) ? parts[1] : "";
-
-	return result;
-}
 
 void Assembler::read_source( std::istream &source )
 {
+	uint16_t current_address = 0x200;
+	int line_number = 0;
 	std::string line;
 
-	while( !source.eof() ) {
-		getline( source, line );
+	while( std::getline( source, line ) ) {
 
-		remove_slash_r( line );
-		remove_comments( line );
+		line_number++;
 
-		if( line.empty() )
-			continue;
+		std::vector<std::string> tokens = LinePreprocessor::tokenise( line );
 
-		std::vector<std::string> parts = split( line );
+		extract_label( tokens, current_address );
 
-		program_parts idents = identify( parts );
+		current_address += extract_instruction( tokens );
 
-		std::transform( idents.mnemonic.begin(), idents.mnemonic.end(), idents.mnemonic.begin(), ::toupper );
-
-		auto entry = keyword_dispatcher.find( idents.mnemonic );
-
-		if( entry != keyword_dispatcher.end() ) {
-			( *entry ).second->add_arguments( idents.arguments );
-			( *entry ).second->push_bytes( codes );
+		if( current_address > 0xFFF ) {
+			std::cerr << "Program counter overflow at line " << line_number << "\n";
+			return;
 		}
 	}
 }
 
-void Assembler::write_binary( std::ostream &target )
+void Assembler::extract_label( std::vector<std::string> &tokens, uint16_t current_address )
 {
-	std::for_each( codes.begin(), codes.end(), [&target]( uint8_t code ) { target << code; } );
+	if( tokens.empty() )
+		return;
+
+	if( tokens[0].back() == ':' ) {
+		symbol_table.add_label( tokens[0], current_address );
+		tokens.erase( tokens.begin() );
+	}
 }
 
-void Assembler::write_listing( std::ostream &target ) {}
+uint16_t Assembler::extract_instruction( std::vector<std::string> &tokens )
+{
+	if( tokens.empty() )
+		return 0;
+
+	std::transform( tokens[0].begin(), tokens[0].end(), tokens[0].begin(), [](unsigned char c) { return std::toupper(c); } );
+
+	auto entry = keyword_dispatcher.find( tokens[0] );
+
+	if( entry == keyword_dispatcher.end() ) {
+		std::cerr << "Unknown mnemonic: " << tokens[0] << "\n";
+		return 0;
+	}
+
+	instructions.push_back( entry->second( std::vector<std::string>(tokens.begin() + 1, tokens.end()), symbol_table ) );
+
+	return instructions.back()->length();
+}
+
+void Assembler::write_binary( std::ostream &target )
+{
+	std::for_each( instructions.begin(), instructions.end(), 
+		[&target]( const std::unique_ptr<Instruction>& instruction )
+		{
+			instruction->emit_binary( target );
+		}
+	);
+}
+
+void Assembler::write_listing( std::ostream &target )
+{
+	std::for_each( instructions.begin(), instructions.end(), 
+		[&target]( const std::unique_ptr<Instruction>& instruction )
+		{
+			instruction->emit_listing( target );
+		}
+	);
+}
