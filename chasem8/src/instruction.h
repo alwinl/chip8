@@ -33,15 +33,15 @@
 class Instruction
 {
 public:
-    Instruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : arguments( std::move( arguments ) ), sym_table(sym_table) {};
+    Instruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table );
     virtual ~Instruction() {};
 
     virtual void emit_binary( std::ostream &target ) = 0;
     virtual void emit_listing( std::ostream &target ) {};
-    virtual size_t length() const = 0;
+    virtual size_t length() const { return 2;};
 
 protected:
-    std::vector<std::string> arguments;
+    std::vector<std::string> parameters;
     const SymbolTable& sym_table;
 
     uint16_t get_address( const std::string& argument );
@@ -65,7 +65,6 @@ public:
     CLSInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
 
     void emit_binary( std::ostream &target ) override;
-    size_t length() const override { return 2; }
 };
 
 class RETInstruction : public Instruction
@@ -74,7 +73,6 @@ public:
     RETInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
 
     void emit_binary( std::ostream &target ) override;
-    size_t length() const override { return 2; }
 };
 
 class SYSInstruction : public Instruction
@@ -83,7 +81,6 @@ public:
     SYSInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
 
     void emit_binary( std::ostream &target ) override;
-    size_t length() const override { return 2; }
 };
 
 class JPInstruction : public Instruction
@@ -92,6 +89,132 @@ public:
     JPInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
 
     void emit_binary( std::ostream &target ) override;
-    size_t length() const override { return 2; }
 };
 
+class CALLInstruction : public Instruction
+{
+public:
+    CALLInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SEInstruction : public Instruction
+{
+public:
+    SEInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SNEInstruction : public Instruction
+{
+public:
+    SNEInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class LDInstruction : public Instruction
+{
+public:
+    LDInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class ADDInstruction : public Instruction
+{
+public:
+    ADDInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class ORInstruction : public Instruction
+{
+public:
+    ORInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class ANDInstruction : public Instruction
+{
+public:
+    ANDInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class XORInstruction : public Instruction
+{
+public:
+    XORInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SUBInstruction : public Instruction
+{
+public:
+    SUBInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SHRInstruction : public Instruction
+{
+public:
+    SHRInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SUBNInstruction : public Instruction
+{
+public:
+    SUBNInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SHLInstruction : public Instruction
+{
+public:
+    SHLInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class RNDInstruction : public Instruction
+{
+public:
+    RNDInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class DRWInstruction : public Instruction
+{
+public:
+    DRWInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SKPInstruction : public Instruction
+{
+public:
+    SKPInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};
+
+class SKNPInstruction : public Instruction
+{
+public:
+    SKNPInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override;
+};

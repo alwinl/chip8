@@ -32,11 +32,27 @@
 
 std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const std::vector<std::string>&, const SymbolTable&)>> keyword_dispatcher =
 {
-	{ ".DB", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction >(args, sym_table); } },
-	{ "CLS", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<CLSInstruction>(args, sym_table); } },
-	{ "RET", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RETInstruction>(args, sym_table); } },
-	{ "SYS", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SYSInstruction>(args, sym_table); } },
-	{ "JP",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<JPInstruction >(args, sym_table); } }
+	{ ".DB",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
+	{ "CLS",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<CLSInstruction >(args, sym_table); } },
+	{ "RET",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RETInstruction >(args, sym_table); } },
+	{ "SYS",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SYSInstruction >(args, sym_table); } },
+	{ "JP",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<JPInstruction  >(args, sym_table); } },
+	{ "CALL", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<CALLInstruction>(args, sym_table); } },
+	{ "SE",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SEInstruction  >(args, sym_table); } },
+	{ "SNE",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SNEInstruction >(args, sym_table); } },
+	{ "LD",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<LDInstruction  >(args, sym_table); } },
+	{ "ADD",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<ADDInstruction >(args, sym_table); } },
+	{ "OR",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<ORInstruction  >(args, sym_table); } },
+	{ "AND",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<ANDInstruction >(args, sym_table); } },
+	{ "XOR",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<XORInstruction >(args, sym_table); } },
+	{ "SUB",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SUBInstruction >(args, sym_table); } },
+	{ "SHR",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SHRInstruction >(args, sym_table); } },
+	{ "SUBN", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SUBNInstruction>(args, sym_table); } },
+	{ "SHL",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SHLInstruction >(args, sym_table); } },
+	{ "RND",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RNDInstruction >(args, sym_table); } },
+	{ "DRW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DRWInstruction >(args, sym_table); } },
+	{ "SKP",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKPInstruction >(args, sym_table); } },
+	{ "SKNP", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKNPInstruction>(args, sym_table); } }
 };
 
 void Assembler::read_source( std::istream &source )

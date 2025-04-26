@@ -49,8 +49,6 @@ private:
 	std::vector<uint8_t>& buffer;
 };
 
-
-
 class AssemblerTest : public ::testing::Test {
 protected:
 	void SetUp() override {
@@ -59,57 +57,6 @@ protected:
 	void TearDown() override {
 	}
 };
-
-// TEST_F(AssemblerTest, RemoveSlashR)
-// {
-// 	std::string actual( "a string with\n\r" );
-// 	std::string expected( "a string with\n" );
-
-// 	Assembler().remove_slash_r( actual );
-
-// 	EXPECT_EQ( expected, actual );
-// }
-
-
-// TEST_F(AssemblerTest, RemoveComments)
-// {
-// 	std::string actual( "a string with ; a comment\n" );
-// 	std::string expected( "a string with " );
-
-// 	Assembler().remove_comments( actual );
-
-// 	EXPECT_EQ( expected, actual );
-// }
-
-// TEST_F(AssemblerTest, Split)
-// {
-// 	std::string input = "a string with";
-// 	std::vector<std::string> expected { "a", "string", "with" };
-
-// 	Assembler prog;
-// 	std::vector<std::string> actual = prog.tokenise( input );
-
-// 	EXPECT_EQ( expected.size(), actual.size() );
-
-// 	for( unsigned int index = 0; index < expected.size(); ++index ) {
-// 		EXPECT_EQ( expected[index], actual[index] );
-// 	}
-// }
-
-TEST_F(AssemblerTest, Identify)
-{
-	// std::string input = "a string with ; a comment\n";
-	// std::vector<std::string> expected { "a", "string", "with" };
-
-	// Assembler prog;
-	// std::vector<std::string> actual = prog.tokenise( input );
-
-	// EXPECT_EQ( expected.size(), actual.size() );
-
-	// for( unsigned int index = 0; index < expected.size(); ++index ) {
-	// 	EXPECT_EQ( expected[index], actual[index] );
-	// }
-}
 
 TEST_F(AssemblerTest, ClearScreen)
 {
