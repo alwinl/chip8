@@ -22,7 +22,7 @@ include(GoogleTest)
 add_executable(
 	chasem8_tests
 
-	filenameextractortest.cc
+	commandlineparsertest.cc
 	assemblertest.cc
 	symboltabletest.cc
 	linepreprocessortest.cc
