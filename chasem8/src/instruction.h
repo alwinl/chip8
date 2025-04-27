@@ -46,6 +46,9 @@ protected:
 
     uint16_t get_address( const std::string& argument, bool syscall = false );
     uint8_t get_register( const std::string& argument );
+    uint8_t get_nibble(const std::string& argument);
+    uint8_t get_byte(const std::string& argument);
+    uint16_t get_word(const std::string& argument);
 };
 
 class DBInstruction : public Instruction
@@ -58,6 +61,27 @@ public:
 
 private:
     std::vector<uint8_t> data;
+};
+
+class DWInstruction : public Instruction
+{
+public:
+    DWInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table );
+
+    void emit_binary( std::ostream &target ) override;
+    size_t length() const override { return data.size(); }
+
+private:
+    std::vector<uint8_t> data;
+};
+
+class DummyInstruction : public Instruction
+{
+public:
+    DummyInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+
+    void emit_binary( std::ostream &target ) override {};
+    size_t length() const override { return 0; }
 };
 
 class CLSInstruction : public Instruction

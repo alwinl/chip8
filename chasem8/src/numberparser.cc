@@ -44,6 +44,23 @@ int NumberParser::parse_number(const std::string& input, int base)
     }
 }
 
+uint16_t NumberParser::to_word()
+{
+    int word;
+    
+    try {
+        word = parse_number(value, 0);
+    }
+    catch (const std::runtime_error&) {
+        word = parse_number(value, 16);
+    }
+
+    if (word < 0 || word > 0xFFFF)
+        throw std::runtime_error("Word value out of range (0-FFFF)");
+
+    return static_cast<uint16_t>(word);
+}
+
 uint8_t NumberParser::to_byte()
 {
     int byte;

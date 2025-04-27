@@ -20,6 +20,7 @@
 #include "assembler.h"
 
 #include "linepreprocessor.h"
+#include "numberparser.h"
 
 #include <algorithm>
 #include <map>
@@ -32,7 +33,6 @@
 
 std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const std::vector<std::string>&, const SymbolTable&)>> keyword_dispatcher =
 {
-	{ ".DB",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
 	{ "CLS",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<CLSInstruction >(args, sym_table); } },
 	{ "RET",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RETInstruction >(args, sym_table); } },
 	{ "SYS",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SYSInstruction >(args, sym_table); } },
@@ -52,7 +52,15 @@ std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const
 	{ "RND",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RNDInstruction >(args, sym_table); } },
 	{ "DRW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DRWInstruction >(args, sym_table); } },
 	{ "SKP",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKPInstruction >(args, sym_table); } },
-	{ "SKNP", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKNPInstruction>(args, sym_table); } }
+	{ "SKNP", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKNPInstruction>(args, sym_table); } },
+
+	{ ".DB",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
+	{ "DB",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
+	{ ".DW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
+	{ "DW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
+	{ "OPTION",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } },
+	{ "ALIGN",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } },
+	{ "END",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } }
 };
 
 void Assembler::read_source( std::istream &source )
@@ -69,6 +77,8 @@ void Assembler::read_source( std::istream &source )
 
 		extract_label( tokens, current_address );
 
+		extract_variable( tokens );
+
 		current_address += extract_instruction( tokens );
 
 		if( current_address > 0xFFF ) {
@@ -76,6 +86,26 @@ void Assembler::read_source( std::istream &source )
 			return;
 		}
 	}
+}
+
+void Assembler::write_binary( std::ostream &target )
+{
+	std::for_each( instructions.begin(), instructions.end(), 
+		[&target]( const std::unique_ptr<Instruction>& instruction )
+		{
+			instruction->emit_binary( target );
+		}
+	);
+}
+
+void Assembler::write_listing( std::ostream &target )
+{
+	std::for_each( instructions.begin(), instructions.end(), 
+		[&target]( const std::unique_ptr<Instruction>& instruction )
+		{
+			instruction->emit_listing( target );
+		}
+	);
 }
 
 void Assembler::extract_label( std::vector<std::string> &tokens, uint16_t current_address )
@@ -108,22 +138,18 @@ uint16_t Assembler::extract_instruction( std::vector<std::string> &tokens )
 	return instructions.back()->length();
 }
 
-void Assembler::write_binary( std::ostream &target )
+void Assembler::extract_variable( std::vector<std::string> &tokens )
 {
-	std::for_each( instructions.begin(), instructions.end(), 
-		[&target]( const std::unique_ptr<Instruction>& instruction )
-		{
-			instruction->emit_binary( target );
-		}
-	);
-}
+	if( tokens.size() < 3 )
+		return;
 
-void Assembler::write_listing( std::ostream &target )
-{
-	std::for_each( instructions.begin(), instructions.end(), 
-		[&target]( const std::unique_ptr<Instruction>& instruction )
-		{
-			instruction->emit_listing( target );
-		}
-	);
+	std::transform( tokens[0].begin(), tokens[0].end(), tokens[0].begin(), [](unsigned char c) { return std::toupper(c); } );
+
+	if( tokens[1] != "=" && tokens[1] != "EQU" ) 
+		return;
+
+	uint16_t value = NumberParser(tokens[2]).to_word();
+	symbol_table.add_variable(tokens[0], value);
+
+	tokens.erase( tokens.begin(), tokens.begin() + 3 );
 }

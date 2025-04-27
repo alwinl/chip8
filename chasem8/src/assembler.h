@@ -44,7 +44,9 @@ public:
 
 protected:
 	void extract_label( std::vector<std::string> &tokens, uint16_t current_address );
+	void extract_variable( std::vector<std::string> &tokens );
 	uint16_t extract_instruction( std::vector<std::string> &tokens );
+
 	uint16_t get_instruction_count() const { return instructions.size(); }
 	uint16_t get_symbol( const std::string &label ) const { return symbol_table.get_address( label ); }
 

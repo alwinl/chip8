@@ -29,6 +29,7 @@ public:
 
     uint8_t to_byte();
     uint8_t to_nibble();
+    uint16_t to_word();
     uint16_t to_address(bool syscall);
 
 private:

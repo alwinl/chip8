@@ -31,6 +31,15 @@ void SymbolTable::add_label( std::string label, uint16_t address )
 	symbol_table[label] = address;
 }
 
+void SymbolTable::add_variable( std::string name, uint16_t value )
+{
+	auto entry = symbol_table.find( name );
+	if( entry != symbol_table.end() )
+		throw std::invalid_argument("Duplicate variable (" + name + ")");
+
+	symbol_table[name] = value;
+}
+
 uint16_t SymbolTable::get_address( std::string label ) const
 {
 	auto entry = symbol_table.find( label );
@@ -40,3 +49,35 @@ uint16_t SymbolTable::get_address( std::string label ) const
 	throw std::runtime_error("Non existent label (" + label + ")");
 }
 
+uint8_t SymbolTable::get_nibble( std::string name ) const
+{
+	auto entry = symbol_table.find( name );
+	if( entry == symbol_table.end() )
+		throw std::runtime_error("Non existent variable (" + name + ")");
+
+	if( (*entry).second > 0x0F)
+        throw std::runtime_error("Nibble value out of range (0-F)");
+
+	return static_cast<uint8_t>((*entry).second);
+}
+
+uint8_t SymbolTable::get_byte( std::string name ) const
+{
+	auto entry = symbol_table.find( name );
+	if( entry == symbol_table.end() )
+		throw std::runtime_error("Non existent variable (" + name + ")");
+
+	if( (*entry).second > 0xFF)
+        throw std::runtime_error("Byte value out of range (0-FF)");
+
+	return static_cast<uint8_t>( (*entry).second );
+}
+
+uint8_t SymbolTable::get_word( std::string name ) const
+{
+	auto entry = symbol_table.find( name );
+	if( entry == symbol_table.end() )
+		throw std::runtime_error("Non existent variable (" + name + ")");
+
+	return (*entry).second;
+}

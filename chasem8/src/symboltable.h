@@ -30,8 +30,13 @@ public:
 	SymbolTable() = default;
 
 	void add_label( std::string label, uint16_t address );
+	void add_variable( std::string name, uint16_t value );
 
 	uint16_t get_address( std::string label ) const;
+	uint8_t get_nibble( std::string name ) const;
+	uint8_t get_byte( std::string name ) const;
+	uint8_t get_word( std::string name ) const;
+
 	size_t size() const { return symbol_table.size(); }
 
 private:

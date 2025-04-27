@@ -68,7 +68,35 @@ uint8_t Instruction::get_register(const std::string& argument)
     return NumberParser(argument.substr(1)).to_nibble();
 }
 
+uint8_t Instruction::get_nibble(const std::string& argument)
+{
+    try {
+        return NumberParser(argument).to_nibble();
+    }
+    catch (const std::runtime_error&) {
+        return sym_table.get_nibble(argument);
+    }
+}
 
+uint8_t Instruction::get_byte(const std::string& argument)
+{
+    try{
+        return NumberParser(argument).to_byte();
+    }
+    catch (const std::runtime_error&) {
+        return sym_table.get_byte(argument);
+    }
+}
+
+uint16_t Instruction::get_word( const std::string &argument )
+{
+    try{
+        return NumberParser(argument).to_word();
+    }
+    catch (const std::runtime_error&) {
+        return sym_table.get_word(argument);
+    }
+}
 
 DBInstruction::DBInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table )
 {
@@ -76,10 +104,30 @@ DBInstruction::DBInstruction( const std::vector<std::string>& arguments, const S
         throw std::runtime_error( "DB instruction requires values as arguments" );
 
     for( auto& value : parameters)
-        data.push_back( NumberParser(value).to_byte() );
+        data.push_back( get_byte(value) );
 }
 
 void DBInstruction::emit_binary( std::ostream &target )
+{
+    for( auto& value : data )
+        target << value;
+}
+
+DWInstruction::DWInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table )
+{
+    if( parameters.empty() )
+        throw std::runtime_error( "DW instruction requires values as arguments" );
+
+    for( auto& value : parameters) {
+
+        uint16_t word = get_word(value);
+
+        data.push_back( static_cast<uint8_t>(word >> 8) );
+        data.push_back( static_cast<uint8_t>(word & 0xFF) );
+    }
+}
+
+void DWInstruction::emit_binary( std::ostream &target )
 {
     for( auto& value : data )
         target << value;
@@ -158,7 +206,7 @@ void SEInstruction::emit_binary( std::ostream &target )
     } else {
 
         // 3xkk - SE Vx, byte
-        uint8_t byte = NumberParser(parameters[1]).to_byte();
+        uint8_t byte = get_byte(parameters[1]);
         push_uint16_t( target, (0x3000 | (x_reg << 8) | byte) );   
     }
 }
@@ -179,7 +227,7 @@ void SNEInstruction::emit_binary( std::ostream &target )
         push_uint16_t( target, (0x9000 | (x_reg << 8) | (y_reg << 4)) );   
     } else {
         // 4xkk - SNE Vx, byte
-        uint8_t byte = NumberParser(parameters[1]).to_byte();
+        uint8_t byte = get_byte(parameters[1]);
         push_uint16_t( target, (0x4000 | (x_reg << 8) | byte) );   
     }
 }
@@ -219,7 +267,7 @@ void LDInstruction::emit_binary( std::ostream &target )
         }
 
         // 6xkk - LD Vx, byte
-        uint8_t byte = NumberParser(parameters[1]).to_byte();
+        uint8_t byte = get_byte(parameters[1]);
         push_uint16_t( target, (0x6000 | (x_reg << 8) | byte) );
         return;
     }
@@ -307,7 +355,7 @@ void ADDInstruction::emit_binary( std::ostream &target )
         push_uint16_t( target, (0x8004 | (x_reg << 8) | (y_reg << 4)) );
     } else {
         // 7xkk - ADD Vx, byte
-        uint8_t byte = NumberParser(parameters[1]).to_byte();
+        uint8_t byte = get_byte(parameters[1]);
         push_uint16_t( target, (0x7000 | (x_reg << 8) | byte) );
     }
 }
@@ -406,7 +454,7 @@ void RNDInstruction::emit_binary( std::ostream &target )
 
     // Cxkk - RND Vx, byte
     uint8_t x_reg = get_register( parameters[0] );
-    uint8_t mask = NumberParser(parameters[1]).to_byte();
+    uint8_t mask = get_byte(parameters[1]);
 
     push_uint16_t( target, (0xC000 | (x_reg << 8) | mask) );
 }
@@ -419,7 +467,7 @@ void DRWInstruction::emit_binary( std::ostream &target )
     // Dxyn - DRW Vx, Vy, nibble
     uint8_t x_reg = get_register( parameters[0] );
     uint8_t y_reg = get_register( parameters[1] );
-    uint8_t lines = NumberParser(parameters[2]).to_nibble();
+    uint8_t lines = get_nibble(parameters[2]);
 
     push_uint16_t( target, (0xD000 | (x_reg << 8) | (y_reg << 4) | lines) );
 }
