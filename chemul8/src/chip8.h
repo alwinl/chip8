@@ -43,7 +43,7 @@ private:
 	uint8_t memory[4096];
 	uint8_t V[16];
 	uint16_t I = 0;
-	uint16_t PC = 0x200;
+	//uint16_t PC = 0x200;
 	uint8_t SP = 0;
 
 	const uint16_t font_sprite_base = 0x0100;
@@ -86,6 +86,11 @@ private:
 	void DRW( uint16_t opcode );	// 0xDxyn
 	void Key( uint16_t opcode );	// 0xExkk
 	void Misc( uint16_t opcode );	// 0xFxkk
+
+
+	uint16_t get_PC() const;
+	void set_PC( uint16_t value );
+	
 };
 
 #endif // CHIP8_H

@@ -54,19 +54,33 @@ void Chip8::load_program( uint8_t program[], uint16_t program_size )
 	std::fill( std::begin( Stack ), std::end( Stack ), 0 );
 	std::fill( std::begin( V ), std::end( V ), 0 );
 	I = 0;
-	PC = 0x200;
+	//PC = 0x200;
 	SP = 0;
 
 	// load font and program code in memory
 	std::copy_n( &font[0], sizeof( font ), &memory[font_sprite_base] );
 	std::copy_n( &program[0], program_size, &memory[program_base] );
+
+	memory[PC_index] = 0x0200 >> 8;
+	memory[PC_index + 1] = 0x0200 & 0xFF;
+}
+
+uint16_t Chip8::get_PC() const
+{
+	return ( memory[PC_index] << 8 ) | memory[PC_index + 1];
+}
+
+void Chip8::set_PC( uint16_t value )
+{
+	memory[PC_index] = value >> 8;
+	memory[PC_index + 1] = value & 0xFF;
 }
 
 void Chip8::execute_instruction()
 {
-	const uint16_t opcode = ( memory[PC] << 8 ) | memory[PC + 1];
+	const uint16_t opcode = ( memory[get_PC()] << 8 ) | memory[get_PC() + 1];
 
-	PC += 2;
+	set_PC( get_PC() + 2 );
 
 	auto fp_dispatch = dispatchers.at( opcode >> 12 );
 	( this->*fp_dispatch )( opcode );
@@ -80,23 +94,23 @@ void Chip8::SYS( uint16_t opcode ) // 0nnn - SYS addr : Jump to a machine code r
 		break;
 
 	case 0x0EE: // RET : return from subroutine
-		PC = Stack[SP--];
+		set_PC( Stack[SP--] );
 		break;
 
-	default: PC = opcode & 0xFFF; break;
+	default: set_PC( opcode & 0xFFF ); break;
 	}
 }
 
 void Chip8::JP( uint16_t opcode ) // 1nnn - JP addr : Jump to location nnn.
 {
-	PC = opcode & 0xFFF;
+	set_PC( opcode & 0xFFF );
 }
 
 void Chip8::CALL( uint16_t opcode ) // 2nnn - CALL addr : Call subroutine at nnn.
 {
 	++SP;
-	Stack[SP] = PC;
-	PC = opcode & 0xFFF;
+	Stack[SP] = get_PC();
+	set_PC( opcode & 0xFFF );
 }
 
 void Chip8::SEI( uint16_t opcode ) // 3xkk - SE Vx, byte : Skip next instruction if Vx = kk.
@@ -104,7 +118,7 @@ void Chip8::SEI( uint16_t opcode ) // 3xkk - SE Vx, byte : Skip next instruction
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
 	if( V[reg_x] == ( opcode & 0xFF ) )
-		PC += 2;
+		set_PC( get_PC() + 2 );
 }
 
 void Chip8::SNI( uint16_t opcode ) // 4xkk - SNE Vx, byte : Skip next instruction if Vx != kk.
@@ -112,7 +126,7 @@ void Chip8::SNI( uint16_t opcode ) // 4xkk - SNE Vx, byte : Skip next instructio
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
 	if( V[reg_x] != ( opcode & 0xFF ) )
-		PC += 2;
+		set_PC( get_PC() + 2 );
 }
 
 void Chip8::SER( uint16_t opcode ) // 5xy0 - SE Vx, Vy : Skip next instruction if Vx = Vy.
@@ -123,7 +137,7 @@ void Chip8::SER( uint16_t opcode ) // 5xy0 - SE Vx, Vy : Skip next instruction i
 	switch( opcode & 0xF ) {
 	case 0x0:
 		if( V[reg_x] == V[reg_y] )
-			PC += 2;
+			set_PC( get_PC() + 2 );
 		break;
 		// 0x1 .. 0xF not defined
 	default: break;
@@ -225,7 +239,7 @@ void Chip8::SNE( uint16_t opcode ) // 9xy0 - SNE Vx, Vy : Skip next instruction 
 	switch( opcode & 0xF ) {
 	case 0x0:
 		if( V[reg_x] != V[reg_y] )
-			PC += 2;
+			set_PC( get_PC() + 2 );
 		break;
 
 	// opcodes 0x1 to 0xF not defined
@@ -242,9 +256,9 @@ void Chip8::JMP(
 	uint16_t opcode ) // Bnnn - JP V0, addr : Jump to location nnn + V0 or Bxnn : Jump to location nn + V[x]
 {
 	if( quirks.has_quirk( Quirks::eQuirks::JUMPING ) )
-		PC = ( opcode & 0xFFF ) + V[( opcode >> 8 ) & 0x0F];
+		set_PC( ( opcode & 0xFFF ) + V[( opcode >> 8 ) & 0x0F] );
 	else
-		PC = ( opcode & 0xFFF ) + V[0];
+		set_PC( ( opcode & 0xFFF ) + V[0] );
 }
 
 void Chip8::RND( uint16_t opcode ) // Cxkk - RND Vx, byte : Set Vx = random byte AND kk
@@ -264,7 +278,7 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 	uint8_t ypos = V[reg_y] % 32;
 
 	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && hardware.block_drw() ) { // rate limit the DRW calls to 60fps
-		PC -= 2;
+		set_PC( get_PC() - 2 );
 		return;
 	}
 
@@ -299,12 +313,12 @@ void Chip8::Key( uint16_t opcode ) // 0xExkk
 		// opcodes 0x00 .. 0x9D not defined
 	case 0x9E: // Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
 		if( hardware.is_key_pressed( V[reg_x] ) )
-			PC += 2;
+			set_PC( get_PC() + 2 );
 		break;
 		// opcodes 0x9F .. 0xA0 not defined
 	case 0xA1: // ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
 		if( !hardware.is_key_pressed( V[reg_x] ) )
-			PC += 2;
+			set_PC( get_PC() + 2 );
 		break;
 		// opcodes 0xA2 .. 0xFF not defined
 	default: break;
@@ -327,7 +341,7 @@ void Chip8::Misc( uint16_t opcode ) // 0xFxkk
 		if( hardware.key_captured( key_no ) )
 			V[reg_x] = key_no;
 		else
-			PC -= 2;
+		set_PC( get_PC() - 2 );
 	} break;
 		// opcodes 0x0B .. 0x1 not defined
 	case 0x15: // Fx15 - LD DT, Vx : Set delay timer = Vx.
