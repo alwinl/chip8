@@ -21,121 +21,48 @@
 
 #include "assembler.h"
 
-class SymbolTableTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        
-    }
-    void TearDown() override {
-    }
-};
+TEST(SymbolTableTest, NoEntries)
+{
+    SymbolTable symbol_table;
 
-// TEST_F(SymbolTableTest, EmptyLine)
-// {
-//     SymbolTable symbol_table;
+    EXPECT_EQ(0, symbol_table.size());
+}
 
-//     std::string line = "";
-//     std::stringstream source(line);
+TEST(SymbolTableTest, AddSingleLabel)
+{
+    SymbolTable symbol_table;
 
-//     symbol_table.fill_table(source);
+    symbol_table.add_label("main", 0x0200);
 
-//     EXPECT_EQ(0, symbol_table.size());
-    
-// }
+    EXPECT_EQ(1, symbol_table.size());
+    EXPECT_EQ(0x0200, symbol_table.get_address("main"));
+}
 
-// TEST_F(SymbolTableTest, NoLabel)
-// {
-//     SymbolTable symbol_table;
+TEST(SymbolTableTest, AddMultipleLabels)
+{
+    SymbolTable symbol_table;
 
-//     std::string line = "\tJP main";
-//     std::stringstream source(line);
+    symbol_table.add_label("main", 0x0200);
+    symbol_table.add_label("_start", 0x0202);
 
-//     symbol_table.fill_table(source);
+    EXPECT_EQ(2, symbol_table.size());
+    EXPECT_EQ(0x0200, symbol_table.get_address("main"));
+    EXPECT_EQ(0x0202, symbol_table.get_address("_start"));
+}
 
-//     EXPECT_EQ(0, symbol_table.size());
-// }
+TEST(SymbolTableTest, AddDuplicateLabel)
+{
+    SymbolTable symbol_table;
 
-// TEST_F(SymbolTableTest, ColonInComment)
-// {
-//     SymbolTable symbol_table;
+    symbol_table.add_label("main", 0x0200);
+    EXPECT_THROW(symbol_table.add_label("main", 0x0202), std::invalid_argument);
+}
 
-//     std::string line = "\tJP main\t; hello:";
-//     std::stringstream source(line);
+TEST(SymbolTableTest, GetAddressNonExistentLabel)
+{
+    SymbolTable symbol_table;
 
-//     symbol_table.fill_table(source);
+    symbol_table.add_label("main", 0x0200);
 
-//     EXPECT_EQ(0, symbol_table.size());
-// }
-
-
-// TEST_F(SymbolTableTest, SimpleLabel)
-// {
-//     SymbolTable symbol_table;
-
-//     std::string line = "_start: JP main";
-//     std::stringstream source(line);
-
-//     symbol_table.fill_table(source);
-
-//     EXPECT_EQ(1, symbol_table.size());
-
-//     EXPECT_EQ(0x0200, symbol_table.get_address("_start"));
-// }
-
-// TEST_F(SymbolTableTest, TwoLabels)
-// {
-//     SymbolTable symbol_table;
-
-//     std::string line = R"(
-//         _start: JP main
-//         main: JP _start
-//     )";
-//     std::stringstream source(line);
-
-//     symbol_table.fill_table(source);
-
-//     EXPECT_EQ(2, symbol_table.size());
-
-//     EXPECT_EQ(0x0200, symbol_table.get_address("_start"));
-//     EXPECT_EQ(0x0202, symbol_table.get_address("main"));
-// }
-
-// TEST_F(SymbolTableTest, TwoLabelsWithInstructionGap)
-// {
-//     SymbolTable symbol_table;
-
-//     std::string input = R"(
-//         _start: JP main
-//                 MOV V0,#15
-//         main:   JP _start
-//     )";    
-
-//     std::stringstream source(input);
-
-//     symbol_table.fill_table(source);
-
-//     EXPECT_EQ(2, symbol_table.size());
-
-//     EXPECT_EQ(0x0200, symbol_table.get_address("_start"));
-//     EXPECT_EQ(0x0204, symbol_table.get_address("main"));
-// }
-
-// TEST_F(SymbolTableTest, TwoLabelsWithBlankLine)
-// {
-//     SymbolTable symbol_table;
-
-//     std::string input = R"(
-//         _start: JP main
- 
-//         main:   JP _start
-//     )";    
-
-//     std::stringstream source(input);
-
-//     symbol_table.fill_table(source);
-
-//     EXPECT_EQ(2, symbol_table.size());
-
-//     EXPECT_EQ(0x0200, symbol_table.get_address("_start"));
-//     EXPECT_EQ(0x0202, symbol_table.get_address("main"));
-// }
+    EXPECT_THROW(symbol_table.get_address("non_existent"), std::runtime_error);
+}

@@ -24,7 +24,11 @@ void SymbolTable::add_label( std::string label, uint16_t address )
     if( label.back() == ':' )
         label.pop_back();
         
-    symbol_table[label] = address;
+	auto entry = symbol_table.find( label );
+	if( entry != symbol_table.end() )
+		throw std::invalid_argument("Duplicate label (" + label + ")");
+
+	symbol_table[label] = address;
 }
 
 uint16_t SymbolTable::get_address( std::string label ) const
@@ -33,6 +37,6 @@ uint16_t SymbolTable::get_address( std::string label ) const
 	if( entry != symbol_table.end() )
 		return ( *entry ).second;
 
-	return (uint16_t)-1;
+	throw std::runtime_error("Non existent label (" + label + ")");
 }
 
