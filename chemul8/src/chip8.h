@@ -47,7 +47,15 @@ private:
 	uint8_t SP = 0;
 
 	const uint16_t font_sprite_base = 0x0100;
-	const uint16_t program_base = 0x0200;
+	const uint16_t program_base = 0x0200;		// 512 bytes
+	const uint16_t display_base = 0x0F00;		// 256 bytes
+	const uint16_t stack_base = 0x0EFF;			// 96 bytes (growing downwards)
+
+	const uint16_t V_index = 0x00;			// 16 bytes
+	const uint16_t I_index = 0x10;			// 2 bytes
+	const uint16_t PC_index = 0x12;			// 2 bytes
+	const uint16_t SP_index = 0x14;			// 2 bytes
+	
 	Chemul8 &hardware;
 	Quirks quirks;
 
