@@ -20,6 +20,7 @@
  */
 
 #include "instruction.h"
+#include "numberparser.h"
 
 #include <numeric>
 
@@ -32,23 +33,6 @@ void push_uint8_t( std::ostream &target, uint8_t value )
 {
     target << static_cast<uint8_t>(value);
 }
-
-// std::pair<uint16_t, uint16_t> parse_register_pair(const std::vector<std::string>& parameters, const std::string& mnemonic)
-// {
-//     if( parameters.empty() )
-//         throw std::runtime_error(mnemonic + " requires two register arguments");
-
-//     if( parameters[0][0] != 'V' || parameters[1][0] != 'V' )
-//         throw std::runtime_error(mnemonic + ": Both arguments must be registers (e.g., V1)");
-
-//     uint16_t x_reg = static_cast<uint16_t>(std::stoi(&parameters[0][0], nullptr, 16));
-//     uint16_t y_reg = static_cast<uint16_t>(std::stoi(&parameters[1][0], nullptr, 16));
-
-//     if (x_reg > 0x0F || y_reg > 0x0F)
-//         throw std::runtime_error(mnemonic + ": Register index out of range (0-F)");
-
-//     return {x_reg, y_reg};
-// }
 
 Instruction::Instruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : sym_table(sym_table)
 {
@@ -66,65 +50,23 @@ Instruction::Instruction( const std::vector<std::string>& arguments, const Symbo
     }
 }
 
-uint16_t Instruction::get_address( const std::string& argument, bool syscall )
+uint16_t Instruction::get_address(const std::string& argument, bool syscall)
 {
-    uint16_t address;
     try {
-        address = std::stoi( argument, nullptr, 0 );
-
-        if( syscall ) {
-            if(address >= 0x200)
-                throw std::runtime_error( "Address out of range" );
-        } else {
-            if( (address < 0x200) || (address > 0xFFF) )
-                throw std::runtime_error( "Address out of range" );
-        }
+        return NumberParser(argument).to_address(syscall);
     }
-    catch( const std::invalid_argument &ex ) {
-        address = sym_table.get_address( argument );    // is it a label?
-        if( address == (uint16_t)-1 )
-            throw std::runtime_error( "Invalid address" );
+    catch (const std::runtime_error&) {
+        return sym_table.get_address(argument);
     }
-    catch( const std::out_of_range &ex ) {
-        throw std::runtime_error( "Address out of range" );
-    }
-
-    return address;
 }
 
-uint8_t Instruction::get_register( const std::string& argument )
+uint8_t Instruction::get_register(const std::string& argument)
 {
-    if( argument[0] != 'V' )
-        throw std::runtime_error( "Invalid register name" );
+    if( argument[0] != 'V' && argument[0] != 'v')
+        throw std::runtime_error("Invalid register name (" + argument + ")");
 
-    int reg = std::stoi( &argument[1], nullptr, 16 );
-
-    if( reg > 0x0F )
-        throw std::runtime_error( "Register index out of range (0-F)" );
-
-    return static_cast<uint8_t>(reg);
+    return NumberParser(argument.substr(1)).to_nibble();
 }
-
-uint8_t Instruction::get_byte( const std::string &argument )
-{
-    int byte = std::stoi( argument, nullptr, 0 );
-
-    if( byte > 0xFF )
-        throw std::runtime_error( "Byte value out of range (0-FF)" );
-
-    return static_cast<uint8_t>(byte);
-}
-
-uint8_t Instruction::get_nibble( const std::string &argument )
-{
-    int byte = std::stoi( argument, nullptr, 16 );
-
-    if( byte > 0x0F )
-        throw std::runtime_error( "Nibble value out of range (0-F)" );
-
-    return static_cast<uint8_t>(byte);
-}
-
 
 
 
@@ -134,7 +76,7 @@ DBInstruction::DBInstruction( const std::vector<std::string>& arguments, const S
         throw std::runtime_error( "DB instruction requires values as arguments" );
 
     for( auto& value : parameters)
-        data.push_back( get_byte( value ) );
+        data.push_back( NumberParser(value).to_byte() );
 }
 
 void DBInstruction::emit_binary( std::ostream &target )
@@ -216,7 +158,7 @@ void SEInstruction::emit_binary( std::ostream &target )
     } else {
 
         // 3xkk - SE Vx, byte
-        uint16_t byte = get_byte( parameters[1] );
+        uint8_t byte = NumberParser(parameters[1]).to_byte();
         push_uint16_t( target, (0x3000 | (x_reg << 8) | byte) );   
     }
 }
@@ -229,7 +171,7 @@ void SNEInstruction::emit_binary( std::ostream &target )
     if( parameters[0][0] != 'V' )
         throw std::runtime_error( "SNE instruction requires a register as the first argument" );
 
-    uint16_t x_reg = std::stoi( &parameters[0][1], nullptr, 16 );
+    uint16_t x_reg = get_register( parameters[0] );
 
     if( parameters[1][0] == 'V' ) {
         // 9xy0 - SNE Vx, Vy
@@ -237,7 +179,7 @@ void SNEInstruction::emit_binary( std::ostream &target )
         push_uint16_t( target, (0x9000 | (x_reg << 8) | (y_reg << 4)) );   
     } else {
         // 4xkk - SNE Vx, byte
-        uint16_t byte = get_byte( parameters[1] );
+        uint8_t byte = NumberParser(parameters[1]).to_byte();
         push_uint16_t( target, (0x4000 | (x_reg << 8) | byte) );   
     }
 }
@@ -277,7 +219,7 @@ void LDInstruction::emit_binary( std::ostream &target )
         }
 
         // 6xkk - LD Vx, byte
-        uint8_t byte = get_byte( parameters[1] );
+        uint8_t byte = NumberParser(parameters[1]).to_byte();
         push_uint16_t( target, (0x6000 | (x_reg << 8) | byte) );
         return;
     }
@@ -365,7 +307,7 @@ void ADDInstruction::emit_binary( std::ostream &target )
         push_uint16_t( target, (0x8004 | (x_reg << 8) | (y_reg << 4)) );
     } else {
         // 7xkk - ADD Vx, byte
-        uint8_t byte = get_byte( parameters[1] );
+        uint8_t byte = NumberParser(parameters[1]).to_byte();
         push_uint16_t( target, (0x7000 | (x_reg << 8) | byte) );
     }
 }
@@ -464,7 +406,7 @@ void RNDInstruction::emit_binary( std::ostream &target )
 
     // Cxkk - RND Vx, byte
     uint8_t x_reg = get_register( parameters[0] );
-    uint8_t mask = get_byte( parameters[1] );
+    uint8_t mask = NumberParser(parameters[1]).to_byte();
 
     push_uint16_t( target, (0xC000 | (x_reg << 8) | mask) );
 }
@@ -477,7 +419,7 @@ void DRWInstruction::emit_binary( std::ostream &target )
     // Dxyn - DRW Vx, Vy, nibble
     uint8_t x_reg = get_register( parameters[0] );
     uint8_t y_reg = get_register( parameters[1] );
-    uint8_t lines = get_nibble( parameters[2] );
+    uint8_t lines = NumberParser(parameters[2]).to_nibble();
 
     push_uint16_t( target, (0xD000 | (x_reg << 8) | (y_reg << 4) | lines) );
 }
