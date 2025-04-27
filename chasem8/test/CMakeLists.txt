@@ -27,6 +27,7 @@ add_executable(
 	symboltabletest.cc
 	linepreprocessortest.cc
 	instructiontest.cc
+	numberparsertest.cc
 )
 
 target_link_libraries( chasem8_tests PRIVATE gtest gtest_main chasem8_logic )
