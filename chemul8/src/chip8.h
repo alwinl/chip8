@@ -90,6 +90,16 @@ private:
 
 	uint16_t get_PC() const;
 	void set_PC( uint16_t value );
+
+	void clear_screen();
+	bool toggle_a_pixel( uint8_t x, uint8_t y );
+	bool is_key_pressed( uint8_t key_no );
+	bool key_captured( uint8_t &key_no );
+	void set_delay_timer( uint8_t value );
+	void set_sound_timer( uint8_t value );
+	uint8_t get_delay_timer() const;
+	uint8_t get_random_value();
+	bool block_drw();
 	
 };
 

@@ -76,6 +76,45 @@ void Chip8::set_PC( uint16_t value )
 	memory[PC_index + 1] = value & 0xFF;
 }
 
+
+void Chip8::clear_screen()
+{
+	hardware.clear_screen();
+}
+bool Chip8::toggle_a_pixel( uint8_t x, uint8_t y )
+{
+	return hardware.toggle_a_pixel( x, y );
+}
+bool Chip8::is_key_pressed( uint8_t key_no )
+{
+	return hardware.is_key_pressed( key_no );
+}
+bool Chip8::key_captured( uint8_t &key_no )
+{
+	return hardware.key_captured( key_no );
+}
+void Chip8::set_delay_timer( uint8_t value )
+{
+	hardware.set_delay_timer( value );
+}
+void Chip8::set_sound_timer( uint8_t value )
+{
+	hardware.set_sound_timer( value );
+}
+uint8_t Chip8::get_delay_timer() const
+{
+	return hardware.get_delay_timer();
+}
+uint8_t Chip8::get_random_value()
+{
+	return hardware.get_random_value();
+}
+
+bool Chip8::block_drw()
+{
+	return hardware.block_drw();
+}
+
 void Chip8::execute_instruction()
 {
 	const uint16_t opcode = ( memory[get_PC()] << 8 ) | memory[get_PC() + 1];
@@ -90,7 +129,7 @@ void Chip8::SYS( uint16_t opcode ) // 0nnn - SYS addr : Jump to a machine code r
 {
 	switch( opcode & 0xFFF ) {
 	case 0x0E0: // CLS : clear screen
-		hardware.clear_screen();
+		clear_screen();
 		break;
 
 	case 0x0EE: // RET : return from subroutine
@@ -265,7 +304,7 @@ void Chip8::RND( uint16_t opcode ) // Cxkk - RND Vx, byte : Set Vx = random byte
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
-	V[reg_x] = hardware.get_random_value() & ( opcode & 0xFF );
+	V[reg_x] = get_random_value() & ( opcode & 0xFF );
 }
 
 void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte sprite starting at memory location I at
@@ -277,7 +316,7 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 	V[0xF] = 0;
 	uint8_t ypos = V[reg_y] % 32;
 
-	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && hardware.block_drw() ) { // rate limit the DRW calls to 60fps
+	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && block_drw() ) { // rate limit the DRW calls to 60fps
 		set_PC( get_PC() - 2 );
 		return;
 	}
@@ -290,7 +329,7 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 			if( sprite_byte & ( 1 << ( 7 - bit_offset ) ) )
-				V[0x0F] |= hardware.toggle_a_pixel( xpos % 64, ypos % 32 );
+				V[0x0F] |= toggle_a_pixel( xpos % 64, ypos % 32 );
 
 			++xpos;
 
@@ -312,12 +351,12 @@ void Chip8::Key( uint16_t opcode ) // 0xExkk
 	switch( opcode & 0xFF ) {
 		// opcodes 0x00 .. 0x9D not defined
 	case 0x9E: // Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		if( hardware.is_key_pressed( V[reg_x] ) )
+		if( is_key_pressed( V[reg_x] ) )
 			set_PC( get_PC() + 2 );
 		break;
 		// opcodes 0x9F .. 0xA0 not defined
 	case 0xA1: // ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		if( !hardware.is_key_pressed( V[reg_x] ) )
+		if( !is_key_pressed( V[reg_x] ) )
 			set_PC( get_PC() + 2 );
 		break;
 		// opcodes 0xA2 .. 0xFF not defined
@@ -332,24 +371,24 @@ void Chip8::Misc( uint16_t opcode ) // 0xFxkk
 	switch( opcode & 0xFF ) {
 		// opcodes 0x00 .. 0x06 not defined
 	case 0x07: // Fx07 - LD Vx, DT : Set Vx = delay timer value.
-		V[reg_x] = hardware.get_delay_timer();
+		V[reg_x] = get_delay_timer();
 		break;
 		// opcodes 0x08 .. 0x09 not defined
 	case 0x0A: // Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
 	{
 		uint8_t key_no = 0;
-		if( hardware.key_captured( key_no ) )
+		if( key_captured( key_no ) )
 			V[reg_x] = key_no;
 		else
 		set_PC( get_PC() - 2 );
 	} break;
 		// opcodes 0x0B .. 0x1 not defined
 	case 0x15: // Fx15 - LD DT, Vx : Set delay timer = Vx.
-		hardware.set_delay_timer( V[reg_x] );
+		set_delay_timer( V[reg_x] );
 		break;
 		// opcodes 0x16 and 0x17 not defined
 	case 0x18: // Fx18 - LD ST, Vx : Set sound timer = Vx.
-		hardware.set_sound_timer( V[reg_x] );
+		set_sound_timer( V[reg_x] );
 		break;
 		// opcodes 0x19 .. 0x1D not defined
 	case 0x1E: // Fx1E - ADD I, Vx : Set I = I + Vx
