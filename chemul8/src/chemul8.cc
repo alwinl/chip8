@@ -75,7 +75,7 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 			SDLRef.make_sound();
 
 		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
-		interrupt =
+		bool interrupt =
 			( std::chrono::duration<double, std::milli>( std::chrono::system_clock::now() - last_time ).count() > 16 );
 
 		if( interrupt ) {

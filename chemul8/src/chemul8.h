@@ -49,8 +49,6 @@ private:
 	uint16_t keys = 0;
 	uint16_t last_keys = 0;
 
-	bool interrupt = false;
-
 	uint8_t DelayTimer = 0;
 	uint8_t SoundTimer = 0;
 };
