@@ -40,7 +40,6 @@ public:
 	void set_sound_timer( uint8_t value );
 	uint8_t get_delay_timer() const;
 	uint8_t get_random_value();
-	bool block_drw();
 
 private:
 	static const uint8_t WIDTH = 64;

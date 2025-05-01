@@ -92,7 +92,7 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 
 		event = SDLRef.check_events( keys );
 
-		device.execute_instruction();
+		device.execute_instruction( interrupt);
 	}
 
 	return 0;
@@ -159,7 +159,3 @@ uint8_t Chemul8::get_random_value()
 	return dist( mt );
 }
 
-bool Chemul8::block_drw()
-{
-	return !interrupt;
-}

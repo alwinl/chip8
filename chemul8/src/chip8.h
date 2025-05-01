@@ -36,7 +36,7 @@ public:
 	Chip8( Chemul8 &hardware_, Quirks::eChipType type );
 
 	void load_program( uint8_t program[], uint16_t program_size );
-	void execute_instruction();
+	void execute_instruction( bool tick );
 
 private:
 	uint16_t Stack[16];
@@ -45,10 +45,10 @@ private:
 	uint16_t I = 0;
 	//uint16_t PC = 0x200;
 	uint8_t SP = 0;
+	bool interrupt = false;
 
 	const uint16_t font_sprite_base = 0x0100;
 	const uint16_t program_base = 0x0200;		// 512 bytes
-	const uint16_t display_base = 0x0F00;		// 256 bytes
 	const uint16_t stack_base = 0x0EFF;			// 96 bytes (growing downwards)
 
 	const uint16_t V_index = 0x00;			// 16 bytes
@@ -99,7 +99,6 @@ private:
 	void set_sound_timer( uint8_t value );
 	uint8_t get_delay_timer() const;
 	uint8_t get_random_value();
-	bool block_drw();
 	
 };
 

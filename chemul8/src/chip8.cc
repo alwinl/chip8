@@ -79,10 +79,31 @@ void Chip8::set_PC( uint16_t value )
 
 void Chip8::clear_screen()
 {
+	// using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
+	// using display_base = std::integral_constant<uint16_t, 0x0F00>;
+
+	// std::fill_n( &memory[display_base::value], 0, display_size::value );
+
 	hardware.clear_screen();
 }
 bool Chip8::toggle_a_pixel( uint8_t x, uint8_t y )
 {
+	// using display_width = std::integral_constant<uint16_t, 64>;
+	// using display_height = std::integral_constant<uint16_t, 32>;
+	// using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
+	// using display_base = std::integral_constant<uint16_t, 0x0F00>;
+
+	// uint16_t byte_index = ( x + y * display_width::value ) / 8;
+	// uint8_t bit_offset = ( x + y * display_width::value ) % 8;
+
+	// if( byte_index >= display_size::value )
+	// 	return false;
+
+	// bool turned_off = ( memory[display_base::value + byte_index] & ( 1 << bit_offset ) );
+	// memory[display_base::value + byte_index] ^= ( 1 << bit_offset );
+
+	// return turned_off;
+	
 	return hardware.toggle_a_pixel( x, y );
 }
 bool Chip8::is_key_pressed( uint8_t key_no )
@@ -110,13 +131,20 @@ uint8_t Chip8::get_random_value()
 	return hardware.get_random_value();
 }
 
-bool Chip8::block_drw()
+void Chip8::execute_instruction( bool tick )
 {
-	return hardware.block_drw();
-}
+	interrupt = tick;
+	// if( interrupt ) {
+	// 	if( DelayTimer > 0 )
+	// 		--DelayTimer;
 
-void Chip8::execute_instruction()
-{
+	// 	if( SoundTimer > 0 ) {
+	// 		if( SoundTimer == 1 )
+	// 			hardware.set_sound_timer( 0 );
+	// 		--SoundTimer;
+	// 	}
+	// }
+
 	const uint16_t opcode = ( memory[get_PC()] << 8 ) | memory[get_PC() + 1];
 
 	set_PC( get_PC() + 2 );
@@ -316,7 +344,7 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 	V[0xF] = 0;
 	uint8_t ypos = V[reg_y] % 32;
 
-	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && block_drw() ) { // rate limit the DRW calls to 60fps
+	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !interrupt ) { // rate limit the DRW calls to 60fps
 		set_PC( get_PC() - 2 );
 		return;
 	}
