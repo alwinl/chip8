@@ -47,6 +47,7 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
 
 	Chip8 device( *this, chip_type );
+	uint8_t buffer[4096];
 
 	while( event != ResourceLayer::Events::QUIT_EVENT ) {
 
@@ -57,17 +58,17 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 				return 1;
 			}
 
-			uint8_t buffer[4096];
 			uint16_t address;
 
 			uint8_t ch = is.get();
 
-			for( address = 0; is.good(); ++address ) {
+			for( address = 0x200; is.good(); ++address ) {
 				buffer[address] = ch;
 				ch = is.get();
 			}
 
-			device.load_program( buffer, address );
+			// device.load_program( buffer, address );
+			device.set_memory( buffer );
 		}
 
 		if( SoundTimer != 0 )

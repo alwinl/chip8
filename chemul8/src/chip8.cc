@@ -28,7 +28,7 @@
 
 Chip8::Chip8( Chemul8 &hardware_, Quirks::eChipType type ) : hardware( hardware_ ), quirks( type ) { }
 
-void Chip8::load_program( uint8_t program[], uint16_t program_size )
+void Chip8::set_memory( uint8_t *mem )
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -48,18 +48,16 @@ void Chip8::load_program( uint8_t program[], uint16_t program_size )
 		/* E */ 0xF0, 0x80, 0xF0, 0x80, 0xF0,
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
+	
+	memory = mem;
 
-	std::fill( std::begin( memory ), std::end( memory ), 0 );
-	// reset the stack, registers, program counter, stack pointer and memory
 	std::fill( std::begin( Stack ), std::end( Stack ), 0 );
 	std::fill( std::begin( V ), std::end( V ), 0 );
 	I = 0;
-	//PC = 0x200;
 	SP = 0;
 
 	// load font and program code in memory
 	std::copy_n( &font[0], sizeof( font ), &memory[font_sprite_base] );
-	std::copy_n( &program[0], program_size, &memory[program_base] );
 
 	memory[PC_index] = 0x0200 >> 8;
 	memory[PC_index + 1] = 0x0200 & 0xFF;
