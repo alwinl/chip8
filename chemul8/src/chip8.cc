@@ -15,8 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
 #include "chip8.h"
@@ -24,10 +22,12 @@
 #include <algorithm>
 #include <functional>
 #include <cstring>
+#include <random>
 
-#include "chemul8.h"
-
-Chip8::Chip8( Chemul8 &hardware_, Quirks::eChipType type ) : hardware( hardware_ ), quirks( type ) { }
+Chip8::Chip8( Quirks::eChipType type, uint8_t * mem ) : quirks( type )
+{
+	set_memory( mem );
+}
 
 void Chip8::set_memory( uint8_t *mem )
 {
@@ -57,22 +57,30 @@ void Chip8::set_memory( uint8_t *mem )
 	I = 0;
 	SP = 0;
 
-	// load font and program code in memory
 	std::copy_n( &font[0], sizeof( font ), &memory[font_sprite_base] );
 
-	memory[PC_index] = 0x0200 >> 8;
-	memory[PC_index + 1] = 0x0200 & 0xFF;
+	set_word( PC_index, 0x0200 );
 }
 
 uint16_t Chip8::get_PC() const
 {
-	return ( memory[PC_index] << 8 ) | memory[PC_index + 1];
+	return get_word( PC_index );
 }
 
 void Chip8::set_PC( uint16_t value )
 {
-	memory[PC_index] = value >> 8;
-	memory[PC_index + 1] = value & 0xFF;
+	set_word( PC_index, value );
+}
+
+uint16_t Chip8::get_word( uint16_t base ) const
+{
+	return (memory[base] << 8 ) | memory[base + 1];
+}
+
+void Chip8::set_word( uint16_t base, uint16_t value )
+{
+	memory[base] = value >> 8;
+	memory[base + 1] = value & 0xFF;
 }
 
 
@@ -83,75 +91,62 @@ void Chip8::clear_screen()
 
 bool Chip8::toggle_a_pixel( uint8_t x, uint8_t y )
 {
-	// using display_width = std::integral_constant<uint16_t, 64>;
-	// using display_height = std::integral_constant<uint16_t, 32>;
-	// using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
-	// using display_base = std::integral_constant<uint16_t, 0x0F00>;
+	uint16_t byte_index = ( x + y * display_width::value ) / 8;
+	uint8_t bit_offset = ( x + y * display_width::value ) % 8;
 
-	// uint16_t byte_index = ( x + y * display_width::value ) / 8;
-	// uint8_t bit_offset = ( x + y * display_width::value ) % 8;
+	if( byte_index >= display_size::value )
+		return false;
 
-	// if( byte_index >= display_size::value )
-	// 	return false;
+	bool turned_off = ( memory[display_base::value + byte_index] & ( 1 << bit_offset ) );
+	memory[display_base::value + byte_index] ^= ( 1 << bit_offset );
 
-	// bool turned_off = ( memory[display_base::value + byte_index] & ( 1 << bit_offset ) );
-	// memory[display_base::value + byte_index] ^= ( 1 << bit_offset );
-
-	// return turned_off;
-	
-	return hardware.toggle_a_pixel( x, y );
+	return turned_off;
 }
+
 bool Chip8::is_key_pressed( uint8_t key_no )
 {
-	return hardware.is_key_pressed( key_no );
+	return ( get_word( keys_index ) >> key_no ) & 0x01;
 }
 bool Chip8::key_captured( uint8_t &key_no )
 {
-	// uint16_t key_changes = keys ^ last_keys;
+	uint16_t keys = get_word( keys_index );
+	uint16_t key_changes = keys ^ get_word( last_keys_index );
 
-	// if( !key_changes )
-	// 	return false;
+	if( !key_changes )
+		return false;
 
-	// last_keys = keys;
+	set_word( last_keys_index, keys );
 
-	// for( key_no = 0; key_no < 16; ++key_no )
-	// 	if( ( ( key_changes >> key_no ) & 0x01 ) && ( !( ( keys >> key_no ) & 0x01 ) ) )
-	// 		return true;
+	for( key_no = 0; key_no < 16; ++key_no )
+		if( ( ( key_changes >> key_no ) & 0x01 ) && ( !( ( keys >> key_no ) & 0x01 ) ) )
+			return true;
 
-	// return false;
-
-	return hardware.key_captured( key_no );
+	return false;
 }
-void Chip8::set_delay_timer( uint8_t value )
-{
-	hardware.set_delay_timer( value );
-}
-void Chip8::set_sound_timer( uint8_t value )
-{
-	hardware.set_sound_timer( value );
-}
-uint8_t Chip8::get_delay_timer() const
-{
-	return hardware.get_delay_timer();
-}
+
+void Chip8::set_delay_timer( uint8_t value ) { memory[DT_index] = value; }
+void Chip8::set_sound_timer( uint8_t value ) { memory[ST_index] = value; }
+uint8_t Chip8::get_delay_timer() const { return memory[DT_index]; }
+
 uint8_t Chip8::get_random_value()
 {
-	return hardware.get_random_value();
+	static std::mt19937 mt{ std::random_device{}() };
+
+	std::uniform_int_distribution<> dist( 1, 255 );
+	return dist( mt );
 }
 
 void Chip8::execute_instruction( bool tick )
 {
 	interrupt = tick;
-	// if( interrupt ) {
-	// 	if( DelayTimer > 0 )
-	// 		--DelayTimer;
 
-	// 	if( SoundTimer > 0 ) {
-	// 		if( SoundTimer == 1 )
-	// 			hardware.set_sound_timer( 0 );
-	// 		--SoundTimer;
-	// 	}
-	// }
+	if( tick ) {
+		if( memory[DT_index] > 0 )
+		--memory[DT_index];
+
+		if( memory[ST_index] > 0 )
+			--memory[ST_index];
+	}
 
 	const uint16_t opcode = ( memory[get_PC()] << 8 ) | memory[get_PC() + 1];
 

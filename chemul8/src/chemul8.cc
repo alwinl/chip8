@@ -15,8 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
 #include <chrono>
@@ -24,31 +22,23 @@
 #include <iostream>
 #include <random>
 
-#include "chemul8.h"
 #include "resourcelayer.h"
 #include "quirks.h"
 #include "chip8.h"
 #include "cmdline_processor.h"
 #include <cstring>
 
-
-int main( int argc, char *argv[] )
+int run( std::string program, Quirks::eChipType chip_type )
 {
-		CmdlineProcessor cmd_line( argc, argv );
-
-	if( cmd_line.get_program().empty() )
-		return -1;
-
-	return Chemul8().run( cmd_line.get_program(), cmd_line.get_chip_type() );
-}
-
-int Chemul8::run( std::string program, Quirks::eChipType chip_type )
-{
+	uint8_t buffer[4096];
 	ResourceLayer SDLRef;
 	auto last_time = std::chrono::system_clock::now();
 	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
+	const uint16_t ST_index = 0x17;			// 1 byte
+	const uint16_t keys_index = 0x18;		// 2 bytes
 
-	Chip8 device( *this, chip_type );
+	std::memset( buffer, 0, sizeof( buffer ) );
+	Chip8 device( chip_type, buffer );
 
 	while( event != ResourceLayer::Events::QUIT_EVENT ) {
 
@@ -68,31 +58,26 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 				ch = is.get();
 			}
 
-			// device.load_program( buffer, address );
-			device.set_memory( buffer );
 		}
 
-		if( SoundTimer != 0 )
+		if( buffer[ST_index] != 0 )
 			SDLRef.make_sound();
 
 		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
 		bool interrupt =
 			( std::chrono::duration<double, std::milli>( std::chrono::system_clock::now() - last_time ).count() > 16 );
 
-		if( interrupt ) {
-
+		if( interrupt )
 			last_time = std::chrono::system_clock::now();
-
-			if( DelayTimer )
-				--DelayTimer;
-
-			if( SoundTimer )
-				--SoundTimer;
-		}
 
 		SDLRef.draw_buffer( &buffer[display_base::value], display_size::value * 8);
 
+		uint16_t keys = ( ( buffer[keys_index] << 8 ) | buffer[keys_index + 1] );
+
 		event = SDLRef.check_events( keys );
+
+		buffer[keys_index]     = keys >> 8;
+		buffer[keys_index + 1] = keys & 0xFF;
 
 		device.execute_instruction( interrupt);
 	}
@@ -100,66 +85,12 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 	return 0;
 }
 
-void Chemul8::clear_screen()
+int main( int argc, char *argv[] )
 {
-	std::memset(&buffer[display_base::value], 0, display_size::value);
+	CmdlineProcessor cmd_line( argc, argv );
+
+	if( cmd_line.get_program().empty() )
+		return -1;
+
+	return run( cmd_line.get_program(), cmd_line.get_chip_type() );
 }
-
-bool Chemul8::toggle_a_pixel( uint8_t x, uint8_t y )
-{
-	uint16_t byte_index = ( x + y * display_width::value ) / 8;
-	uint8_t bit_offset = ( x + y * display_width::value ) % 8;
-
-	if( byte_index >= display_size::value )
-		return false;
-
-	bool turned_off = ( buffer[display_base::value + byte_index] & ( 1 << bit_offset ) );
-	buffer[display_base::value + byte_index] ^= ( 1 << bit_offset );
-
-	return turned_off;
-}
-
-bool Chemul8::key_captured( uint8_t &key_no )
-{
-	uint16_t key_changes = keys ^ last_keys;
-
-	if( !key_changes )
-		return false;
-
-	last_keys = keys;
-
-	for( key_no = 0; key_no < 16; ++key_no )
-		if( ( ( key_changes >> key_no ) & 0x01 ) && ( !( ( keys >> key_no ) & 0x01 ) ) )
-			return true;
-
-	return false;
-}
-
-bool Chemul8::is_key_pressed( uint8_t key_no )
-{
-	return ( keys >> key_no ) & 0x01;
-}
-
-void Chemul8::set_delay_timer( uint8_t value )
-{
-	DelayTimer = value;
-}
-
-void Chemul8::set_sound_timer( uint8_t value )
-{
-	SoundTimer = value;
-}
-
-uint8_t Chemul8::get_delay_timer() const
-{
-	return DelayTimer;
-}
-
-uint8_t Chemul8::get_random_value()
-{
-	static std::mt19937 mt{ std::random_device{}() };
-
-	std::uniform_int_distribution<> dist( 1, 255 );
-	return dist( mt );
-}
-

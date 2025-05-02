@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef CHIP8_H
-#define CHIP8_H
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -35,19 +34,19 @@ using display_height = std::integral_constant<uint16_t, 32>;
 using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
 using display_base = std::integral_constant<uint16_t, 0x0F00>;
 
-
 class Chip8
 {
 public:
-	Chip8( Chemul8 &hardware_, Quirks::eChipType type );
+	Chip8( Quirks::eChipType type, uint8_t * mem );
 
 	void set_memory( uint8_t * mem );
 
 	void execute_instruction( bool tick );
 
 private:
-	uint16_t Stack[16];
 	uint8_t * memory;
+
+	uint16_t Stack[16];
 	uint8_t V[16];
 	uint16_t I = 0;
 	uint8_t SP = 0;
@@ -61,8 +60,11 @@ private:
 	const uint16_t I_index = 0x10;			// 2 bytes
 	const uint16_t PC_index = 0x12;			// 2 bytes
 	const uint16_t SP_index = 0x14;			// 2 bytes
+	const uint16_t DT_index = 0x16;			// 1 byte
+	const uint16_t ST_index = 0x17;			// 1 byte
+	const uint16_t keys_index = 0x18;		// 2 bytes
+	const uint16_t last_keys_index = 0x1A;	// 2 bytes
 	
-	Chemul8 &hardware;
 	Quirks quirks;
 
 	using Dispatcher = void ( Chip8::* )( uint16_t );
@@ -96,6 +98,8 @@ private:
 
 	uint16_t get_PC() const;
 	void set_PC( uint16_t value );
+	uint16_t get_word( uint16_t base ) const;
+	void set_word( uint16_t base, uint16_t value );
 
 	void clear_screen();
 	bool toggle_a_pixel( uint8_t x, uint8_t y );
@@ -107,5 +111,3 @@ private:
 	uint8_t get_random_value();
 	
 };
-
-#endif // CHIP8_H

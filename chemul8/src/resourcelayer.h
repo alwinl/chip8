@@ -15,12 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef RESOURCELAYER_H
-#define RESOURCELAYER_H
+#pragma once
 
 #include <cstdint>
 
@@ -47,5 +44,3 @@ private:
 	bool switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event );
 	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );
 };
-
-#endif // RESOURCELAYER_H
