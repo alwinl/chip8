@@ -107,6 +107,7 @@ bool Chip8::is_key_pressed( uint8_t key_no )
 {
 	return ( get_word( keys_index ) >> key_no ) & 0x01;
 }
+
 bool Chip8::key_captured( uint8_t &key_no )
 {
 	uint16_t keys = get_word( keys_index );

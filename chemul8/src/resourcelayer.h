@@ -28,18 +28,22 @@ union SDL_Event;
 class ResourceLayer
 {
 public:
-	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
 
 	ResourceLayer();
 	virtual ~ResourceLayer();
 
 	void make_sound();
 	void draw_buffer( uint8_t *buffer, uint16_t total_pixels );
-	Events check_events( uint16_t &keys );
+	void check_events( uint16_t &keys );
 
+	bool should_quit() const { return last_event == Events::QUIT_EVENT; }
+	bool should_restart() const { return last_event == Events::RESTART_EVENT; }
 private:
+	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
+
 	SDL_Window *m_window;
 	SDL_Renderer *m_renderer;
+	Events last_event = Events::RESTART_EVENT;
 
 	bool switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event );
 	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );

@@ -33,21 +33,22 @@ int run( std::string program, Quirks::eChipType chip_type )
 	uint8_t buffer[4096];
 	ResourceLayer SDLRef;
 	auto last_time = std::chrono::system_clock::now();
-	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
 	const uint16_t ST_index = 0x17;			// 1 byte
 	const uint16_t keys_index = 0x18;		// 2 bytes
 
 	std::memset( buffer, 0, sizeof( buffer ) );
 	Chip8 device( chip_type, buffer );
 
-	while( event != ResourceLayer::Events::QUIT_EVENT ) {
+	while( ! SDLRef.should_quit() ) {
 
-		if( event == ResourceLayer::Events::RESTART_EVENT ) {
+		if( SDLRef.should_restart() ) {
 			std::ifstream is = std::ifstream( program );
 			if( !is.good() ) {
 				std::cout << "Cannot read program" << std::endl;
 				return 1;
 			}
+
+			std::memset( buffer, 0, sizeof( buffer ) );
 
 			uint16_t address;
 
@@ -57,7 +58,7 @@ int run( std::string program, Quirks::eChipType chip_type )
 				buffer[address] = ch;
 				ch = is.get();
 			}
-
+			device.set_memory( buffer );
 		}
 
 		if( buffer[ST_index] != 0 )
@@ -74,7 +75,7 @@ int run( std::string program, Quirks::eChipType chip_type )
 
 		uint16_t keys = ( ( buffer[keys_index] << 8 ) | buffer[keys_index + 1] );
 
-		event = SDLRef.check_events( keys );
+		SDLRef.check_events( keys );
 
 		buffer[keys_index]     = keys >> 8;
 		buffer[keys_index + 1] = keys & 0xFF;

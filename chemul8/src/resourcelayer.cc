@@ -74,7 +74,7 @@ ResourceLayer::~ResourceLayer()
 	SDL_Quit();
 }
 
-ResourceLayer::Events ResourceLayer::check_events( uint16_t &keys )
+void ResourceLayer::check_events( uint16_t &keys )
 {
 	SDL_Event event;
 	Events the_event = Events::NO_EVENT;
@@ -84,7 +84,7 @@ ResourceLayer::Events ResourceLayer::check_events( uint16_t &keys )
 			break;
 	}
 
-	return the_event;
+	last_event = the_event;
 }
 
 bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event )
