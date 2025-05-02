@@ -30,12 +30,17 @@
 
 class Chemul8;
 
+using display_width = std::integral_constant<uint16_t, 64>;
+using display_height = std::integral_constant<uint16_t, 32>;
+using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
+using display_base = std::integral_constant<uint16_t, 0x0F00>;
+
+
 class Chip8
 {
 public:
 	Chip8( Chemul8 &hardware_, Quirks::eChipType type );
 
-	// void load_program( uint8_t program[], uint16_t program_size );
 	void set_memory( uint8_t * mem );
 
 	void execute_instruction( bool tick );
@@ -43,10 +48,8 @@ public:
 private:
 	uint16_t Stack[16];
 	uint8_t * memory;
-	// uint8_t memory[4096];
 	uint8_t V[16];
 	uint16_t I = 0;
-	//uint16_t PC = 0x200;
 	uint8_t SP = 0;
 	bool interrupt = false;
 

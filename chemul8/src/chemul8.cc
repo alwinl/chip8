@@ -29,10 +29,12 @@
 #include "quirks.h"
 #include "chip8.h"
 #include "cmdline_processor.h"
+#include <cstring>
+
 
 int main( int argc, char *argv[] )
 {
-	CmdlineProcessor cmd_line( argc, argv );
+		CmdlineProcessor cmd_line( argc, argv );
 
 	if( cmd_line.get_program().empty() )
 		return -1;
@@ -47,7 +49,6 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 	ResourceLayer::Events event = ResourceLayer::Events::RESTART_EVENT;
 
 	Chip8 device( *this, chip_type );
-	uint8_t buffer[4096];
 
 	while( event != ResourceLayer::Events::QUIT_EVENT ) {
 
@@ -89,7 +90,7 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 				--SoundTimer;
 		}
 
-		SDLRef.draw_buffer( display_buffer, sizeof( display_buffer ) * 8 );
+		SDLRef.draw_buffer( &buffer[display_base::value], display_size::value * 8);
 
 		event = SDLRef.check_events( keys );
 
@@ -101,17 +102,19 @@ int Chemul8::run( std::string program, Quirks::eChipType chip_type )
 
 void Chemul8::clear_screen()
 {
-	for( uint16_t idx = 0; idx < sizeof( display_buffer ); ++idx ) display_buffer[idx] = 0;
+	std::memset(&buffer[display_base::value], 0, display_size::value);
 }
 
 bool Chemul8::toggle_a_pixel( uint8_t x, uint8_t y )
 {
-	uint16_t idx = ( x + y * WIDTH ) / 8;
-	uint8_t offset = ( x + y * WIDTH ) % 8;
+	uint16_t byte_index = ( x + y * display_width::value ) / 8;
+	uint8_t bit_offset = ( x + y * display_width::value ) % 8;
 
-	bool turned_off = ( display_buffer[idx] & ( 1 << offset ) );
+	if( byte_index >= display_size::value )
+		return false;
 
-	display_buffer[idx] ^= ( 1 << offset );
+	bool turned_off = ( buffer[display_base::value + byte_index] & ( 1 << bit_offset ) );
+	buffer[display_base::value + byte_index] ^= ( 1 << bit_offset );
 
 	return turned_off;
 }

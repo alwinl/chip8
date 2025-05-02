@@ -51,6 +51,9 @@ private:
 
 	uint8_t DelayTimer = 0;
 	uint8_t SoundTimer = 0;
+
+	uint8_t buffer[4096];
+
 };
 
 #endif // CHEMUL8_H

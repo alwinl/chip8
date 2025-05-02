@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <cstring>
 
 #include "chemul8.h"
 
@@ -77,13 +78,9 @@ void Chip8::set_PC( uint16_t value )
 
 void Chip8::clear_screen()
 {
-	// using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
-	// using display_base = std::integral_constant<uint16_t, 0x0F00>;
-
-	// std::fill_n( &memory[display_base::value], 0, display_size::value );
-
-	hardware.clear_screen();
+	std::memset(&memory[display_base::value], 0, display_size::value);
 }
+
 bool Chip8::toggle_a_pixel( uint8_t x, uint8_t y )
 {
 	// using display_width = std::integral_constant<uint16_t, 64>;
@@ -110,6 +107,19 @@ bool Chip8::is_key_pressed( uint8_t key_no )
 }
 bool Chip8::key_captured( uint8_t &key_no )
 {
+	// uint16_t key_changes = keys ^ last_keys;
+
+	// if( !key_changes )
+	// 	return false;
+
+	// last_keys = keys;
+
+	// for( key_no = 0; key_no < 16; ++key_no )
+	// 	if( ( ( key_changes >> key_no ) & 0x01 ) && ( !( ( keys >> key_no ) & 0x01 ) ) )
+	// 		return true;
+
+	// return false;
+
 	return hardware.key_captured( key_no );
 }
 void Chip8::set_delay_timer( uint8_t value )
