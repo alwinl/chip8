@@ -19,30 +19,43 @@
 
 set( RESOURCE_BASE gchemul8 )
 
-set( GRESOURCE_DEPEND
-	gchemul8.ui
+find_program(BLUEPRINT_COMPILER blueprint-compiler REQUIRED)
+
+set(BLP_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCE_BASE}.blp)
+set(UI_FILE ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_BASE}.ui)
+
+add_custom_command(
+    OUTPUT ${UI_FILE}
+    COMMAND ${BLUEPRINT_COMPILER} compile --output ${UI_FILE} ${BLP_FILE}
+    DEPENDS ${BLP_FILE}
+    COMMENT "Compiling Blueprint UI"
 )
+
 
 find_program( GLIB_COMPILE_RESOURCES NAMES glib-compile-resources REQUIRED )
 
+set( GRESOURCE_XML ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCE_BASE}.gresource.xml )
 set( GRESOURCE_C ${CMAKE_CURRENT_BINARY_DIR}/${RESOURCE_BASE}.gresource.c )
-set( GRESOURCE_XML ${RESOURCE_BASE}.gresource.xml )
-set( GRESOURCE_TARGET ${RESOURCE_BASE}-resource )
+
+set( GRESOURCE_DEPEND
+	${UI_FILE}
+)
+
+set( GRESOURCE_ARGS
+	--target=${GRESOURCE_C}
+	--generate-source
+	--sourcedir=${CMAKE_CURRENT_SOURCE_DIR}
+	--sourcedir=${CMAKE_CURRENT_BINARY_DIR}
+)
 
 add_custom_command(
 	OUTPUT ${GRESOURCE_C}
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	COMMAND ${GLIB_COMPILE_RESOURCES}
-	ARGS
-		--target=${GRESOURCE_C}
-		--generate-source
-		${GRESOURCE_XML}
-	VERBATIM
-	MAIN_DEPENDENCY ${GRESOURCE_XML}
-	DEPENDS ${GRESOURCE_DEPEND}
+	COMMAND ${GLIB_COMPILE_RESOURCES} ${GRESOURCE_ARGS} ${GRESOURCE_XML}
+	DEPENDS ${GRESOURCE_XML} ${GRESOURCE_DEPEND}
+    COMMENT "Generating resource file"
 )
 
 set_source_files_properties( ${GRESOURCE_C} PROPERTIES GENERATED TRUE )
-add_custom_target( ${GRESOURCE_TARGET} DEPENDS ${GRESOURCE_C} )
+add_custom_target( ${RESOURCE_BASE}-resource DEPENDS ${GRESOURCE_C} )
 
 set( GRESOURCE_C "${GRESOURCE_C}" PARENT_SCOPE )

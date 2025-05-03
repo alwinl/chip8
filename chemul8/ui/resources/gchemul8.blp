@@ -1,0 +1,34 @@
+using Gtk 4.0;
+
+Gtk.ApplicationWindow appwindow
+{
+  show-menubar: true;
+
+  titlebar: Gtk.HeaderBar {
+
+    title-widget: Gtk.Label  {
+      label: "gchemul8";
+    };
+
+    Gtk.MenuButton {
+      active: true;
+      always-show-arrow: true;
+      menu-model: main_menu;
+    }
+  };
+
+  Gtk.DrawingArea canvas {
+    content-height: 320;
+    content-width: 640;
+  }
+}
+
+menu main_menu
+{
+  section {
+    item {
+      label: "Open File";
+      action: "app.open";
+    }
+  }
+}
