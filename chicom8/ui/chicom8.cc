@@ -17,15 +17,29 @@
  * MA 02110-1301, USA.
  */
 
-
+#include "chip8_compiler.h"
 #include "commandlineparser.h"
+
+#include <iostream>
 
 int main(int argc, char* argv[])
 {
-	CommandLineParser args( argc, argv );
+	CommandLineParser args(argc, argv);
 
-    std::string input = args.get_input_name();
-    std::string output = args.get_output_name();
+    std::string input_file = args.get_input_name();
+    std::string output_file = args.get_output_name();
 
-    // Pass to your compiler logic...
+    if (args.is_verbose()) {
+        std::cout << "Compiling: " << input_file << " -> " << output_file << std::endl;
+    }
+
+    try {
+        Chip8Compiler compiler;
+        compiler.compile_file(input_file, output_file);
+    } catch (const std::exception& ex) {
+        std::cerr << "Compilation failed: " << ex.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
 }

@@ -23,6 +23,7 @@ add_executable(
     compiler_test
     
     compiler_test.cc
+    tokeniser_test.cc
 )
 
 target_link_libraries(compiler_test chip8_compiler GTest::gtest_main)
