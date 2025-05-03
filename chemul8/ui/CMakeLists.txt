@@ -44,5 +44,17 @@ add_executable(
 add_dependencies( gchemul8 gchemul8-resource )
 
 target_link_libraries( gchemul8 ${LIB_SETUP} )
-# chessparser_logic )
 
+add_executable(
+	chemul8
+
+	resourcelayer.cc
+	chemul8.cc
+)
+
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+
+add_library( chemul8_setup INTERFACE )
+target_link_libraries( chemul8_setup INTERFACE SDL3::SDL3-shared )
+
+target_link_libraries( chemul8 chemul8_setup chemul8_logic)
