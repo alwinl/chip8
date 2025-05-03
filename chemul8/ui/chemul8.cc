@@ -59,7 +59,7 @@ int run( std::string program, Quirks::eChipType chip_type )
 			device.set_memory( buffer );
 		}
 
-		if( buffer[Chip8::ST_index] != 0 )
+		if( device.make_sound() )
 			SDLRef.make_sound();
 
 		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
@@ -69,14 +69,13 @@ int run( std::string program, Quirks::eChipType chip_type )
 		if( interrupt )
 			last_time = std::chrono::system_clock::now();
 
-		SDLRef.draw_buffer( &buffer[Chip8::display_base], Chip8::display_size );
+		SDLRef.draw_buffer( device.get_display_buffer(), device.get_display_size() );
 
-		uint16_t keys = ( ( buffer[Chip8::keys_index] << 8 ) | buffer[Chip8::keys_index + 1] );
+		uint16_t keys = device.get_keys();
 
 		SDLRef.check_events( keys );
 
-		buffer[Chip8::keys_index]     = keys >> 8;
-		buffer[Chip8::keys_index + 1] = keys & 0xFF;
+		device.set_keys( keys );
 
 		device.execute_instruction( interrupt);
 	}

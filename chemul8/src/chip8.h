@@ -30,18 +30,18 @@
 class Chip8
 {
 public:
-	static constexpr uint16_t display_width = 64;
-	static constexpr uint16_t display_height = 32;
-	static constexpr uint16_t display_size = 64 * 32 / 8;
-	static constexpr uint16_t display_base = 0x0F00;
-	static constexpr uint16_t ST_index = 0x17;			// 1 byte
-	static constexpr uint16_t keys_index = 0x18;		// 2 bytes
 
 	Chip8( Quirks::eChipType type, uint8_t * mem );
 
 	void set_memory( uint8_t * mem );
 
 	void execute_instruction( bool tick );
+	bool make_sound() const { return memory[ST_index] > 0; }
+	uint8_t * get_display_buffer() { return &memory[display_base]; }
+	uint16_t get_display_size() const { return display_size; }
+
+	uint16_t get_keys() const { return get_word( keys_index ); }
+	void set_keys( uint16_t keys ) { set_word( keys_index, keys ); }
 
 private:
 	uint8_t * memory;
@@ -51,6 +51,13 @@ private:
 	uint16_t I = 0;
 	uint8_t SP = 0;
 	bool interrupt = false;
+
+	static constexpr uint16_t display_width = 64;
+	static constexpr uint16_t display_height = 32;
+	static constexpr uint16_t display_size = 64 * 32 / 8;
+	static constexpr uint16_t display_base = 0x0F00;
+	static constexpr uint16_t ST_index = 0x17;			// 1 byte
+	static constexpr uint16_t keys_index = 0x18;		// 2 bytes
 
 	const uint16_t font_sprite_base = 0x0100;
 	const uint16_t program_base = 0x0200;		// 512 bytes

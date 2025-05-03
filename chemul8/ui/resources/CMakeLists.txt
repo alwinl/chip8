@@ -52,7 +52,7 @@ add_custom_command(
 	OUTPUT ${GRESOURCE_C}
 	COMMAND ${GLIB_COMPILE_RESOURCES} ${GRESOURCE_ARGS} ${GRESOURCE_XML}
 	DEPENDS ${GRESOURCE_XML} ${GRESOURCE_DEPEND}
-    COMMENT "Generating resource file"
+    COMMENT "Generating GResources bundle"
 )
 
 set_source_files_properties( ${GRESOURCE_C} PROPERTIES GENERATED TRUE )
