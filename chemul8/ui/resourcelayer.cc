@@ -147,6 +147,8 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 
 void ResourceLayer::draw_buffer( uint8_t *buffer, uint16_t total_pixels )
 {
+	uint16_t total_pixels = size * 8;
+
 	for( uint16_t pixel = 0; pixel < total_pixels; ++pixel )
 		draw_pixel( pixel % 64, pixel / 64, ( buffer[pixel / 8] >> ( pixel % 8 ) ) & 0x01 );
 

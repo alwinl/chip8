@@ -33,7 +33,7 @@ public:
 	virtual ~ResourceLayer();
 
 	void make_sound();
-	void draw_buffer( uint8_t *buffer, uint16_t total_pixels );
+	void draw_buffer( uint8_t *buffer, uint16_t size );
 	void check_events( uint16_t &keys );
 
 	bool should_quit() const { return last_event == Events::QUIT_EVENT; }
