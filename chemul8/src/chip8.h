@@ -27,16 +27,16 @@
 
 #include "quirks.h"
 
-class Chemul8;
-
-using display_width = std::integral_constant<uint16_t, 64>;
-using display_height = std::integral_constant<uint16_t, 32>;
-using display_size = std::integral_constant<uint16_t, 64 * 32 / 8>;
-using display_base = std::integral_constant<uint16_t, 0x0F00>;
-
 class Chip8
 {
 public:
+	static constexpr uint16_t display_width = 64;
+	static constexpr uint16_t display_height = 32;
+	static constexpr uint16_t display_size = 64 * 32 / 8;
+	static constexpr uint16_t display_base = 0x0F00;
+	static constexpr uint16_t ST_index = 0x17;			// 1 byte
+	static constexpr uint16_t keys_index = 0x18;		// 2 bytes
+
 	Chip8( Quirks::eChipType type, uint8_t * mem );
 
 	void set_memory( uint8_t * mem );
@@ -61,8 +61,6 @@ private:
 	const uint16_t PC_index = 0x12;			// 2 bytes
 	const uint16_t SP_index = 0x14;			// 2 bytes
 	const uint16_t DT_index = 0x16;			// 1 byte
-	const uint16_t ST_index = 0x17;			// 1 byte
-	const uint16_t keys_index = 0x18;		// 2 bytes
 	const uint16_t last_keys_index = 0x1A;	// 2 bytes
 	
 	Quirks quirks;

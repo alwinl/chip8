@@ -145,7 +145,7 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 	SDL_RenderFillRect( m_renderer, &pixel_loc );
 }
 
-void ResourceLayer::draw_buffer( uint8_t *buffer, uint16_t total_pixels )
+void ResourceLayer::draw_buffer( uint8_t *buffer, uint16_t size )
 {
 	uint16_t total_pixels = size * 8;
 

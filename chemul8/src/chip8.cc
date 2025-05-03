@@ -86,19 +86,19 @@ void Chip8::set_word( uint16_t base, uint16_t value )
 
 void Chip8::clear_screen()
 {
-	std::memset(&memory[display_base::value], 0, display_size::value);
+	std::memset(&memory[display_base], 0, display_size);
 }
 
 bool Chip8::toggle_a_pixel( uint8_t x, uint8_t y )
 {
-	uint16_t byte_index = ( x + y * display_width::value ) / 8;
-	uint8_t bit_offset = ( x + y * display_width::value ) % 8;
+	uint16_t byte_index = ( x + y * display_width ) / 8;
+	uint8_t bit_offset = ( x + y * display_width ) % 8;
 
-	if( byte_index >= display_size::value )
+	if( byte_index >= display_size )
 		return false;
 
-	bool turned_off = ( memory[display_base::value + byte_index] & ( 1 << bit_offset ) );
-	memory[display_base::value + byte_index] ^= ( 1 << bit_offset );
+	bool turned_off = ( memory[display_base + byte_index] & ( 1 << bit_offset ) );
+	memory[display_base + byte_index] ^= ( 1 << bit_offset );
 
 	return turned_off;
 }
