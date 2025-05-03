@@ -15,12 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#ifndef DISASSEMBLER_H
-#define DISASSEMBLER_H
+#pragma once
 
 #include <set>
 #include <stack>
@@ -31,105 +28,10 @@
 
 #include <iosfwd>
 
-class RawData
-{
-public:
-	/* Default arguments so we can make a RawData object for comparison (find ) */
-	RawData( uint16_t location, uint8_t value = 0, bool is_instruction = false )
-	{
-		this->location = location;
-		this->value = value;
-		this->is_instruction = is_instruction;
-	};
-
-	bool operator<( const RawData &rhs ) const { return location < rhs.location; }
-	bool operator==( const RawData &rhs ) const { return location == rhs.location; }
-
-	uint8_t val() const { return value; }
-	uint16_t get_location() const { return location; }
-	bool instruction() const { return is_instruction; }
-
-private:
-	uint16_t location;
-	uint8_t value;
-	bool is_instruction;
-};
-
-class Instruction
-{
-public:
-	/* Default arguments so we can make an Instruction object for comparison (find) */
-	Instruction( unsigned int address, std::string mnemonic = "", std::string argument = "" )
-	{
-		this->address = address;
-		this->mnemonic = mnemonic;
-		this->argument = argument;
-	}
-
-	bool operator<( const Instruction &rhs ) const { return address < rhs.address; };
-	bool operator==( const Instruction &rhs ) const { return address == rhs.address; };
-
-	uint16_t get_address() const { return address; };
-
-	void print( std::ostream &os, uint8_t high_byte, uint8_t low_byte ) const;
-
-private:
-	uint16_t address;
-	std::string mnemonic;
-	std::string argument;
-};
-
-/*
- * Instead of collecting bytes and then creating a datarun object I should be
- * creating a datarun object and add bytes.
- * Once full we insert the object into the set
- */
-class DataBytes
-{
-public:
-	DataBytes( unsigned int address, std::vector<uint8_t> byte_run )
-	{
-		this->address = address;
-		this->byte_run = byte_run;
-	}
-
-	bool operator<( const DataBytes &rhs ) const { return address < rhs.address; };
-	bool operator==( const DataBytes &rhs ) const { return address == rhs.address; };
-
-	uint16_t get_address() const { return address; }
-
-	void print( std::ostream &os ) const;
-
-private:
-	uint16_t address;
-	std::vector<uint8_t> byte_run;
-};
-
-class Target
-{
-public:
-	enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
-
-	/* Default arguments so we can make a Target object for comparison (find) */
-	Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" )
-	{
-		this->address = address;
-		this->type = type;
-		this->label = label;
-	};
-
-	bool operator<( const Target &rhs ) const { return address < rhs.address; }
-	bool operator==( const Target &rhs ) const { return address == rhs.address; }
-
-	std::string get_label() const { return label; }
-
-	void print( std::ostream &os ) const;
-
-private:
-	uint16_t address;
-	eTargetKind type;
-	std::string label;
-};
+#include "raw_data.h"
+#include "instruction.h"
+#include "data_bytes.h"
+#include "target.h"
 
 class Disassembler
 {
@@ -189,6 +91,7 @@ private:
 	Instruction decode_DRW( uint16_t address, uint16_t opcode );
 	Instruction decode_Key( uint16_t address, uint16_t opcode );
 	Instruction decode_Misc( uint16_t address, uint16_t opcode );
+
 	void mark_as_instruction( uint16_t address );
 	void disassemble_instruction( uint16_t address );
 
@@ -200,5 +103,3 @@ private:
 
 	bool label_present( std::set<Target>::iterator &it, uint16_t address ) const;
 };
-
-#endif // DISASSEMBLER_H

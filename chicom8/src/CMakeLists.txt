@@ -17,20 +17,14 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.5.0)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+add_library(
+    chip8_compiler STATIC
 
-set(CMAKE_CXX_STANDARD 20)
+    chip8_compiler.cc
+    chip8_compiler.h
 
-include(CTest)
-enable_testing()
+    commandlineparser.cc
+    commandlineparser.h
+)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(chicom8)
-add_subdirectory(sprite_viewer)
+target_include_directories(chip8_compiler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

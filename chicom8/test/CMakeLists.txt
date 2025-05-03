@@ -17,20 +17,15 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.5.0)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+find_package(GTest REQUIRED)
 
-set(CMAKE_CXX_STANDARD 20)
+add_executable(
+    compiler_test
+    
+    compiler_test.cc
+)
 
-include(CTest)
-enable_testing()
+target_link_libraries(compiler_test chip8_compiler GTest::gtest_main)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(chicom8)
-add_subdirectory(sprite_viewer)
+include(GoogleTest)
+gtest_discover_tests(compiler_test)

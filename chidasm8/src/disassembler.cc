@@ -26,33 +26,7 @@
 
 #include "disassembler.h"
 
-std::string format_register( unsigned int reg )
-{
-	std::ostringstream oss;
-	oss << "V" << std::uppercase << std::hex << reg;
-	return oss.str();
-}
-
-std::string format_byte( unsigned int byte )
-{
-	std::ostringstream oss;
-	oss << "0x" << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
-	return oss.str();
-}
-
-std::string format_naked_byte( unsigned int byte )
-{
-	std::ostringstream oss;
-	oss << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
-	return oss.str();
-}
-
-std::string format_address( unsigned int address )
-{
-	std::ostringstream oss;
-	oss << "0x" << std::setfill( '0' ) << std::setw( 3 ) << std::uppercase << std::hex << address;
-	return oss.str();
-}
+#include "utils.h"
 
 /*
  * Input section
@@ -639,28 +613,4 @@ bool Disassembler::label_present( std::set<Target>::iterator &it, uint16_t addre
 	it = jmp_targets.find( Target( address ) );
 
 	return it != jmp_targets.end();
-}
-
-void Target::print( std::ostream &os ) const
-{
-	if( type == eTargetKind::SUBROUTINE )
-		os << '\n';
-
-	os << '\t' << label << ":\n";
-}
-
-void Instruction::print( std::ostream &os, uint8_t high_byte, uint8_t low_byte ) const
-{
-	os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
-	   << mnemonic << " " << argument << "\n";
-}
-
-void DataBytes::print( std::ostream &os ) const
-{
-	os << address << "\t\t"
-	   << ".DB\t";
-
-	for( uint8_t byte : byte_run ) os << format_byte( byte ) << " ";
-
-	os << '\n';
 }
