@@ -20,24 +20,19 @@
 #pragma once
 
 #include <string>
-
+#include <ostream>
 
 enum class TokenType
 {
-    Let,
-    Identifier,
-    Number,
-    Assign,
-    Plus,
-    Minus,
-    Multiply,
-    Divide,
-    LParen,
-    Comma,
-    RParen,
-    Semicolon,
-    Eof,
-    Invalid
+    KEYWORD,
+    IDENTIFIER,
+    NUMBER,
+    OPERATOR,
+    PUNCTUATION,
+    STRING_LITERAL,
+    COMMENT,
+    END_OF_INPUT,
+    INVALID
 };
 
 struct Token
@@ -46,16 +41,14 @@ struct Token
     std::string lexeme;
     int line;
     int column;
-
-    Token(TokenType type, const std::string& lexeme, int line, int column)
-        : type(type), lexeme(lexeme), line(line), column(column) {}
 };
 
 class Tokeniser
 {
 public:
     Tokeniser(const std::string& source);
-    Token next_token();
+	Token next_token();
+
 
 private:
     std::string source;
@@ -63,13 +56,50 @@ private:
     int line;
     int column;
 
-    char advance();
-    char peek();
-    bool is_at_end();
+    enum class ParsingState {
+        NONE,
+        IDENTIFIER,
+        NUMBER,
+        STRING_LITERAL,
+        OPERATOR,
+        LINE_COMMENT,
+        STAR_COMMENT
+    };
 
-    void skip_whitespace();
-    Token identifier();
-    Token number();
-    Token make_token(TokenType type, std::string lexeme = "");
-    Token error_token(const std::string& message);
+    int lexeme_start;
+    int lexeme_end;
+    int lexeme_column;
+
+    bool process_eol(char current_char);
+    bool process_whitespace(char current_char);
+
+    bool process_alpha(char current_char);
+    bool collecting_identifier( char current_char );
+    Token identifier_token();
+
+    bool process_number( char current_char );
+    bool collecting_number( char current_char );
+    Token number_token();
+
+    bool process_string_literal( char current_char );
+    bool collecting_string_literal( char current_char );
+    Token string_literal_token();
+
+    bool process_operator( char current_char );
+    bool collecting_operator( char current_char );
+    Token operator_token();
+
+    bool is_line_comment( char current_char );
+    bool collecting_line_comment( char current_char );
+    Token line_comment_token();
+
+    bool is_star_comment( char current_char );
+    bool collecting_star_comment( char current_char );
+    Token comment_token();
+
+    bool process_punctuation( char current_char );
+    Token punctuation_token();
 };
+
+std::ostream& operator<<(std::ostream& os, TokenType type);
+std::ostream& operator<<(std::ostream& os, const Token& token);
