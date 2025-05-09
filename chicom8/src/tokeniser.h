@@ -31,6 +31,7 @@ enum class TokenType
     PUNCTUATION,
     STRING_LITERAL,
     COMMENT,
+    WHITESPACE,
     END_OF_INPUT,
     INVALID
 };
@@ -99,6 +100,21 @@ private:
 
     bool process_punctuation( char current_char );
     Token punctuation_token();
+};
+
+class Tokeniser2
+{
+public:
+    Tokeniser2(const std::string& source) : source(source) {};
+	Token next_token();
+
+private:
+    std::string source;
+    int cursor = 0;
+    int line = 1;
+    int column = 1;
+
+    void update_position_tracking( std::string lexeme );
 };
 
 std::ostream& operator<<(std::ostream& os, TokenType type);
