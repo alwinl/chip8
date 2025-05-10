@@ -1,5 +1,5 @@
 /*
- * tokeniser_test.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * tokeniser2_test.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,140 +17,112 @@
  * MA 02110-1301, USA.
  */
 
-#include "tokeniser.h"
-
 #include <gtest/gtest.h>
 
-TEST(TokeniserTest, ParsesVariableDeclaration)
+#include "tokeniser.h"
+
+TEST(TokeniserTest, ParsesSingleLineComment)
 {
-    std::string source = "let x = 42;";
-    Tokeniser tokeniser(source);
+    Tokeniser lexer("// this is a comment\n42");
 
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::KEYWORD);
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::COMMENT);
+    EXPECT_EQ(tok.lexeme, "// this is a comment");
 
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::IDENTIFIER);
-    EXPECT_EQ(token.lexeme, "X");
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::NUMBER);
+    EXPECT_EQ(tok.lexeme, "42");
 
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::OPERATOR);
-
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::NUMBER);
-    EXPECT_EQ(token.lexeme, "42");
-
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::PUNCTUATION);
-
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::END_OF_INPUT);
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 2);
 }
 
-TEST(TokeniserTest, ParsesSimpleExpression)
+TEST(TokeniserTest, ParsesMultiLineComment)
 {
-    std::string source = "x = x + 1;";
-    Tokeniser tokeniser(source);
+    Tokeniser lexer("/* comment \n over two lines */\nhello");
 
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::IDENTIFIER); // x
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::OPERATOR);     // =
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::IDENTIFIER); // x
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::OPERATOR);       // +
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::NUMBER);     // 1
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::PUNCTUATION);  // ;
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::END_OF_INPUT);        // EOF
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::COMMENT);
+    EXPECT_EQ(tok.lexeme, "/* comment \n over two lines */");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::IDENTIFIER);
+    EXPECT_EQ(tok.lexeme, "hello");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 3);
 }
 
-TEST(TokeniserTest, ParsesFunctionCall)
+TEST(TokeniserTest, ParsesWhitespace)
 {
-    std::string source = "draw(x, y);";
-    Tokeniser tokeniser(source);
+    Tokeniser lexer("  \t\n  123");
+    Token tok = lexer.next_token();
 
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::IDENTIFIER); // draw
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::PUNCTUATION);
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::IDENTIFIER); // x
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::PUNCTUATION);
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::IDENTIFIER); // y
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::PUNCTUATION);
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::PUNCTUATION);
-    EXPECT_EQ(tokeniser.next_token().type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.type, TokenType::NUMBER);
+    EXPECT_EQ(tok.lexeme, "123");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 2);  // If newline is correctly tracked
 }
 
-TEST(TokeniserTest, DetectsInvalidToken)
+TEST(TokeniserTest, ParsesNumber )
 {
-    std::string source = "@";
-    Tokeniser tokeniser(source);
+    Tokeniser lexer( "42" );
 
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::INVALID);
-    EXPECT_EQ(token.lexeme, "@");
+    Token tok = lexer.next_token();
+
+    EXPECT_EQ( tok.type, TokenType::NUMBER );
+    EXPECT_EQ( tok.lexeme, "42" );
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 1);
+}
+
+TEST(TokeniserTest, ParsesIdentifier )
+{
+    Tokeniser lexer( "hello" );
+
+    Token tok = lexer.next_token();
+    EXPECT_EQ( tok.type, TokenType::IDENTIFIER );
+    EXPECT_EQ( tok.lexeme, "hello" );
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 1);
 }
 
 TEST(TokeniserTest, ParsesStringLiteral)
 {
-    std::string source = "LET x = \"hello\";";
-    Tokeniser tokeniser(source);
+    Tokeniser lexer("\"hello\"");
 
-    // Skip LET x = tokens
-    for (int i = 0; i < 3; ++i) tokeniser.next_token();
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::STRING_LITERAL);
+    EXPECT_EQ(tok.lexeme, R"("hello")");
 
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::STRING_LITERAL);
-    EXPECT_EQ(token.lexeme, "hello");  // Assuming your fix strips quotes
-
-    token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::PUNCTUATION);
-    EXPECT_EQ(token.lexeme, ";");
-}
-
-TEST(TokeniserTest, HandlesUnterminatedStringLiteral)
-{
-    std::string source = "LET x = \"unterminated";
-    Tokeniser tokeniser(source);
-
-    // Skip LET x =
-    for (int i = 0; i < 3; ++i) tokeniser.next_token();
-
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::INVALID);
-    EXPECT_TRUE(token.lexeme.find("Unterminated") != std::string::npos);
-}
-
-TEST(TokeniserTest, HandlesInvalidCharacter)
-{
-    std::string source = "LET x = 42 @;";
-    Tokeniser tokeniser(source);
-
-    // Skip LET x = 42
-    for (int i = 0; i < 5; ++i) tokeniser.next_token();
-
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::INVALID);
-    EXPECT_EQ(token.lexeme, "@");
-}
-
-TEST(TokeniserTest, ParsesIdentifiersWithUnderscores)
-{
-    std::string source = "LET my_var = 1;";
-    Tokeniser tokeniser(source);
-
-    // Skip LET
-    tokeniser.next_token();
-
-    Token token = tokeniser.next_token();
-    EXPECT_EQ(token.type, TokenType::IDENTIFIER);
-    EXPECT_EQ(token.lexeme, "MY_VAR");
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 1);
+    EXPECT_EQ(tok.column, 8);
 }
 
 // Helper function to extract all tokens from the source
 std::vector<Token> extract_tokens(const std::string& src)
 {
-    Tokeniser tokenizer(src);
+    Tokeniser lexer(src);
     std::vector<Token> tokens;
-    while (true) {
-        Token t = tokenizer.next_token();
-        if (t.type == TokenType::END_OF_INPUT) break;
-        if (t.type != TokenType::INVALID) tokens.push_back(t);  // Ignore invalids for these tests
+
+    while( true ) {
+        Token t = lexer.next_token();
+
+        if (t.type == TokenType::END_OF_INPUT)
+            break;
+
+        if (t.type != TokenType::INVALID)
+            tokens.push_back(t);  // Ignore invalids so all can be checked
     }
     return tokens;
 }
@@ -185,13 +157,13 @@ TEST(TokeniserTest, MixedOperatorsWithIdentifiers)
 {
     auto tokens = extract_tokens("a+=b && c==d;");
     std::vector<std::pair<TokenType, std::string>> expected = {
-        {TokenType::IDENTIFIER, "A"},
+        {TokenType::IDENTIFIER, "a"},
         {TokenType::OPERATOR, "+="},
-        {TokenType::IDENTIFIER, "B"},
+        {TokenType::IDENTIFIER, "b"},
         {TokenType::OPERATOR, "&&"},
-        {TokenType::IDENTIFIER, "C"},
+        {TokenType::IDENTIFIER, "c"},
         {TokenType::OPERATOR, "=="},
-        {TokenType::IDENTIFIER, "D"},
+        {TokenType::IDENTIFIER, "d"},
         {TokenType::PUNCTUATION, ";"}
     };
 
@@ -203,47 +175,123 @@ TEST(TokeniserTest, MixedOperatorsWithIdentifiers)
     }
 }
 
-TEST(TokeniserTest, LineCommentsAreSkipped)
+TEST(TokeniserTest, InvalidToken)
 {
-    auto tokens = extract_tokens("x = 1; // this is a comment\ny = 2;");
-    std::vector<std::pair<TokenType, std::string>> expected = {
-        {TokenType::IDENTIFIER, "X"},
-        {TokenType::OPERATOR, "="},
-        {TokenType::NUMBER, "1"},
-        {TokenType::PUNCTUATION, ";"},
-        {TokenType::COMMENT, " this is a comment"},
-        {TokenType::IDENTIFIER, "Y"},
-        {TokenType::OPERATOR, "="},
-        {TokenType::NUMBER, "2"},
-        {TokenType::PUNCTUATION, ";"}
-    };
+    Tokeniser lexer("@");
 
-    ASSERT_EQ(tokens.size(), expected.size());
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::INVALID);
 
-    for (size_t i = 0; i < expected.size(); ++i) {
-        EXPECT_EQ(tokens[i].type, expected[i].first);
-        EXPECT_EQ(tokens[i].lexeme, expected[i].second);
-    }
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+    EXPECT_EQ(tok.line, 1);
+    EXPECT_EQ(tok.column, 2);
 }
 
-TEST(TokeniserTest, BlockCommentsAreSkipped) {
-    auto tokens = extract_tokens("x = 1; /* multi-line \n comment */ y = 2;");
-    std::vector<std::pair<TokenType, std::string>> expected = {
-        {TokenType::IDENTIFIER, "X"},
-        {TokenType::OPERATOR, "="},
-        {TokenType::NUMBER, "1"},
-        {TokenType::PUNCTUATION, ";"},
-        {TokenType::COMMENT, " multi-line \n comment "},
-        {TokenType::IDENTIFIER, "Y"},
-        {TokenType::OPERATOR, "="},
-        {TokenType::NUMBER, "2"},
-        {TokenType::PUNCTUATION, ";"}
-    };
+TEST(TokeniserTest, HandlesInvalidCharacter)
+{
+    Tokeniser lexer("let x = 42 @;");
 
-    ASSERT_EQ(tokens.size(), expected.size());
+    // Skip let x = 42
+    for (int i = 0; i < 4; ++i) lexer.next_token();
 
-    for (size_t i = 0; i < expected.size(); ++i) {
-        EXPECT_EQ(tokens[i].type, expected[i].first);
-        EXPECT_EQ(tokens[i].lexeme, expected[i].second);
-    }
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::INVALID);
+    EXPECT_EQ(tok.lexeme, "@");
+}
+
+TEST(TokeniserTest, GetTwoTokens )
+{
+    Tokeniser lexer( "hello 42" );
+
+    Token tok = lexer.next_token();
+
+    EXPECT_EQ( tok.type, TokenType::IDENTIFIER );
+    EXPECT_EQ( tok.lexeme, "hello" );
+
+    tok = lexer.next_token();
+
+    EXPECT_EQ( tok.type, TokenType::NUMBER );
+    EXPECT_EQ( tok.lexeme, "42" );
+}
+
+TEST(TokeniserTest, ParsesSimpleExpression)
+{
+    Tokeniser lexer( "x = x + 1;" );
+
+    EXPECT_EQ(lexer.next_token().type, TokenType::IDENTIFIER); // x
+    EXPECT_EQ(lexer.next_token().type, TokenType::OPERATOR);     // =
+    EXPECT_EQ(lexer.next_token().type, TokenType::IDENTIFIER); // x
+    EXPECT_EQ(lexer.next_token().type, TokenType::OPERATOR);       // +
+    EXPECT_EQ(lexer.next_token().type, TokenType::NUMBER);     // 1
+    EXPECT_EQ(lexer.next_token().type, TokenType::PUNCTUATION);  // ;
+    EXPECT_EQ(lexer.next_token().type, TokenType::END_OF_INPUT);        // EOF
+}
+
+TEST(TokeniserTest, ParsesFunctionCall)
+{
+    Tokeniser lexer( "draw(x, y);" );
+
+    // EXPECT_EQ(lexer.next_token(), Token{TokenType::IDENTIFIER, "draw", 1, 1 } ); // draw
+    EXPECT_EQ(lexer.next_token().type, TokenType::IDENTIFIER); // draw
+    EXPECT_EQ(lexer.next_token().type, TokenType::PUNCTUATION);
+    EXPECT_EQ(lexer.next_token().type, TokenType::IDENTIFIER); // x
+    EXPECT_EQ(lexer.next_token().type, TokenType::PUNCTUATION);
+    EXPECT_EQ(lexer.next_token().type, TokenType::IDENTIFIER); // y
+    EXPECT_EQ(lexer.next_token().type, TokenType::PUNCTUATION);
+    EXPECT_EQ(lexer.next_token().type, TokenType::PUNCTUATION);
+    EXPECT_EQ(lexer.next_token().type, TokenType::END_OF_INPUT);
+}
+
+TEST(TokeniserTest, ParsesVariableDeclaration)
+{
+    Tokeniser lexer( "let x = 42;" );
+
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::KEYWORD);
+    EXPECT_EQ(tok.lexeme, "let");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::IDENTIFIER);
+    EXPECT_EQ(tok.lexeme, "x");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::OPERATOR);
+    EXPECT_EQ(tok.lexeme, "=");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::NUMBER);
+    EXPECT_EQ(tok.lexeme, "42");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::PUNCTUATION);
+    EXPECT_EQ(tok.lexeme, ";");
+
+    tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::END_OF_INPUT);
+}
+
+TEST(TokeniserTest, HandlesUnterminatedStringLiteral)
+{
+    Tokeniser lexer("LET x = \"unterminated");
+
+    // Skip LET x =
+    for (int i = 0; i < 3; ++i)
+        lexer.next_token();
+
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::INVALID);
+    EXPECT_EQ(tok.lexeme, "\"" );
+}
+
+TEST(TokeniserTest, ParsesIdentifiersWithUnderscores)
+{
+    Tokeniser lexer("let my_var = 1;");
+
+    // Skip let
+    lexer.next_token();
+
+    Token tok = lexer.next_token();
+    EXPECT_EQ(tok.type, TokenType::IDENTIFIER);
+    EXPECT_EQ(tok.lexeme, "my_var");
 }

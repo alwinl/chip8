@@ -27,7 +27,6 @@ add_library(
     commandlineparser.h
 
     tokeniser.cc
-    tokeniser2.cc
     tokeniser.h
 )
 

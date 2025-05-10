@@ -42,70 +42,14 @@ struct Token
     std::string lexeme;
     int line;
     int column;
+
+    auto operator<=>(const Token&) const = default;
 };
 
 class Tokeniser
 {
 public:
-    Tokeniser(const std::string& source);
-	Token next_token();
-
-
-private:
-    std::string source;
-    size_t current;
-    int line;
-    int column;
-
-    enum class ParsingState {
-        NONE,
-        IDENTIFIER,
-        NUMBER,
-        STRING_LITERAL,
-        OPERATOR,
-        LINE_COMMENT,
-        STAR_COMMENT
-    };
-
-    int lexeme_start;
-    int lexeme_end;
-    int lexeme_column;
-
-    bool process_eol(char current_char);
-    bool process_whitespace(char current_char);
-
-    bool process_alpha(char current_char);
-    bool collecting_identifier( char current_char );
-    Token identifier_token();
-
-    bool process_number( char current_char );
-    bool collecting_number( char current_char );
-    Token number_token();
-
-    bool process_string_literal( char current_char );
-    bool collecting_string_literal( char current_char );
-    Token string_literal_token();
-
-    bool process_operator( char current_char );
-    bool collecting_operator( char current_char );
-    Token operator_token();
-
-    bool is_line_comment( char current_char );
-    bool collecting_line_comment( char current_char );
-    Token line_comment_token();
-
-    bool is_star_comment( char current_char );
-    bool collecting_star_comment( char current_char );
-    Token comment_token();
-
-    bool process_punctuation( char current_char );
-    Token punctuation_token();
-};
-
-class Tokeniser2
-{
-public:
-    Tokeniser2(const std::string& source) : source(source) {};
+    Tokeniser(const std::string& source) : source(source) {};
 	Token next_token();
 
 private:
