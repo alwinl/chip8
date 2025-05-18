@@ -1,0 +1,85 @@
+<program>         ::= <decl>* ;
+
+<decl>            ::= <func_decl> | <var_decl> ;
+
+<var_decl>        ::= "var" <identifier> ":" <type> ";" ;
+
+<type> ::= "nibble" 
+         | "byte" 
+         | "snack" 
+         | "number" 
+         | "bool" 
+         | "key" 
+         | <sprite_type>
+         ;
+
+<sprite_type>     ::= "sprite" <nibble> ;
+
+<func_decl>       ::= "func" <identifier> "(" <param_list>? ")" "{" <stmt>* "}" ;
+
+<param_list>      ::= <typed_identifier> ("," <typed_identifier>)* ;
+
+<typed_identifier> ::= <identifier> ":" <type> ;
+
+<expr_stmt>       ::= <expr> ";" ;
+
+<stmt>            ::= <var_decl>
+                   | <expr_stmt>
+                   | <if_stmt>
+                   | <while_stmt>
+                   | <return_stmt>
+                   | <draw_stmt>
+                   | <getkey_stmt>
+                   | <block>
+                   ;
+
+<if_stmt>         ::= "if" "(" <expr> ")" <stmt> ("else" <stmt>)? ;
+
+<while_stmt>      ::= "while" "(" <expr> ")" <stmt> ;
+
+<return_stmt>     ::= "return" <expr>? ";" ;
+
+<draw_stmt>       ::= "draw" <identifier> "," <expr> "," <expr> ("," <expr>)? ";" ; // draw sprite, x, y [, height] 
+
+<getkey_stmt>     ::= "getkey" <identifier> ";" ;
+
+<block>           ::= "{" <stmt>* "}" ;
+
+
+<expr>            ::= <identifier> "=" <expr> | <logic_or> ;
+
+<logic_or>        ::= <logic_and> ("||" <logic_and>)* ;
+
+<logic_and>       ::= <equality> ("&&" <equality>)* ;
+
+<equality>        ::= <comparison> (("==" | "!=") <comparison>)* ;
+
+<comparison>      ::= <term> ((">" | ">=" | "<" | "<=") <term>)* ;
+
+<term>            ::= <factor> (("+" | "-") <factor>)* ;
+
+<factor>          ::= <unary> (("*" | "/") <unary>)* ;
+
+<unary>           ::= ("!" | "-") <unary> | <primary> ;
+
+<primary>         ::= <number> 
+                   | <identifier>
+                   | "true"
+                   | "false" 
+                   | "bcd" <identifier>
+                   | "rnd" <identifier>
+                   | "keydown" <identifier>
+                   | "(" <expr> ")"
+                   ;
+
+<number> ::= <decimal> | <hex> ;
+
+<decimal> ::= "[0-9]+" ;
+
+<hex>     ::= "0x[0-9a-fA-F]+" ;
+
+<nibble>  ::= "[0-9a-fA-F]" ;
+
+<identifier> ::= "[a-zA-Z][0-9a-zA-Z_]*" ;
+
+
