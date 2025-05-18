@@ -21,60 +21,85 @@
 #include <regex>
 #include <vector>
 #include <unordered_map>
+#include <fstream>
 
 struct TokenMatcher
 {
     std::string pattern;
-    TokenType type;
+    Token::Type type;
     bool skip_token;
-};
-
-
-std::unordered_map<TokenType, std::string> type_strings =
-{
-    { TokenType::KEYWORD, "KEYWORD" },
-    { TokenType::IDENTIFIER, "IDENTIFIER" },
-    { TokenType::NUMBER, "NUMBER" },
-    { TokenType::OPERATOR, "OPERATOR" },
-    { TokenType::PUNCTUATION, "PUNCTUATION" },
-    { TokenType::STRING_LITERAL, "STRING_LITERAL" },
-    { TokenType::COMMENT, "COMMENT" },
-    { TokenType::WHITESPACE, "WHITESPACE" },
-    { TokenType::END_OF_INPUT, "END_OF_INPUT" },
-    { TokenType::INVALID, "INVALID" },
 };
 
 std::vector<TokenMatcher> match_set =
 {
-    TokenMatcher{ R"(^//[^\n]*)", TokenType::COMMENT, false},
-    TokenMatcher{ R"(^/\*([^*]|\*[^/])*\*/)", TokenType::COMMENT, false},
-    TokenMatcher{ R"(^\s+)", TokenType::WHITESPACE, true },
-    TokenMatcher{ R"(^==|!=|<=|>=|&&|\|\||\+=|\-=|\*=|/=|\+\+|\-\-)", TokenType::OPERATOR, false },
-    TokenMatcher{ R"(^[+\-*\/=<>!&|])", TokenType::OPERATOR, false },
-    TokenMatcher{ R"(^let|var)", TokenType::KEYWORD, false},
-    TokenMatcher{ R"(^[a-zA-Z_][a-zA-Z0-9_]*)", TokenType::IDENTIFIER, false },
-    TokenMatcher{ R"(^"([^*]|\*[^/])*")", TokenType::STRING_LITERAL, false},
-    TokenMatcher{ R"(^[.,;()\[\]{}])", TokenType::PUNCTUATION, false },
-    TokenMatcher{ R"(^\d+)", TokenType::NUMBER, false},
+    TokenMatcher{ R"(^//[^\n]*)", Token::Type::COMMENT, false},
+    TokenMatcher{ R"(^/\*([^*]|\*[^/])*\*/)", Token::Type::COMMENT, false},
+    TokenMatcher{ R"(^\s+)", Token::Type::WHITESPACE, true },
+    TokenMatcher{ R"(^==|!=|<=|>=|&&|\|\||\+=|\-=|\*=|/=|\+\+|\-\-)", Token::Type::OPERATOR, false },
+    TokenMatcher{ R"(^[+\-*\/=<>!&|])", Token::Type::OPERATOR, false },
+    TokenMatcher{ R"(^let|var)", Token::Type::KEYWORD, false},
+    TokenMatcher{ R"(^[a-zA-Z_][a-zA-Z0-9_]*)", Token::Type::IDENTIFIER, false },
+    TokenMatcher{ R"(^"([^*]|\*[^/])*")", Token::Type::STRING_LITERAL, false},
+    TokenMatcher{ R"(^[.,;()\[\]{}])", Token::Type::PUNCTUATION, false },
+    TokenMatcher{ R"(^0x[0-9A-Fa-f]+)", Token::Type::NUMBER, false },
+    TokenMatcher{ R"(^\d+)", Token::Type::NUMBER, false},
 };
 
-std::ostream& operator<<(std::ostream& os, TokenType type)
+std::string escape_string( const std::string& input)
 {
-    os << type_strings[type];
-    return os;
+    std::string escaped = "\"";
+    for( char c : input ) {
+        switch (c) {
+        case '"': escaped += "\\\""; break;
+        case '\\': escaped += "\\\\"; break;
+        case '\n': escaped += "\\n"; break;
+        case '\r': escaped += "\\r"; break;
+        case '\t': escaped += "\\t"; break;
+        default: escaped += c; break;
+        }
+    }
+    escaped += "\"";
+    return escaped;
 }
 
 std::ostream& operator<<(std::ostream& os, const Token& token)
 {
-    os << "Token(" << token.type << ", " << token.lexeme << ", " << token.line << ", " << token.column << ")";
+    static std::unordered_map<Token::Type, std::string> type_strings =
+    {
+        { Token::Type::KEYWORD, "KEYWORD" },
+        { Token::Type::IDENTIFIER, "IDENTIFIER" },
+        { Token::Type::NUMBER, "NUMBER" },
+        { Token::Type::OPERATOR, "OPERATOR" },
+        { Token::Type::PUNCTUATION, "PUNCTUATION" },
+        { Token::Type::STRING_LITERAL, "STRING_LITERAL" },
+        { Token::Type::COMMENT, "COMMENT" },
+        { Token::Type::WHITESPACE, "WHITESPACE" },
+        { Token::Type::END_OF_INPUT, "END_OF_INPUT" },
+        { Token::Type::INVALID, "INVALID" },
+    };
+
+    os << "{ "
+            "\"type\": \"" << type_strings[token.type] << "\", "
+            "\"lexeme\": " << escape_string(token.lexeme) << ", "
+            "\"line\": " << token.line << ", "
+            "\"column\": " << token.column << "}";
     return os;
 }
 
+Tokeniser::Tokeniser( std::filesystem::path file_path )
+{
+    std::ifstream src(file_path);
+    std::ostringstream dst;
+
+    dst << src.rdbuf();
+
+    source = dst.str();
+}
 
 Token Tokeniser::next_token()
 {
     if( cursor >= source.length() )
-        return Token { TokenType::END_OF_INPUT, "", line, column };
+        return Token { Token::Type::END_OF_INPUT, "", line, column };
 
     auto begin = source.cbegin() + cursor;
     auto end = source.cend();

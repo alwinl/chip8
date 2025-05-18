@@ -21,24 +21,17 @@
 
 #include <string>
 #include <ostream>
-
-enum class TokenType
-{
-    KEYWORD,
-    IDENTIFIER,
-    NUMBER,
-    OPERATOR,
-    PUNCTUATION,
-    STRING_LITERAL,
-    COMMENT,
-    WHITESPACE,
-    END_OF_INPUT,
-    INVALID
-};
+#include <filesystem>
+#include <vector>
 
 struct Token
 {
-    TokenType type;
+    enum class Type {
+        KEYWORD, IDENTIFIER, NUMBER, OPERATOR, PUNCTUATION, STRING_LITERAL,
+        COMMENT, WHITESPACE, END_OF_INPUT, INVALID
+    };
+
+    Type type;
     std::string lexeme;
     int line;
     int column;
@@ -46,11 +39,19 @@ struct Token
     auto operator<=>(const Token&) const = default;
 };
 
+using Tokens = std::vector<Token>;
+
+std::ostream& operator<<( std::ostream& os, const Token& token );
+std::ostream& operator<<( std::ostream& os, const Tokens& tokens );
+
 class Tokeniser
 {
 public:
     Tokeniser(const std::string& source) : source(source) {};
-	Token next_token();
+    Tokeniser( std::filesystem::path file_path );
+
+    Token next_token();
+    Tokens tokenise_all();
 
 private:
     std::string source;
@@ -60,6 +61,3 @@ private:
 
     void update_position_tracking( std::string lexeme );
 };
-
-std::ostream& operator<<(std::ostream& os, TokenType type);
-std::ostream& operator<<(std::ostream& os, const Token& token);
