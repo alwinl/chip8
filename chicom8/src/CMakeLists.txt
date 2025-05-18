@@ -28,6 +28,9 @@ add_library(
 
     tokeniser.cc
     tokeniser.h
+
+    parser.cc
+    parser.h
 )
 
 target_include_directories(chip8_compiler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
