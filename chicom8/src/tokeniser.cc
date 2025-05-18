@@ -105,7 +105,21 @@ Token Tokeniser::next_token()
 
     update_position_tracking( lexeme );
 
-    return Token{ TokenType::INVALID, lexeme, line, column };
+    return Token{ Token::Type::INVALID, lexeme, tok_line, tok_column };
+}
+
+Tokens Tokeniser::tokenise_all()
+{
+    Tokens tokens;
+    Token token{ Token::Type::INVALID, "" };
+
+    while( token.type != Token::Type::END_OF_INPUT ) {
+
+        token = next_token();
+        tokens.push_back( token );
+    }
+
+    return tokens;
 }
 
 void Tokeniser::update_position_tracking( std::string lexeme )
