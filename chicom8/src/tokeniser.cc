@@ -100,6 +100,9 @@ Token Tokeniser::next_token()
     }
 
     std::string lexeme( 1, *begin );
+    auto tok_line = line;
+    auto tok_column = column;
+
     update_position_tracking( lexeme );
 
     return Token{ TokenType::INVALID, lexeme, line, column };
