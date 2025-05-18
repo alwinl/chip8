@@ -22,6 +22,20 @@
           "ignoreFailures": true
         }
       ],
-    }
-  ]
+    },
+{
+      "name": "Run EBNF Compiler",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/bin/bash",
+      "args": [
+        "-c",
+        "${workspaceFolder}/.build/chicom8/tools/ebnf_compiler > ${workspaceFolder}/chicom8/src/ast.h"
+      ],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb"
+    }  ]
 }
