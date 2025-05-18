@@ -20,13 +20,24 @@
 find_package(GTest REQUIRED)
 
 add_executable(
-    compiler_test
-    
-    compiler_test.cc
-    tokeniser_test.cc
+    ebnf_compiler_test
+
+    ebnf_tokeniser_test.cc
+    ebnf_parser_test.cc
+    ebnf_generator_test.cc
 )
 
-target_link_libraries(compiler_test chip8_compiler GTest::gtest_main)
+add_executable(
+    chip8_compiler_test
+    
+    chip8_cmdline_test.cc
+    chip8_tokeniser_test.cc
+    chip8_parser_test.cc
+)
+
+target_link_libraries( ebnf_compiler_test  ebnf_compiler_lib  GTest::gtest_main )
+target_link_libraries( chip8_compiler_test chip8_compiler     GTest::gtest_main )
 
 include(GoogleTest)
-gtest_discover_tests(compiler_test)
+gtest_discover_tests( ebnf_compiler_test )
+gtest_discover_tests( chip8_compiler_test )

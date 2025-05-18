@@ -21,7 +21,8 @@
 
 #include <gtest/gtest.h>
 
-TEST(CommandLineParserTest, ParsesBasicArguments) {
+TEST(CommandLineParserTest, ParsesBasicArguments)
+{
     std::vector<std::string> args = {
         "--verbose",
         "-o", "out.ch8",
@@ -36,7 +37,8 @@ TEST(CommandLineParserTest, ParsesBasicArguments) {
     EXPECT_FALSE(parser.show_help());
 }
 
-TEST(CommandLineParserTest, UsesDefaultOutputIfNotProvided) {
+TEST(CommandLineParserTest, UsesDefaultOutputIfNotProvided)
+{
     std::vector<std::string> args = {
         "examples/main.c8c"
     };
@@ -47,7 +49,8 @@ TEST(CommandLineParserTest, UsesDefaultOutputIfNotProvided) {
     EXPECT_EQ(parser.get_output_name(), "main.ch8");  // From stem of input file
 }
 
-TEST(CommandLineParserTest, HandlesHelpFlag) {
+TEST(CommandLineParserTest, HandlesHelpFlag)
+{
     std::vector<std::string> args = {
         "--help"
     };
