@@ -32,6 +32,7 @@ std::ostream& operator<<( std::ostream& os, const Token::Type& type )
     case Token::Type::BRACKET: os << "BRACKET"; break;
     case Token::Type::MODIFIER: os << "MODIFIER"; break;
     case Token::Type::PIPE: os << "PIPE"; break;
+    case Token::Type::REGEX: os << "REGEX"; break;
     case Token::Type::END_OF_PRODUCTION: os << "END_OF_PRODUCTION"; break;
     case Token::Type::STRING_LITERAL: os << "STRING_LITERAL"; break;
     case Token::Type::END_OF_INPUT: os << "END_OF_INPUT"; break;
@@ -48,15 +49,8 @@ std::ostream& operator<<( std::ostream& os, const Token& token )
 
 std::ostream& operator<<( std::ostream& os, const Tokens& tokens )
 {
-    // os << "{\n";
-
-    // for (const auto& token : tokens)
-    //     os << "\t" << token << ",\n";
-
-    // os << "};";
-
     bool first = true;
-    for (const auto& token : tokens) {
+    for( const auto& token : tokens ) {
         if( first )
             first = false;
         else
@@ -87,6 +81,7 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^[()])"), Token::Type::BRACKET, false },
     TokenMatcher{ std::regex(R"(^[?+*])"), Token::Type::MODIFIER, false },
     TokenMatcher{ std::regex(R"(^\|)"), Token::Type::PIPE, false },
+    TokenMatcher{ std::regex(R"(^/[^/]*/)"), Token::Type::REGEX, false },
     TokenMatcher{ std::regex(R"(^;)"), Token::Type::END_OF_PRODUCTION, false },
     TokenMatcher{ std::regex(R"(^"[^"]*")"), Token::Type::STRING_LITERAL, false },
 };
