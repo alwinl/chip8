@@ -74,12 +74,12 @@
 
 <number> ::= <decimal> | <hex> ;
 
-<decimal> ::= "[0-9]+" ;
+<decimal> ::= /[0-9]+/ ;
 
-<hex>     ::= "0x[0-9a-fA-F]+" ;
+<hex>     ::= /0x[0-9a-fA-F]+/ ;
 
-<nibble>  ::= "[0-9a-fA-F]" ;
+<nibble>  ::= /[0-9a-fA-F]/ ;
 
-<identifier> ::= "[a-zA-Z][0-9a-zA-Z_]*" ;
+<identifier> ::= /[a-zA-Z][0-9a-zA-Z_]*/ ;
 
 
