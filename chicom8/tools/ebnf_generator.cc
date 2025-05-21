@@ -86,11 +86,11 @@ std::string build_field( const Symbol & symbol, int spaces, const std::string& g
     return out;
 }
 
-std::string build_group_struct( const std::string& groupName, const Symbols& symbols  )
+std::string build_group_struct( const std::string& groupName, const Part& part  )
 {
     std::string out = "struct " + groupName + "\n{\n";
 
-    for( size_t i = 0; const auto& symbol : symbols ) {
+    for( size_t i = 0; const auto& symbol : part ) {
 
         // out += build_field( symbol, 4, groupName, i++ );
         // if( symbol.token.type != Token::Type::STRING_LITERAL ) {
@@ -137,15 +137,12 @@ std::string display_graph( const Graph& graph )
 }
 
 
-void Generator::generateAstFiles( std::ostream& os, const Rules& rules)
+void Generator::generateAstFiles( std::ostream& os, const Grammar& rules)
 {
     Graph graph = build_graph( rules);
 
     TarjanSCC tarjan(graph);
-    tarjan.run();
 
-    std::unordered_set<Node> forward_decls = tarjan.detect_cycles();
-    std::vector<Node> sorted = tarjan.topologicalSort();
 
     RuleMap rule_map;
     for( const Rule& rule : rules )
@@ -153,14 +150,16 @@ void Generator::generateAstFiles( std::ostream& os, const Rules& rules)
 
     generateHeader( os );
 
+    std::unordered_set<Node> forward_decls = tarjan.detect_cycles();
     os << build_forward_declarions( forward_decls );
 
+    std::vector<Node> sorted = tarjan.topologicalSort();
     for( const auto& node : sorted )
         generateAstClass( os, rule_map[node] );
 }
 
 
-Graph Generator::build_graph( const Rules& rules )
+Graph Generator::build_graph( const Grammar& rules )
 {
     Graph graph;
 
@@ -170,16 +169,16 @@ Graph Generator::build_graph( const Rules& rules )
             graph[rule.name].insert( symbol.token.lexeme );
     };
 
-    auto process_production = [&]( const Rule& rule, const Symbols& symbols )
+    auto process_part = [&]( const Rule& rule, const Part& part )
     {
-        for( const auto& symbol : symbols )
+        for( const auto& symbol : part )
             add_dependency( rule, symbol );
     };
 
     auto process_rule = [&]( const Rule& rule )
     {
-        for( const auto& production : rule.productions )
-            process_production( rule, production );
+        for( const auto& part : rule.production )
+            process_part( rule, part );
     };
 
     std::for_each( rules.begin(), rules.end(), process_rule );
@@ -207,7 +206,7 @@ void Generator::generateAstClass( std::ostream& os, const Rule& rule)
 {
     os << "// AST node for rule: " << rule.name << "\n";
 
-    for( auto production : rule.productions )
+    for( auto production : rule.production )
         generateGroupStructures( os, rule.name, production );
 
     std::string className = capitalize(rule.name);
@@ -215,19 +214,19 @@ void Generator::generateAstClass( std::ostream& os, const Rule& rule)
     os << "struct " + className + "\n";
     os << "{\n";
 
-    if( rule.productions.size() == 1 ) {
+    if( rule.production.size() == 1 ) {
         generateSingleProduction(os, className, rule);
     } else {
         generateMultiProduction(os, className, rule);
-        generateVariant(os, rule);
+        generateVariant(os, rule.production);
     }
 
     os << "};\n\n";
 }
 
-void Generator::generateGroupStructures( std::ostream & os, std::string base_name, const Symbols& symbols )
+void Generator::generateGroupStructures( std::ostream & os, std::string base_name, const Part& part )
 {
-    for( size_t i = 0; const auto& symbol : symbols ) {
+    for( size_t i = 0; const auto& symbol : part ) {
 
         const auto& symbol_group = symbol.symbol_group;
 
@@ -247,7 +246,7 @@ void Generator::generateGroupStructures( std::ostream & os, std::string base_nam
 void Generator::generateSingleProduction( std::ostream & os, std::string &className, const Rule & rule )
 {
     // Single-production rule — plain struct
-    for( size_t i = 0; const auto& symbol : rule.productions[0] )
+    for( size_t i = 0; const auto& symbol : rule.production[0] )
         // os << build_field( symbol, 4, className, i++ );
 
         os << "    " + get_symbol_type( symbol, className, 0 ) + " field" + std::to_string(i++) + ";\n";
@@ -257,12 +256,12 @@ void Generator::generateMultiProduction( std::ostream & os, std::string &classNa
 {
     // os << "    using Ptr = std::shared_ptr<" + className + ">;\n";
 
-    for( size_t i = 0; i < rule.productions.size(); ++i) {
+    for( size_t i = 0; i < rule.production.size(); ++i) {
 
         os << "    struct Production" + std::to_string(i) + "\n";
         os << "    {\n";
 
-        for( size_t j = 0; const auto& symbol : rule.productions[i] )
+        for( size_t j = 0; const auto& symbol : rule.production[i] )
             // os << build_field( symbol, 8, className, i++ );
             os << "        " + get_symbol_type( symbol, className, 0 ) + " field" + std::to_string(j++) + ";\n";
 
@@ -270,12 +269,12 @@ void Generator::generateMultiProduction( std::ostream & os, std::string &classNa
     }
 }
 
-void Generator::generateVariant(std::ostream & os, const Rule & rule)
+void Generator::generateVariant(std::ostream & os, const Production &production )
 {
     os << "    using Value = std::variant<";
 
     bool first = true;
-    for( size_t i = 0; i < rule.productions.size(); ++i ) {
+    for( size_t i = 0; i < production.size(); ++i ) {
         if( first )
             first = false;
         else

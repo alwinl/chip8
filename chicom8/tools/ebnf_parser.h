@@ -33,29 +33,29 @@ struct Symbol
     std::vector<Symbol> symbol_group;
 };
 
-using Symbols = std::vector<Symbol>;
-using Production = Symbols;
-using Productions = std::vector<Production>;
+using Part = std::vector<Symbol>;
+using Production = std::vector<Part>;
 
 struct Rule
 {
     std::string name;
-    Productions productions;
+    Production production;
 };
 
-using Rules = std::vector<Rule>;
+using Grammar = std::vector<Rule>;
 
 std::ostream& operator<<( std::ostream& os, const Symbol& symbol );
+std::ostream& operator<<( std::ostream& os, const Part& part );
 std::ostream& operator<<( std::ostream& os, const Production& production );
 std::ostream& operator<<( std::ostream& os, const Rule& rule );
-std::ostream& operator<<( std::ostream& os, const Rules& rules );
+std::ostream& operator<<( std::ostream& os, const Grammar& grammar );
 
 class Parser
 {
 public:
     Parser( const Tokens& tokens ) : tokens(tokens ) {}
 
-    Rules parse_rules();
+    Grammar syntax_tree();
 
 private:
     const Tokens& tokens;
@@ -63,9 +63,14 @@ private:
 
     std::string parse_rule_name();
     void parse_colon_eq();
-    Symbols parse_production( bool in_group );
+
+    Symbol parse_regular_token( const Token& token );
+    Symbol parse_group_token( );
+    Part parse_part( bool in_group );
+    Production parse_production();
 
     Symbol apply_modifier( Symbol& symbol);
+
     const Token& peek() { return (cursor != tokens.end()) ? *cursor : tokens.back(); }
     void forward_cursor();
 };

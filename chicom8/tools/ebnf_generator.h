@@ -34,20 +34,19 @@ class Generator
 public:
     Generator( ) {};
 
-    void generateAstFiles( std::ostream& os, const Rules& rules);
+    void generateAstFiles( std::ostream& os, const Grammar& rules);
 
 	void generateHeader( std::ostream &os );
-    void generateGroupStructures( std::ostream & os, std::string base_name, const Symbols& symbols );
+    void generateGroupStructures( std::ostream & os, std::string base_name, const Part& part );
 
 	void generateAstClass( std::ostream &os, const Rule &rule );
-	void generateVariant( std::ostream &os, const Rule &rule );
+	void generateVariant( std::ostream &os, const Production &production );
 	void generateMultiProduction( std::ostream &os, std::string &className, const Rule &rule );
 	void generateSingleProduction( std::ostream &os, std::string &className, const Rule &rule );
 
 private:
-    Graph build_graph( const Rules& rules );    
-    // void break_cycles( std::ostream &os );
-    
+    Graph build_graph( const Grammar& rules );
+
 
     void debugPrintDependencies( const Graph& graph ) const;
 };

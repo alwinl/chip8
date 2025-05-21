@@ -29,9 +29,9 @@ int main()
     std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
-    Rules rules = Parser( tokens ).parse_rules();
+    Grammar grammar = Parser( tokens ).syntax_tree();
 
-    Generator().generateAstFiles( std::cout, rules);
+    Generator().generateAstFiles( std::cout, grammar);
     
     return 0;
 }

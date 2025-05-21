@@ -29,14 +29,14 @@ using Node = std::string;
 using Edge = std::string;
 using Edges = std::unordered_set<Edge>;
 using Graph = std::unordered_map<Node, Edges>;
-using Cycle = std::vector<Node>;
+using ComponentGroup = std::vector<Node>;
+using ComponentGroupList = std::vector<ComponentGroup>;
 
 class TarjanSCC
 {
 public:
-    TarjanSCC( const Graph& graph ) : graph(graph) {}
+    TarjanSCC( const Graph& graph ) : graph(graph) { run(); }
 
-    std::vector<Cycle> run();
 
     std::unordered_set<Node> detect_cycles();
     std::vector<Node> topologicalSort();
@@ -45,16 +45,17 @@ public:
     
 private:
     const Graph& graph;
+    ComponentGroupList sccs;
 
     std::unordered_map<Node, int> indices;
     std::unordered_map<Node, int> lowlink;
     std::stack<Node> stack;
     std::unordered_set<Node> onStack;
-    std::vector<Cycle> sccs;
     int index = 0;
 
     std::unordered_map<Node, int> usage_count;
 
+    void run();
     void strongConnect(const Node& node);
     void get_usage_counts();
 

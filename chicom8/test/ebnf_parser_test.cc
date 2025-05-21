@@ -38,36 +38,36 @@ std::vector<Token> tokenize_string( const char * src )
 TEST(EbnfCompilerTest, ParsesSingleRule)
 {
     auto tokens = tokenize_string("<expr> ::= \"42\" ;");
-    auto rules = Parser(tokens).parse_rules();
+    auto rules = Parser(tokens).syntax_tree();
 
     ASSERT_EQ(rules.size(), 1);
     EXPECT_EQ(rules[0].name, "expr");
 
-    ASSERT_EQ(rules[0].productions.size(), 1);
-    ASSERT_EQ(rules[0].productions[0].size(), 1);
-    EXPECT_EQ(rules[0].productions[0][0].token.lexeme, "\"42\"");
+    ASSERT_EQ(rules[0].production.size(), 1);
+    ASSERT_EQ(rules[0].production[0].size(), 1);
+    EXPECT_EQ(rules[0].production[0][0].token.lexeme, "\"42\"");
 }
 
 TEST(EbnfCompilerTest, ParsesAlternatives)
 {
     auto tokens = tokenize_string("<expr> ::= \"42\" | <ident> ;");
-    auto rules = Parser(tokens).parse_rules();
+    auto rules = Parser(tokens).syntax_tree();
 
     ASSERT_EQ(rules.size(), 1);
     EXPECT_EQ(rules[0].name, "expr");
 
-    ASSERT_EQ(rules[0].productions.size(), 2);
-    ASSERT_EQ(rules[0].productions[0].size(), 1);
-    EXPECT_EQ(rules[0].productions[0][0].token.lexeme, "\"42\"");
+    ASSERT_EQ(rules[0].production.size(), 2);
+    ASSERT_EQ(rules[0].production[0].size(), 1);
+    EXPECT_EQ(rules[0].production[0][0].token.lexeme, "\"42\"");
 
-    ASSERT_EQ(rules[0].productions[1].size(), 1);
-    EXPECT_EQ(rules[0].productions[1][0].token.lexeme, "ident");
+    ASSERT_EQ(rules[0].production[1].size(), 1);
+    EXPECT_EQ(rules[0].production[1][0].token.lexeme, "ident");
 }
 
 TEST(EbnfCompilerTest, ParsesMultipleRules)
 {
     auto tokens = tokenize_string("<expr> ::= \"42\" ; <ident> ::= \"x\" ;");
-    auto rules = Parser(tokens).parse_rules();
+    auto rules = Parser(tokens).syntax_tree();
 
     ASSERT_EQ(rules.size(), 2);
     EXPECT_EQ(rules[0].name, "expr");
@@ -77,12 +77,12 @@ TEST(EbnfCompilerTest, ParsesMultipleRules)
 TEST(EbnfCompilerTest, HandlesStringLiteralsAndNonterminals)
 {
     auto tokens = tokenize_string("<rule> ::= \"foo\" <bar> ;");
-    auto rules = Parser(tokens).parse_rules();
+    auto rules = Parser(tokens).syntax_tree();
 
     ASSERT_EQ(rules.size(), 1);
-    ASSERT_EQ(rules[0].productions.size(), 1);
-    EXPECT_EQ(rules[0].productions[0][0].token.lexeme, "\"foo\"");
-    EXPECT_EQ(rules[0].productions[0][1].token.lexeme, "bar");
+    ASSERT_EQ(rules[0].production.size(), 1);
+    EXPECT_EQ(rules[0].production[0][0].token.lexeme, "\"foo\"");
+    EXPECT_EQ(rules[0].production[0][1].token.lexeme, "bar");
 }
 
 TEST(EbnfCompilerTest, HandlesInvalidInputGracefully)
@@ -91,7 +91,7 @@ TEST(EbnfCompilerTest, HandlesInvalidInputGracefully)
     
     // Should throw exception
     try {
-        auto rules = Parser(tokens).parse_rules();
+        auto rules = Parser(tokens).syntax_tree();
         FAIL() << "Expected std::runtime_error";
     } catch (const std::runtime_error&) {
         SUCCEED();
@@ -100,4 +100,42 @@ TEST(EbnfCompilerTest, HandlesInvalidInputGracefully)
     }
 }
 
+TEST( EBNFParserTest, ParseRegexRule )
+{
+    auto tokens = tokenize_string( "<identifier> ::= /[a-zA-Z][0-9a-zA-Z_]*/ ;" );
+    auto grammar = Parser(tokens).syntax_tree();
+
+    std::string expected("grammar: [\n  Rule : {\n    name : identifier,\n    production : [\n      Part : [Symbol: REGEX(/[a-zA-Z][0-9a-zA-Z_]*/)]\n    ]\n  }\n]");
+
+    std::stringstream ss;
+    ss << grammar;
+
+    EXPECT_EQ( ss.str(), expected );
+}
+
+TEST( EBNFParserTest, ParseTwoParts )
+{
+    auto tokens = tokenize_string( "<number> ::= <decimal> | <hex> ; ");
+    auto grammar = Parser(tokens).syntax_tree();
+
+    std::string expected("grammar: [\n  Rule : {\n    name : number,\n    production : [\n      Part : [Symbol: NONTERMINAL(decimal)],\n      Part : [Symbol: NONTERMINAL(hex)]\n    ]\n  }\n]");
+
+    std::stringstream ss;
+    ss << grammar;
+
+    EXPECT_EQ( ss.str(), expected );
+}
+
+TEST( EBNFParserTest, ParseGroup )
+{
+    auto tokens = tokenize_string( "<unary>           ::= (\"!\" | \"-\") <unary> | <primary> ;");
+    auto grammar = Parser(tokens).syntax_tree();
+
+    std::string expected("grammar: [\n  Rule : {\n    name : unary,\n    production : [\n      Part : [(      Part : [Symbol: STRING_LITERAL(\"!\"), Symbol: STRING_LITERAL(\"-\")]), Symbol: NONTERMINAL(unary)],\n      Part : [Symbol: NONTERMINAL(primary)]\n    ]\n  }\n]");
+
+    std::stringstream ss;
+    ss << grammar;
+
+    EXPECT_EQ( ss.str(), expected );
+}
 

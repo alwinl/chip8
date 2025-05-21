@@ -23,26 +23,26 @@
 
 std::ostream& operator<<( std::ostream& os, const Symbol& symbol )
 {
-    if( symbol.symbol_group.empty() ) {
-        const Token& token = symbol.token;
-        os << token;
-    } else {
+    if( symbol.symbol_group.empty() )
+        os << "Symbol: " << symbol.token;
+    else
         os << "\(" << symbol.symbol_group << ")";
-        if( symbol.optional )
-            os << "?";
-        if( symbol.repeated )
-            os << "*";
-    }
+
+    if( symbol.optional )
+        os << "?";
+
+    if( symbol.repeated )
+        os << "*";
 
     return os;
 }
 
-std::ostream& operator<<( std::ostream& os, const Production& production )
+std::ostream& operator<<( std::ostream& os, const Part& part )
 {
-    // os << "[";
+    os << "      Part : [";
 
     bool first = true;
-    for( const auto& symbol : production ) {
+    for( const auto& symbol : part ) {
         if( first )
             first = false;
         else
@@ -51,47 +51,76 @@ std::ostream& operator<<( std::ostream& os, const Production& production )
         os << symbol;
     }
 
-    // os << "]";
+    os << "]";
+
+    return os;
+}
+
+std::ostream& operator<<( std::ostream& os, const Production& production )
+{
+    os << "    production : [\n";
+
+    bool first = true;
+    for( const auto& part : production ) {
+        if( first )
+            first = false;
+        else
+            os << ",\n";
+
+        os << part;
+    }
+
+    os << "\n    ]\n";
 
     return os;
 }
 
 std::ostream& operator<<( std::ostream& os, const Rule& rule )
 {
-    os << "\t{\n";
+    os << "  Rule : {\n";
+    os << "    name : " << rule.name << ",\n" ;
+    os << rule.production;
+    os << "  }";
 
-    os << "\t\t\"" << rule.name << "\",\n";
-    os << "\t\t[\n";
+    return os;
+}
+
+std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
+{
+    os << "grammar: [\n";
 
     bool first = true;
-
-    for( const auto& production : rule.productions ) {
+    for( const auto& rule : grammar ) {
         if( first )
             first = false;
         else
             os << ",\n";
 
-        os << "\t\t\t" << production;
+        os << rule;
     }
 
-    os << "\n\t\t]\n";
-
-    os << "\t},\n";
+    os << "\n]";
 
     return os;
 }
 
-std::ostream& operator<<( std::ostream& os, const Rules& rules )
+
+
+std::string sanitise_non_terminal( const Token& token )
 {
-    os << "[\n";
+    if( token.type != Token::Type::NONTERMINAL )
+        return token.lexeme;
 
-    for( const auto& rule : rules )
-        os << rule;
+    std::string lexeme = token.lexeme;
 
-    os << "]\n";
+    // Remove angle brackets
+    lexeme.erase(0,1);
+    lexeme.pop_back();
 
-    return os;
+    return lexeme;
 }
+
+
 
 
 
@@ -111,10 +140,7 @@ std::string Parser::parse_rule_name()
     if( token.type != Token::Type::NONTERMINAL )
         throw std::runtime_error( "Expected rule name at token: " + token.lexeme + "\n");
 
-    std::string rule_name = token.lexeme;
-
-    rule_name.erase(0,1);
-    rule_name.pop_back();
+    std::string rule_name = sanitise_non_terminal( token );
 
     forward_cursor();
 
@@ -131,6 +157,9 @@ void Parser::parse_colon_eq()
 
 Symbol Parser::apply_modifier( Symbol& symbol)
 {
+    if( peek().type != Token::Type::MODIFIER )
+        return symbol;
+
     auto mod = peek().lexeme;
     symbol.optional = (mod == "?");
     symbol.repeated = (mod == "*");
@@ -140,9 +169,42 @@ Symbol Parser::apply_modifier( Symbol& symbol)
     return symbol;
 }
 
-Symbols Parser::parse_production( bool in_group )
+Symbol Parser::parse_regular_token( const Token& token )
 {
-   Symbols symbols;
+    Symbol symbol;
+
+    symbol.token = token;
+
+    symbol.token.lexeme = sanitise_non_terminal( token );
+
+    forward_cursor();
+
+    apply_modifier( symbol );
+
+    return symbol;
+}
+
+Symbol Parser::parse_group_token( )
+{
+    Symbol symbol;
+
+    forward_cursor(); // consume '('
+
+    symbol.symbol_group = parse_part( true ); // recursive parse
+
+    if( peek().type != Token::Type::BRACKET || peek().lexeme != ")" )
+        throw std::runtime_error("Unmatched '(' in production" );
+
+    forward_cursor(); // consume ')'
+
+    apply_modifier( symbol );
+
+    return symbol;
+}
+
+Part Parser::parse_part( bool in_group )
+{
+    Part part;
 
     while( true ) {
         
@@ -164,83 +226,66 @@ Symbols Parser::parse_production( bool in_group )
 
         if( token.type == Token::Type::BRACKET && token.lexeme == "(" ) {                   // start of group
 
-            Symbol symbol;
+            Symbol symbol = parse_group_token( );
 
-            forward_cursor(); // consume '('
-
-            symbol.symbol_group = parse_production( true ); // recursive parse
-
-            if( peek().type != Token::Type::BRACKET || peek().lexeme != ")" )
-                throw std::runtime_error("Unmatched '(' in production" );
-
-            forward_cursor(); // consume ')'
-
-            if( peek().type == Token::Type::MODIFIER )
-                apply_modifier( symbol );
-
-            symbols.push_back( std::move(symbol) );
+            part.push_back( std::move(symbol) );
 
         } else {                                                                        // regular token
 
-            Symbol symbol;
+            Symbol symbol = parse_regular_token( token );
 
-            if( token.type == Token::Type::NONTERMINAL ) {
-                token.lexeme.erase(0,1);
-                token.lexeme.pop_back();
-            }
-
-            symbol.token = token;
-            forward_cursor();
-
-            if( peek().type == Token::Type::MODIFIER )
-                apply_modifier( symbol );
-
-            symbols.push_back( std::move(symbol) );
+            part.push_back( std::move(symbol) );
         }
     }
 
-    return symbols;
+    return part;
 }
 
-Rules Parser::parse_rules( )
+Production Parser::parse_production()
 {
-    Rules rules;
+    Production production;
+    Part part;
+
+    while( true ) {
+
+        Token tok = peek();
+
+        if( tok.type == Token::Type::END_OF_INPUT || tok.type == Token::Type::END_OF_PRODUCTION )
+            break;
+
+        if( tok.type == Token::Type::PIPE ) {
+            production.push_back( part );
+            part.clear();
+            forward_cursor();
+            continue;
+        }
+
+        Part parsed_symbols = parse_part( false );
+        part.insert( part.end(), parsed_symbols.begin(), parsed_symbols.end() );
+    }
+
+    if( !part.empty() )
+        production.push_back( part );
+
+    forward_cursor();
+
+    return production;
+}
+
+Grammar Parser::syntax_tree( )
+{
+    Grammar rules;
 
     cursor = tokens.begin();
 
     while( peek().type != Token::Type::END_OF_INPUT ) {
 
         std::string rule_name = parse_rule_name();
-
         parse_colon_eq();
+        Production production = parse_production();
 
-        Productions productions;
-        Production current_production;
+        rules.push_back( Rule { rule_name, production } );
 
-        while( true ) {
-            
-            Token tok = peek();
-
-            if( tok.type == Token::Type::END_OF_INPUT || tok.type == Token::Type::END_OF_PRODUCTION ) 
-                break;
-
-            if( tok.type == Token::Type::PIPE ) {
-                productions.push_back( current_production );
-                current_production.clear();
-                forward_cursor();
-                continue;
-            }
-            
-            Production parsed_symbols = parse_production( false );
-            current_production.insert( current_production.end(), parsed_symbols.begin(), parsed_symbols.end() );
-        }
-
-        if( !current_production.empty() )
-            productions.push_back( current_production );
-
-        rules.push_back( Rule {rule_name, productions} );
-
-        forward_cursor();
     }
 
     return rules;

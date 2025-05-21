@@ -21,15 +21,13 @@
 #include <algorithm>
 #include <functional>
 
-std::vector<Cycle> TarjanSCC::run()
+void TarjanSCC::run()
 {
     for( const auto& [node, _] : graph )
         if( indices.find(node) == indices.end() )
             strongConnect( node );
 
     get_usage_counts();
-
-    return sccs;
 }
 
 void TarjanSCC::strongConnect( const Node& node )
@@ -58,7 +56,7 @@ void TarjanSCC::strongConnect( const Node& node )
     // If node is a root node, pop the stack and generate an SCC
     if( lowlink[node] == indices[node] ) {
 
-        Cycle new_component;
+        ComponentGroup new_component;
         Node member_node;
 
         do {
@@ -106,7 +104,7 @@ std::unordered_set<Node> TarjanSCC::detect_cycles()
 
     auto comp_func = [&]( const Node& a, const Node& b ) { return usage_count.at(a) < usage_count.at(b); };
 
-    for( const Cycle& cycle : sccs )
+    for( const ComponentGroup& cycle : sccs )
         if( cycle.size() > 1 ) {
             auto it = std::max_element( cycle.begin(), cycle.end(), comp_func );
             forward_declarations.insert( *it );
@@ -127,16 +125,13 @@ std::vector<Node> TarjanSCC::topologicalSort()
 {
     std::vector<Node> sorted;
 
-    // Step 1: Get SCCs
-    // std::vector<Cycle> sccs = run();  // run() returns vector<vector<Node>> where each inner vector is an SCC (strongly connected component)
-
-    // Step 2: Build node -> SCC index map
+    // Step 1: Build node -> SCC index map
     std::unordered_map<Node, size_t> node_to_scc;
     for( size_t i = 0; i < sccs.size(); ++i )
         for( const auto& node : sccs[i] )
             node_to_scc[node] = i;
 
-    // Step 3: Build a meta-graph of SCC dependencies
+    // Step 2: Build a meta-graph of SCC dependencies
     std::unordered_map<size_t, std::unordered_set<size_t>> meta_graph;
 
     // I believe this collapses a cycle into a single node
@@ -154,7 +149,7 @@ std::vector<Node> TarjanSCC::topologicalSort()
         }
     }
 
-    // Step 4: Topologically sort the meta-graph using DFS
+    // Step 3: Topologically sort the meta-graph using DFS
     std::vector<bool> visited(sccs.size(), false);
     std::vector<size_t> sorted_scc_ids;
 
@@ -177,6 +172,7 @@ std::vector<Node> TarjanSCC::topologicalSort()
 
     // std::reverse( sorted_scc_ids.begin(), sorted_scc_ids.end() );
 
+    // Step 4: Order the nodes in a group to put the forward declared node at the back.
     std::unordered_set<Node> forward_decls = detect_cycles();
     for( auto& scc : sccs )
         rotate_scc( scc, forward_decls );
