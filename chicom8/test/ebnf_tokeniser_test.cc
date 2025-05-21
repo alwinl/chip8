@@ -37,14 +37,31 @@ TEST(EBNFTokenTest, TokenStreamOutputMultipleTokens)
 {
     Tokens tokens = {
         {Token::Type::NONTERMINAL, "Expr"},
-        {Token::Type::COLON_EQ, ":="},
+        {Token::Type::COLON_EQ, "::="},
         {Token::Type::STRING_LITERAL, "\"a\""},
     };
 
     std::stringstream ss;
     ss << tokens;
 
-    EXPECT_EQ(ss.str(), "NONTERMINAL(Expr), COLON_EQ(:=), STRING_LITERAL(\"a\")");
+    EXPECT_EQ(ss.str(), "NONTERMINAL(Expr), COLON_EQ(::=), STRING_LITERAL(\"a\")");
+}
+
+TEST(EBNFTokenTest, TokeniseAllTokenTypes)
+{
+    std::string input = "<expr> ::= ( <something>? | <another>+ )* \"astring\" /[a-f]/ ; /*comment*/";
+    Tokens tokens = Tokeniser(input).tokenise_all();
+
+    std::string expected = "NONTERMINAL(<expr>), COLON_EQ(::=), BRACKET((), NONTERMINAL(<something>), "
+                         "MODIFIER(?), PIPE(|), NONTERMINAL(<another>), MODIFIER(+), BRACKET()), "
+                         "MODIFIER(*), STRING_LITERAL(\"astring\"), REGEX(/[a-f]/), END_OF_PRODUCTION(;), "
+                         "COMMENT(/*comment*/), END_OF_INPUT()";
+
+    std::stringstream ss;
+    ss << tokens;
+
+    EXPECT_EQ( ss.str(), expected );
+
 }
 
 TEST(EBNFTokeniserTest, TokeniseSimpleProduction)
@@ -70,7 +87,7 @@ TEST(EBNFTokeniserTest, TokeniseSimpleProduction)
 
 TEST(EBNFTokeniserTest, TokeniseHandlesWhitespaceAndComments)
 {
-    std::string input = "Expr := \"a\" // comment";
+    std::string input = "Expr ::= \"a\" // comment";
     Tokeniser tokenizer(input);
 
     Tokens tokens = tokenizer.tokenise_all();
@@ -84,4 +101,16 @@ TEST(EBNFTokeniserTest, TokeniseHandlesWhitespaceAndComments)
     }
 
     EXPECT_TRUE(foundComment);
+}
+
+TEST(EBNFTokeniserTest, TokeniseRegex)
+{
+    std::string input = "<hex>     ::= /0x[0-9a-fA-F]+/";
+
+    Tokens tokens = Tokeniser(input).tokenise_all();
+
+    std::stringstream ss;
+    ss << tokens;
+
+    EXPECT_EQ(ss.str(), "NONTERMINAL(<hex>), COLON_EQ(::=), REGEX(/0x[0-9a-fA-F]+/), END_OF_INPUT()");
 }
