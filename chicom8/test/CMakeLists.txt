@@ -17,7 +17,7 @@
 # MA 02110-1301, USA.
 #
 
-find_package(GTest REQUIRED)
+include(GoogleTest)
 
 add_executable(
     ebnf_compiler_test
@@ -35,9 +35,8 @@ add_executable(
     chip8_parser_test.cc
 )
 
-target_link_libraries( ebnf_compiler_test  ebnf_compiler_lib  GTest::gtest_main )
-target_link_libraries( chip8_compiler_test chip8_compiler     GTest::gtest_main )
+target_link_libraries( ebnf_compiler_test  ebnf_compiler_lib gtest gtest_main )
+target_link_libraries( chip8_compiler_test chip8_compiler gtest gtest_main )
 
-include(GoogleTest)
 gtest_discover_tests( ebnf_compiler_test )
 gtest_discover_tests( chip8_compiler_test )
