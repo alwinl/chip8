@@ -18,3 +18,15 @@
  */
 
 #pragma once
+
+#include <vector>
+
+struct IRGrammar
+{
+    // std::vector<
+};
+
+class Transformer
+{
+
+};
