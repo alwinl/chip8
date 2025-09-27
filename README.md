@@ -43,3 +43,36 @@ I need to extract the transformer code into its own class, define the DS for the
 input and hook the generator up to that.
 I then need to figure out if it is better to start generating the implementation file or start working on the
 transformer to make the ast more compact and expressive.
+Turns out , its more BNF and less EBNF.
+
+My grammar:
+
+<syntax>         ::= <rule> | <rule> <syntax>
+
+<rule>           ::= <opt-whitespace> "<" <rule-name> ">" <opt-whitespace> "::=" <opt-whitespace> <expression> <line-end>
+
+<opt-whitespace> ::= " " <opt-whitespace> | ""
+
+<line-end>       ::= <opt-whitespace> <EOL> | <line-end> <line-end>
+
+<expression>     ::= <list> | <list> <opt-whitespace> "|" <opt-whitespace> <expression>
+
+<list>           ::= <term> | <term> <opt-whitespace> <list>
+
+<term>           ::= <literal> | "<" <rule-name> ">"
+
+<literal>        ::= '"' <text> '"'
+
+<text>          ::= "" | <character> <text>
+
+<rule-name>      ::= <letter> | <rule-name> <rule-char>
+
+<rule-char>      ::= <letter> | <digit> | "-"
+
+<character>      ::= <letter> | <digit> | <symbol>
+
+<letter>         ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+
+<digit>          ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<symbol>         ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "}" | "~" | "'"
