@@ -17,7 +17,7 @@
 # MA 02110-1301, USA.
 #
 
-include(GoogleTest)
+include( GoogleTest )
 
 add_executable(
 	chidasm8_tests
