@@ -44,8 +44,8 @@ public:
 	void write_listing( std::ostream &os ) const;
 
 private:
-	uint16_t origin;
 	std::string bin_name;
+	uint16_t origin;
 
 	std::set<RawData> data_set;
 	std::set<Instruction> instructions;
