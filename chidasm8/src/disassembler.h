@@ -36,11 +36,7 @@
 class Disassembler
 {
 public:
-	Disassembler( std::string bin_name, unsigned int origin )
-	{
-		this->bin_name = bin_name;
-		this->origin = origin;
-	};
+	Disassembler( std::string bin_name, unsigned int origin ) :	bin_name(bin_name), origin(origin) {};
 
 	void read_binary( std::istream &is );
 	void disassemble();
