@@ -2,6 +2,12 @@
 
 <decl>            ::= <func_decl> | <var_decl> ;
 
+<func_decl>       ::= "func" <identifier> "(" <param_list>? ")" "{" <var_decl>* <stmt>* "}" ;
+
+<param_list>      ::= <typed_identifier> ("," <typed_identifier>)* ;
+
+<typed_identifier> ::= <identifier> ":" <type> ;
+
 <var_decl>        ::= "var" <identifier> ":" <type> ";" ;
 
 <type> ::= "nibble" 
@@ -10,21 +16,10 @@
          | "number" 
          | "bool" 
          | "key" 
-         | <sprite_type>
+         | "sprite" <nibble>
          ;
 
-<sprite_type>     ::= "sprite" <nibble> ;
-
-<func_decl>       ::= "func" <identifier> "(" <param_list>? ")" "{" <stmt>* "}" ;
-
-<param_list>      ::= <typed_identifier> ("," <typed_identifier>)* ;
-
-<typed_identifier> ::= <identifier> ":" <type> ;
-
-<expr_stmt>       ::= <expr> ";" ;
-
-<stmt>            ::= <var_decl>
-                   | <expr_stmt>
+<stmt>            ::= <expr_stmt>
                    | <if_stmt>
                    | <while_stmt>
                    | <return_stmt>
@@ -32,6 +27,8 @@
                    | <getkey_stmt>
                    | <block>
                    ;
+
+<expr_stmt>       ::= <expr> ";" ;
 
 <if_stmt>         ::= "if" "(" <expr> ")" <stmt> ("else" <stmt>)? ;
 

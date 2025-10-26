@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-CommandLineParser::CommandLineParser( int argc, char **argv ) : options("chasm8", "Assembler for CHIP-8 files" )
+CommandLineParser::CommandLineParser( int argc, char **argv ) : options("chasm8", "A C-like compiler for Chip-8" )
 {
 	parse_args(argc, argv);
 }
@@ -79,27 +79,27 @@ void CommandLineParser::parse_args(int argc, char** argv)
     }
 }
 
-std::string CommandLineParser::get_input_name()
+std::string CommandLineParser::get_input_name() const
 {
 	return result["source"].as<std::string>();
 }
 
-std::string CommandLineParser::get_output_name()
+std::string CommandLineParser::get_output_name() const
 {
-	return ( result.count("o") == 0 ) ? get_output_prefix() + ".ch8" : result["o"].as<std::string>();
+	if( result.count("o") != 0 )
+        return result["o"].as<std::string>();
+
+	std::string source = result["source"].as<std::string>();
+    std::filesystem::path path(source);
+    return path.stem().string() + ".ch8";
 }
 
-bool CommandLineParser::is_verbose() const {
+bool CommandLineParser::is_verbose() const
+{
     return result["verbose"].as<bool>();
 }
 
-bool CommandLineParser::show_help() const {
-    return result.count("help") > 0;
-}
-
-const std::string CommandLineParser::get_output_prefix()
+bool CommandLineParser::show_help() const
 {
-	std::string source = get_input_name();
-    std::filesystem::path path(source);
-    return path.stem().string();
+    return result.count("help") > 0;
 }

@@ -24,9 +24,9 @@
 std::ostream& operator<<( std::ostream& os, const Symbol& symbol )
 {
     if( symbol.symbol_group.empty() )
-        os << "Symbol: " << symbol.token;
+        os << "        Symbol: " << symbol.token;
     else
-        os << "\(" << symbol.symbol_group << ")";
+        os << "        \(" << symbol.symbol_group << ")";
 
     if( symbol.optional )
         os << "?";
@@ -39,19 +39,19 @@ std::ostream& operator<<( std::ostream& os, const Symbol& symbol )
 
 std::ostream& operator<<( std::ostream& os, const Part& part )
 {
-    os << "      Part : [";
+    os << "      Part : [\n";
 
     bool first = true;
     for( const auto& symbol : part ) {
         if( first )
             first = false;
         else
-            os << ", ";
+            os << ",\n";
 
         os << symbol;
     }
 
-    os << "]";
+    os << "\n      ]";
 
     return os;
 }
@@ -87,7 +87,7 @@ std::ostream& operator<<( std::ostream& os, const Rule& rule )
 
 std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
 {
-    os << "grammar: [\n";
+    os << "Grammar: [\n";
 
     bool first = true;
     for( const auto& rule : grammar ) {
@@ -272,22 +272,26 @@ Production Parser::parse_production()
     return production;
 }
 
+Rule Parser::parse_rule()
+{
+    Rule rule;
+
+    rule.name = parse_rule_name();
+    parse_colon_eq();
+    rule.production = parse_production();
+
+    return rule;
+}
+
 Grammar Parser::syntax_tree( )
 {
-    Grammar rules;
+    Grammar grammar;
 
     cursor = tokens.begin();
 
-    while( peek().type != Token::Type::END_OF_INPUT ) {
+    while( peek().type != Token::Type::END_OF_INPUT )
+        grammar.push_back( parse_rule() );
 
-        std::string rule_name = parse_rule_name();
-        parse_colon_eq();
-        Production production = parse_production();
-
-        rules.push_back( Rule { rule_name, production } );
-
-    }
-
-    return rules;
+    return grammar;
 }
 

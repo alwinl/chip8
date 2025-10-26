@@ -1,5 +1,5 @@
 /*
- * instruction.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,24 +17,28 @@
  * MA 02110-1301, USA.
  */
 
-#include "instruction.h"
+#pragma once
 
-#include <ostream>
+#include "../vendor/cxxopts/cxxopts.hpp"
 
-#include "utils.h"
+#include <string>
+#include <vector>
 
-void Instruction::print( std::ostream &os ) const
+class CommandLineParser
 {
-	uint8_t low_byte = opcode & 0xFF;
-	uint8_t high_byte = (opcode >> 8) & 0xFF;
+public:
+    CommandLineParser( std::vector<std::string> arguments );
+    CommandLineParser( int argc, char ** argv );
 
-	os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
-	   << mnemonic << " " << argument << "\n";
-}
+    std::string get_source_name();
+    std::string get_program_name();
+	std::string get_output_name();
+    bool is_verbose() const;
+    bool show_help() const;
 
-std::ostream& operator<<( std::ostream& os, const Instruction& inst )
-{
-	inst.print( os );
+private:
+    cxxopts::Options options;
+    cxxopts::ParseResult result;
 
-	return os;
-}
+	const std::string get_output_prefix();
+};

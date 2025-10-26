@@ -31,6 +31,8 @@ struct Symbol
     bool optional = false;
     bool repeated = false;
     std::vector<Symbol> symbol_group;
+
+    auto operator<=>(const Symbol&) const = default;
 };
 
 using Part = std::vector<Symbol>;
@@ -40,6 +42,8 @@ struct Rule
 {
     std::string name;
     Production production;
+
+    auto operator<=>(const Rule&) const = default;
 };
 
 using Grammar = std::vector<Rule>;
@@ -68,6 +72,7 @@ private:
     Symbol parse_group_token( );
     Part parse_part( bool in_group );
     Production parse_production();
+    Rule parse_rule();
 
     Symbol apply_modifier( Symbol& symbol);
 

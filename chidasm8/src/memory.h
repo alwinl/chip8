@@ -1,5 +1,5 @@
 /*
- * raw_data.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * memory.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,27 +20,25 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
-class RawData
-{
+class Memory {
 public:
-	/* Default arguments so we can make a RawData object for comparison (find ) */
-	RawData( uint16_t location, uint8_t value = 0, bool is_instruction = false )
-	{
-		this->location = location;
-		this->value = value;
-		this->is_instruction = is_instruction;
-	};
+    Memory(uint16_t origin) : origin(origin) {}
 
-	bool operator<( const RawData &rhs ) const { return location < rhs.location; }
-	bool operator==( const RawData &rhs ) const { return location == rhs.location; }
+    void add_byte(uint16_t addr, uint8_t value);
+    uint8_t get_byte(uint16_t addr) const;
+    void mark_instruction(uint16_t addr);
+    bool is_instruction(uint16_t addr) const;
 
-	uint8_t val() const { return value; }
-	uint16_t get_location() const { return location; }
-	bool instruction() const { return is_instruction; }
+    uint16_t mem_start() const { return origin; }
+    uint16_t mem_end() const { return origin + bytes.size(); }
 
 private:
-	uint16_t location;
-	uint8_t value;
-	bool is_instruction;
+    uint16_t origin;
+    std::vector<uint8_t> bytes;
+    std::vector<bool> instruction_flag;
+
+    void ensure_capacity(uint16_t addr);
+    bool check_bounds( uint16_t addr ) const;
 };

@@ -29,12 +29,15 @@ struct Token
 
     Type type;
     std::string lexeme;
+    int line;
+    int column;
+
+    auto operator<=>(const Token&) const = default;
 };
 
 using Tokens = std::vector<Token>;
 
 std::ostream& operator<<( std::ostream& os, const Token& token );
-std::ostream& operator<<( std::ostream& os, const Tokens& tokens );
 
 class Tokeniser
 {
@@ -48,4 +51,8 @@ public:
 private:
     std::string source;
     int cursor = 0;
+    int line = 1;
+    int column = 1;
+
+    void update_position_tracking( std::string lexeme );
 };

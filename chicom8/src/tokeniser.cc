@@ -25,24 +25,26 @@
 
 struct TokenMatcher
 {
-    std::string pattern;
+    std::regex pattern;
     Token::Type type;
     bool skip_token;
 };
 
+
 std::vector<TokenMatcher> match_set =
 {
-    TokenMatcher{ R"(^//[^\n]*)", Token::Type::COMMENT, false},
-    TokenMatcher{ R"(^/\*([^*]|\*[^/])*\*/)", Token::Type::COMMENT, false},
-    TokenMatcher{ R"(^\s+)", Token::Type::WHITESPACE, true },
-    TokenMatcher{ R"(^==|!=|<=|>=|&&|\|\||\+=|\-=|\*=|/=|\+\+|\-\-)", Token::Type::OPERATOR, false },
-    TokenMatcher{ R"(^[+\-*\/=<>!&|])", Token::Type::OPERATOR, false },
-    TokenMatcher{ R"(^let|var)", Token::Type::KEYWORD, false},
-    TokenMatcher{ R"(^[a-zA-Z_][a-zA-Z0-9_]*)", Token::Type::IDENTIFIER, false },
-    TokenMatcher{ R"(^"([^*]|\*[^/])*")", Token::Type::STRING_LITERAL, false},
-    TokenMatcher{ R"(^[.,;()\[\]{}])", Token::Type::PUNCTUATION, false },
-    TokenMatcher{ R"(^0x[0-9A-Fa-f]+)", Token::Type::NUMBER, false },
-    TokenMatcher{ R"(^\d+)", Token::Type::NUMBER, false},
+    TokenMatcher{ std::regex(R"(^//[^\n]*)"), Token::Type::COMMENT, false},
+    TokenMatcher{ std::regex(R"(^/\*([^*]|\*[^/])*\*/)"), Token::Type::COMMENT, false},
+    TokenMatcher{ std::regex(R"(^\s+)"), Token::Type::WHITESPACE, true },
+    TokenMatcher{ std::regex(R"(^==|!=|<=|>=|&&|\|\||\+=|\-=|\*=|/=|\+\+|\-\-)"), Token::Type::OPERATOR, false },
+    TokenMatcher{ std::regex(R"(^[+\-*\/=<>!&|])"), Token::Type::OPERATOR, false },
+    TokenMatcher{ std::regex(R"(^nibble|byte|snack|number|bool|key|sprite)"), Token::Type::TYPE_KEYWORD, false},
+    TokenMatcher{ std::regex(R"(^let|var|func)"), Token::Type::KEYWORD, false},
+    TokenMatcher{ std::regex(R"(^[a-zA-Z_][a-zA-Z0-9_]*)"), Token::Type::IDENTIFIER, false },
+    TokenMatcher{ std::regex(R"(^"([^*]|\*[^/])*")"), Token::Type::STRING_LITERAL, false},
+    TokenMatcher{ std::regex(R"(^[.,:;()\[\]{}])"), Token::Type::PUNCTUATION, false },
+    TokenMatcher{ std::regex(R"(^0x[0-9A-Fa-f]+)"), Token::Type::NUMBER, false },
+    TokenMatcher{ std::regex(R"(^\d+)"), Token::Type::NUMBER, false},
 };
 
 std::string escape_string( const std::string& input)
@@ -67,6 +69,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
     static std::unordered_map<Token::Type, std::string> type_strings =
     {
         { Token::Type::KEYWORD, "KEYWORD" },
+        { Token::Type::TYPE_KEYWORD, "TYPE_KEYWORD" },
         { Token::Type::IDENTIFIER, "IDENTIFIER" },
         { Token::Type::NUMBER, "NUMBER" },
         { Token::Type::OPERATOR, "OPERATOR" },
@@ -107,9 +110,7 @@ Token Tokeniser::next_token()
 
     for (const auto& match_entry : match_set) {
 
-        std::regex token_regex(match_entry.pattern);
-
-        if (std::regex_search(begin, end, match, token_regex) && match.position() == 0) {
+        if (std::regex_search(begin, end, match, match_entry.pattern) && match.position() == 0) {
 
             std::string lexeme = match[0];
             auto tok_line = line;

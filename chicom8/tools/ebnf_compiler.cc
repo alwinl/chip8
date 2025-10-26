@@ -20,6 +20,8 @@
 #include <iostream>
 #include <filesystem>
 
+#include <fstream>
+
 #include "ebnf_tokeniser.h"
 #include "ebnf_parser.h"
 #include "ebnf_generator.h"
@@ -27,11 +29,15 @@
 int main()
 {
     std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
+    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.grammar");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
     Grammar grammar = Parser( tokens ).syntax_tree();
 
-    Generator().generateAstFiles( std::cout, grammar);
+
+    std::ofstream output( grammar_file );
+    output << grammar;
+    // Generator().generateAstFiles( std::cout, grammar);
     
     return 0;
 }

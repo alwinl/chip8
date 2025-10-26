@@ -20,48 +20,8 @@
 #include "ebnf_tokeniser.h"
 
 #include <regex>
+#include <unordered_map>
 #include <fstream>
-
-std::ostream& operator<<( std::ostream& os, const Token::Type& type )
-{
-    switch( type ) {
-    case Token::Type::COMMENT: os << "COMMENT"; break;
-    case Token::Type::WHITESPACE: os << "WHITESPACE"; break;
-    case Token::Type::NONTERMINAL: os << "NONTERMINAL"; break;
-    case Token::Type::COLON_EQ: os << "COLON_EQ"; break;
-    case Token::Type::BRACKET: os << "BRACKET"; break;
-    case Token::Type::MODIFIER: os << "MODIFIER"; break;
-    case Token::Type::PIPE: os << "PIPE"; break;
-    case Token::Type::REGEX: os << "REGEX"; break;
-    case Token::Type::END_OF_PRODUCTION: os << "END_OF_PRODUCTION"; break;
-    case Token::Type::STRING_LITERAL: os << "STRING_LITERAL"; break;
-    case Token::Type::END_OF_INPUT: os << "END_OF_INPUT"; break;
-    case Token::Type::INVALID: os << "INVALID"; break;
-    }
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Token& token )
-{
-    os << token.type << "(" << token.lexeme << ")";
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Tokens& tokens )
-{
-    bool first = true;
-    for( const auto& token : tokens ) {
-        if( first )
-            first = false;
-        else
-            os << ", ";
-
-        os << token;
-    }
-
-    return os;
-}
-
 
 
 struct TokenMatcher
@@ -86,6 +46,51 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^"[^"]*")"), Token::Type::STRING_LITERAL, false },
 };
 
+std::string escape_string( const std::string& input)
+{
+    // std::string escaped = "\"";
+    std::string escaped;
+    for( char c : input ) {
+        switch (c) {
+        case '"': escaped += "\\\""; break;
+        case '\\': escaped += "\\\\"; break;
+        case '\n': escaped += "\\n"; break;
+        case '\r': escaped += "\\r"; break;
+        case '\t': escaped += "\\t"; break;
+        default: escaped += c; break;
+        }
+    }
+    // escaped += "\"";
+    return escaped;
+}
+
+std::ostream& operator<<( std::ostream& os, const Token& token )
+{
+    static std::unordered_map<Token::Type, std::string> type_strings =
+    {
+        { Token::Type::COMMENT, "COMMENT" },
+        { Token::Type::WHITESPACE, "WHITESPACE" },
+        { Token::Type::NONTERMINAL, "NONTERMINAL" },
+        { Token::Type::COLON_EQ, "COLON_EQ" },
+        { Token::Type::BRACKET, "BRACKET" },
+        { Token::Type::MODIFIER, "MODIFIER" },
+        { Token::Type::PIPE, "PIPE" },
+        { Token::Type::REGEX, "REGEX" },
+        { Token::Type::END_OF_PRODUCTION, "END_OF_PRODUCTION" },
+        { Token::Type::STRING_LITERAL, "STRING_LITERAL" },
+        { Token::Type::END_OF_INPUT, "END_OF_INPUT" },
+        { Token::Type::INVALID, "INVALID" },
+    };
+
+    os << "{ "
+            "type: " << type_strings[token.type] << ", "
+            "lexeme: " << token.lexeme << ", "
+            // "lexeme: " << escape_string(token.lexeme) << ", "
+            "line: " << token.line << ", "
+            "column: " << token.column << "}";
+    return os;
+}
+
 Tokeniser::Tokeniser( std::filesystem::path file_path )
 {
     std::ifstream src(file_path);
@@ -99,7 +104,7 @@ Tokeniser::Tokeniser( std::filesystem::path file_path )
 Token Tokeniser::next_token()
 {
     if( cursor >= source.length() )
-        return Token{ Token::Type::END_OF_INPUT, "" };
+        return Token{ Token::Type::END_OF_INPUT, "", line, column };
 
     auto begin = source.cbegin() + cursor;
     auto end = source.cend();
@@ -110,21 +115,25 @@ Token Tokeniser::next_token()
         if( std::regex_search(begin, end, match, match_entry.pattern) && match.position() == 0 ) {
 
             std::string lexeme = match[0];
+            auto tok_line = line;
+            auto tok_column = column;
 
-            cursor += lexeme.length();
+            update_position_tracking( lexeme );
 
             if( match_entry.skip_token )
                 return next_token();
 
-            return Token{ match_entry.type, lexeme };
+            return Token{ match_entry.type, lexeme, tok_line, tok_column };
         }
     }
 
     std::string lexeme( 1, *begin );
+    auto tok_line = line;
+    auto tok_column = column;
 
-    cursor += lexeme.length();
+    update_position_tracking( lexeme );
 
-    return Token{ Token::Type::INVALID, lexeme };
+    return Token{ Token::Type::INVALID, lexeme, tok_line, tok_column };
 }
 
 Tokens Tokeniser::tokenise_all()
@@ -141,3 +150,16 @@ Tokens Tokeniser::tokenise_all()
     return tokens;
 }
 
+void Tokeniser::update_position_tracking( std::string lexeme )
+{
+    for( char c : lexeme ) {
+        if (c == '\n') {
+            line++;
+            column = 1;
+        } else {
+            column++;
+        }
+    }
+
+    cursor += lexeme.length();
+}

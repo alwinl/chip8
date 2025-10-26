@@ -26,23 +26,23 @@ class Instruction
 {
 public:
 	/* Default arguments so we can make an Instruction object for comparison (find) */
-	Instruction( unsigned int address, std::string mnemonic = "", std::string argument = "" )
-	{
-		this->address = address;
-		this->mnemonic = mnemonic;
-		this->argument = argument;
-	}
+	Instruction( unsigned int address, unsigned int opcode = 0, std::string mnemonic = "", std::string argument = "" ) :
+		address(address), opcode(opcode), mnemonic(mnemonic), argument(argument)
+	{}
 
 	bool operator<( const Instruction &rhs ) const { return address < rhs.address; };
 	bool operator==( const Instruction &rhs ) const { return address == rhs.address; };
 
 	uint16_t get_address() const { return address; };
 
-	void print( std::ostream &os, uint8_t high_byte, uint8_t low_byte ) const;
+	void print( std::ostream &os ) const;
 
 private:
 	uint16_t address;
+	uint16_t opcode;
 	std::string mnemonic;
 	std::string argument;
 };
+
+std::ostream& operator<<( std::ostream& os, const Instruction& inst );
 

@@ -29,12 +29,9 @@ public:
 	enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
 
 	/* Default arguments so we can make a Target object for comparison (find) */
-	Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" )
-	{
-		this->address = address;
-		this->type = type;
-		this->label = label;
-	};
+	Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" ) :
+		address( address ), type( type ), label( label )
+	{}
 
 	bool operator<( const Target &rhs ) const { return address < rhs.address; }
 	bool operator==( const Target &rhs ) const { return address == rhs.address; }
@@ -49,3 +46,9 @@ private:
 	std::string label;
 };
 
+std::ostream& operator<<( std::ostream& os, const Target& target );
+
+// enum class eTargetTypes { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
+// using TargetMapKey = std::pair<eTargetTypes, uint16_t>;
+
+// using TargetMap = std::unordered_map<

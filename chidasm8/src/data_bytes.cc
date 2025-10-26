@@ -32,3 +32,10 @@ void DataBytes::print( std::ostream &os ) const
 
 	os << '\n';
 }
+
+std::ostream &operator<<( std::ostream &os, const DataBytes &data_bytes )
+{
+	data_bytes.print( os );
+
+	return os;
+}

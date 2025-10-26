@@ -49,16 +49,7 @@ private:
 	std::vector<uint8_t>& buffer;
 };
 
-class AssemblerTest : public ::testing::Test {
-protected:
-	void SetUp() override {
-		
-	}
-	void TearDown() override {
-	}
-};
-
-TEST_F(AssemblerTest, ClearScreen)
+TEST(Chasem8_AssemblerTest, ClearScreen)
 {
 	std::string input = "cls\nret\n";
 	std::stringstream source( input );
@@ -81,7 +72,8 @@ TEST_F(AssemblerTest, ClearScreen)
 		EXPECT_EQ( expected[index], actual[index] );
 	}
 }
-TEST_F(AssemblerTest, JP)
+
+TEST(Chasem8_AssemblerTest, JP)
 {
 	std::string input = "\tjp 0x212\n";
 	std::stringstream source( input );
@@ -114,7 +106,7 @@ public:
     using Assembler::get_symbol;
 };
 
-TEST_F(AssemblerTest, ExtractsLabelAndRemovesItFromTokens)
+TEST(Chasem8_AssemblerTest, ExtractsLabelAndRemovesItFromTokens)
 {
     AssemblerTestInterface assembler;
     std::vector<std::string> tokens = { "start:", "JP", "0x300" };
@@ -126,7 +118,7 @@ TEST_F(AssemblerTest, ExtractsLabelAndRemovesItFromTokens)
     ASSERT_EQ(tokens[0], "JP");
 }
 
-TEST_F(AssemblerTest, AddsInstructionAndReturnsCorrectLength)
+TEST(Chasem8_AssemblerTest, AddsInstructionAndReturnsCorrectLength)
 {
     AssemblerTestInterface assembler;
     std::vector<std::string> tokens = { "CLS" };

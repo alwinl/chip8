@@ -27,3 +27,8 @@
 	os << '\t' << label << ":\n";
 }
 
+std::ostream &operator<<( std::ostream &os, const Target &target )
+{
+	target.print( os );
+	return os;
+}

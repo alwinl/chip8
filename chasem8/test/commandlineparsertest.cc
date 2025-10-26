@@ -39,16 +39,7 @@ std::string random_string( size_t length )
 	return str;
 }
 
-class CommandLineParserTest : public ::testing::Test {
-protected:
-	void SetUp() override {
-		
-	}
-	void TearDown() override {
-	}
-};
-
-TEST_F(CommandLineParserTest, ValidCreation)
+TEST(Chasem8_CommandLineParserTest, ValidCreation)
 {
 	std::string basename = random_string( 8 );
 
@@ -60,12 +51,12 @@ TEST_F(CommandLineParserTest, ValidCreation)
 	EXPECT_EQ( "", filenames.get_listing_name() );
 }
 
-TEST_F(CommandLineParserTest, Help)
+TEST(Chasem8_CommandLineParserTest, Help)
 {
 	CommandLineParser args( { "-h" } );
 }
 
-TEST_F(CommandLineParserTest, InvalidCreation)
+TEST(Chasem8_CommandLineParserTest, InvalidCreation)
 {
 	std::vector<std::string> argument_list = {};
 	try {
@@ -77,7 +68,7 @@ TEST_F(CommandLineParserTest, InvalidCreation)
 	FAIL() << "Constructor should have thrown";
 }
 
-TEST_F(CommandLineParserTest, OldStyleArgsCreation)
+TEST(Chasem8_CommandLineParserTest, OldStyleArgsCreation)
 {
 	std::string prog_name = "chasm8";
 	std::string basename = random_string( 8 );
@@ -106,7 +97,7 @@ TEST_F(CommandLineParserTest, OldStyleArgsCreation)
 	EXPECT_EQ( listing_name, filenames.get_listing_name() ) << "Not the right listing file name: " << listing_name << " != " << filenames.get_listing_name();
 }
 
-TEST_F(CommandLineParserTest, GetSourceTest)
+TEST(Chasem8_CommandLineParserTest, GetSourceTest)
 {
 	std::string basename = random_string( 8 );
 
@@ -116,7 +107,7 @@ TEST_F(CommandLineParserTest, GetSourceTest)
 	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
 }
 
-TEST_F(CommandLineParserTest, GetBinaryFromArgTest)
+TEST(Chasem8_CommandLineParserTest, GetBinaryFromArgTest)
 {
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
@@ -127,7 +118,7 @@ TEST_F(CommandLineParserTest, GetBinaryFromArgTest)
 	EXPECT_EQ( binary_basename + ".bin", filenames.get_binary_name() );
 }
 
-TEST_F(CommandLineParserTest, GetBinaryFromSourceTest)
+TEST(Chasem8_CommandLineParserTest, GetBinaryFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
@@ -137,7 +128,7 @@ TEST_F(CommandLineParserTest, GetBinaryFromSourceTest)
 	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
 }
 
-TEST_F(CommandLineParserTest, GetListingFromArgTest)
+TEST(Chasem8_CommandLineParserTest, GetListingFromArgTest)
 {
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
@@ -149,7 +140,7 @@ TEST_F(CommandLineParserTest, GetListingFromArgTest)
 	EXPECT_EQ( listing_basename + ".lst", filenames.get_listing_name() );
 }
 
-TEST_F(CommandLineParserTest, GetBlankListingFromSourceTest)
+TEST(Chasem8_CommandLineParserTest, GetBlankListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
@@ -160,7 +151,7 @@ TEST_F(CommandLineParserTest, GetBlankListingFromSourceTest)
 
 }
 
-TEST_F(CommandLineParserTest, GetDefaultListingFromSourceTest)
+TEST(Chasem8_CommandLineParserTest, GetDefaultListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
@@ -172,7 +163,7 @@ TEST_F(CommandLineParserTest, GetDefaultListingFromSourceTest)
 	EXPECT_EQ( basename + ".lst", filenames.get_listing_name() );
 }
 
-TEST_F(CommandLineParserTest, GetAllFromOneArgument)
+TEST(Chasem8_CommandLineParserTest, GetAllFromOneArgument)
 {
 	std::string basename = random_string( 8 );
 
@@ -189,7 +180,7 @@ TEST_F(CommandLineParserTest, GetAllFromOneArgument)
 	EXPECT_EQ( "", filenames.get_listing_name() );
 }
 
-TEST_F(CommandLineParserTest, GetAllFromTwoArguments)
+TEST(Chasem8_CommandLineParserTest, GetAllFromTwoArguments)
 {
 	std::string basename = random_string( 8 );
 
@@ -210,7 +201,7 @@ TEST_F(CommandLineParserTest, GetAllFromTwoArguments)
 	// std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
 	// std::string listing_name = random_string( 8 ) + "." + random_string( 3 );
 
-TEST_F(CommandLineParserTest, GetAllFromThreeArguments)
+TEST(Chasem8_CommandLineParserTest, GetAllFromThreeArguments)
 {
 	std::string source_name = "source." + random_string( 3 );
 	std::string binary_name = "binary." + random_string( 3 );
@@ -225,7 +216,7 @@ TEST_F(CommandLineParserTest, GetAllFromThreeArguments)
 	EXPECT_EQ( listing_name, filenames.get_listing_name() );
 }
 
-TEST_F(CommandLineParserTest, GetDefaultListName)
+TEST(Chasem8_CommandLineParserTest, GetDefaultListName)
 {
 	std::string basename = random_string( 8 );
 

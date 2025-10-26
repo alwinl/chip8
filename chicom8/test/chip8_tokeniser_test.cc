@@ -21,11 +21,6 @@
 
 #include "tokeniser.h"
 
-void PrintTo( const Token& token, std::ostream* os )
-{
-    *os << token;
-}
-
 TEST(TokeniserTest, ParsesSingleLineComment)
 {
     Tokeniser lexer( std::string("// this is a comment\n42"));

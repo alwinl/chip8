@@ -27,6 +27,8 @@ add_library(
 	instruction.cc
 	target.cc
 	utils.cc
+	memory.cc
+	commandlineparser.cc
 	# filenameextractor.cc
 	# instruction.cc
 	# program.cc

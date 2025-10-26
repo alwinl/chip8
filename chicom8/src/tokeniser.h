@@ -27,7 +27,7 @@
 struct Token
 {
     enum class Type {
-        KEYWORD, IDENTIFIER, NUMBER, OPERATOR, PUNCTUATION, STRING_LITERAL,
+        KEYWORD, TYPE_KEYWORD, IDENTIFIER, NUMBER, OPERATOR, PUNCTUATION, STRING_LITERAL,
         COMMENT, WHITESPACE, END_OF_INPUT, INVALID
     };
 
@@ -42,7 +42,6 @@ struct Token
 using Tokens = std::vector<Token>;
 
 std::ostream& operator<<( std::ostream& os, const Token& token );
-std::ostream& operator<<( std::ostream& os, const Tokens& tokens );
 
 class Tokeniser
 {

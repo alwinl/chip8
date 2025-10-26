@@ -28,31 +28,48 @@
 
 #include <iosfwd>
 
-#include "raw_data.h"
 #include "instruction.h"
 #include "data_bytes.h"
 #include "target.h"
+#include "memory.h"
 
+struct InputData
+{
+	InputData( std::string bin_name, uint16_t origin ) : bin_name(bin_name), origin(origin ), memory(origin) {};
+
+	std::string bin_name;
+	uint16_t origin;
+	Memory memory;
+};
+
+std::istream& operator>>( std::istream& is, InputData& input );
+
+struct OutputData
+{
+	std::string bin_name;
+	uint16_t origin;
+	std::set<Instruction> instructions;
+	std::set<DataBytes> databytes;
+	std::set<Target> jmp_targets;
+};
+
+std::ostream& operator<<( std::ostream& os, const OutputData& data );
 class Disassembler
 {
 public:
-	Disassembler( std::string bin_name, unsigned int origin ) :	bin_name(bin_name), origin(origin) {};
+	Disassembler( InputData& input ) : memory(input.memory), bin_name(input.bin_name), origin(input.origin) {}
 
-	void read_binary( std::istream &is );
-	void disassemble();
-	void collect_data_bytes();
-	void write_listing( std::ostream &os ) const;
+    OutputData disassemble();
 
 private:
-	std::string bin_name;
 	uint16_t origin;
-
-	std::set<RawData> data_set;
+	std::string bin_name;
+	Memory& memory;
 	std::set<Instruction> instructions;
 	std::set<DataBytes> databytes;
 
 	std::stack<uint16_t> address_stack;
-	uint8_t V0_content; // need to keep a record of all registers, so we can push the correct address on JMP instruction
+	// uint8_t V0_content; // need to keep a record of all registers, so we can push the correct address on JMP instruction
 
 	/* Don't like this whole block
 	 * maybe it should be encapsulated in a new object
@@ -62,15 +79,8 @@ private:
 	unsigned int funct_sequence = 0;
 	unsigned int data_sequence = 0;
 	unsigned int table_sequence = 0;
-	std::string add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type );
+	std::string add_target( uint16_t target_address, Target::eTargetKind type );
 
-	/*
-	 * Problem with all these decode functions is that they have two side effects
-	 * 1. Translate a raw byte into a mnemonic
-	 * 2. Calculate new instruction addresses
-	 *
-	 * These are to distinct responsibilities
-	 */
 	Instruction decode_SYS( uint16_t address, uint16_t opcode );
 	Instruction decode_JP( uint16_t address, uint16_t opcode );
 	Instruction decode_CALL( uint16_t address, uint16_t opcode );
@@ -88,14 +98,7 @@ private:
 	Instruction decode_Key( uint16_t address, uint16_t opcode );
 	Instruction decode_Misc( uint16_t address, uint16_t opcode );
 
-	void mark_as_instruction( uint16_t address );
 	void disassemble_instruction( uint16_t address );
 
-	void configure_stream( std::ostream &os ) const;
-	void write_header( std::ostream &os ) const;
-
-	void output_instruction( std::ostream &os, Instruction inst ) const;
-	void output_datarun( std::ostream &os, DataBytes datarun ) const;
-
-	bool label_present( std::set<Target>::iterator &it, uint16_t address ) const;
+	void collect_data_bytes();
 };

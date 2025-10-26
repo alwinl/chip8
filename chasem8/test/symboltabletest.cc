@@ -21,14 +21,14 @@
 
 #include "assembler.h"
 
-TEST(SymbolTableTest, NoEntries)
+TEST(Chasem8_SymbolTableTest, NoEntries)
 {
     SymbolTable symbol_table;
 
     EXPECT_EQ(0, symbol_table.size());
 }
 
-TEST(SymbolTableTest, AddSingleLabel)
+TEST(Chasem8_SymbolTableTest, AddSingleLabel)
 {
     SymbolTable symbol_table;
 
@@ -38,7 +38,7 @@ TEST(SymbolTableTest, AddSingleLabel)
     EXPECT_EQ(0x0200, symbol_table.get_address("main"));
 }
 
-TEST(SymbolTableTest, AddMultipleLabels)
+TEST(Chasem8_SymbolTableTest, AddMultipleLabels)
 {
     SymbolTable symbol_table;
 
@@ -50,7 +50,7 @@ TEST(SymbolTableTest, AddMultipleLabels)
     EXPECT_EQ(0x0202, symbol_table.get_address("_start"));
 }
 
-TEST(SymbolTableTest, AddDuplicateLabel)
+TEST(Chasem8_SymbolTableTest, AddDuplicateLabel)
 {
     SymbolTable symbol_table;
 
@@ -58,7 +58,7 @@ TEST(SymbolTableTest, AddDuplicateLabel)
     EXPECT_THROW(symbol_table.add_label("main", 0x0202), std::invalid_argument);
 }
 
-TEST(SymbolTableTest, GetAddressNonExistentLabel)
+TEST(Chasem8_SymbolTableTest, GetAddressNonExistentLabel)
 {
     SymbolTable symbol_table;
 

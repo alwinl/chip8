@@ -22,30 +22,45 @@
 #include <fstream>
 #include <iostream>
 
+#include "commandlineparser.h"
 #include "disassembler.h"
 
 int main( int argc, char *argv[] )
 {
 	static const unsigned int start_address = 0x200;
 
+	CommandLineParser args( argc, argv );
+
+	std::ifstream source_file = std::ifstream( args.get_source_name(), std::ios::in | std::ios::binary );
+	if( source_file.fail() ) {
+		std::cout << "Cannot open source file" << std::endl;
+		return 2;
+	}
+
+	if( source_file.peek() == std::ifstream::traits_type::eof() ) {
+		std::cout << "Source file is empty" << std::endl;
+		return 2;
+	}
+
+	std::ofstream output_file = std::ofstream( args.get_output_name(), std::ios::out );
+	if( !output_file.is_open() ) {
+		std::cout << "Cannot open output file" << std::endl;
+		return 3;
+	}
+
+
 	if( argc < 2 ) {
 		std::cout << "Usage dis_chip8 [program binary]" << std::endl;
 		return 1;
 	}
 
-	std::ofstream os = std::ofstream( std::string( argv[1] ) + ".lst" );
-	std::ifstream is = std::ifstream( argv[1] );
+	InputData input( args.get_program_name(), start_address );
 
-	if( !is.good() || !os.good() ) {
-		std::cout << "Cannot open files" << std::endl;
-		return 1;
-	}
+	source_file >> input;
 
-	Disassembler dis( argv[1], start_address );
-	dis.read_binary( is );
-	dis.disassemble();
-	dis.collect_data_bytes();
-	dis.write_listing( os );
+	OutputData data = Disassembler(input).disassemble();
+
+	output_file << data;
 
 	return 0;
 }

@@ -21,47 +21,38 @@
 
 #include "linepreprocessor.h"
 
-class LinePreprocessorTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        
-    }
-    void TearDown() override {
-    }
-};
-
-TEST_F( LinePreprocessorTest, RemovesComments )
+TEST( Chasem8_LinePreprocessorTest, RemovesComments )
 {
     EXPECT_EQ(LinePreprocessor::tokenise("LD V0, 0xF0 ; This is a comment"), std::vector<std::string>({"LD", "V0,", "0xF0"}));
     EXPECT_TRUE(LinePreprocessor::tokenise("; This is a whole line comment").empty());
     EXPECT_EQ(LinePreprocessor::tokenise("JP 0x200; This is a comment"), std::vector<std::string>({"JP", "0x200"}));
 }
 
-TEST_F( LinePreprocessorTest, RemovesCarriageReturn )
+TEST( Chasem8_LinePreprocessorTest, RemovesCarriageReturn )
 {
     EXPECT_EQ(LinePreprocessor::tokenise("CLS\r"), std::vector<std::string>({"CLS"}));
     EXPECT_EQ(LinePreprocessor::tokenise("RET ; comment\r"), std::vector<std::string>({"RET"}));
 }
 
 
-TEST_F( LinePreprocessorTest, TokenisesWord )
+TEST( Chasem8_LinePreprocessorTest, TokenisesWord )
 {
     std::vector<std::string> expected = {"LD", "V0,", "0xF0"};
     EXPECT_EQ(LinePreprocessor::tokenise("LD V0, 0xF0"), expected);
 }
 
-TEST_F( LinePreprocessorTest, TokeniseEmptyLineReturnsEmptyVector)
+TEST( Chasem8_LinePreprocessorTest, TokeniseEmptyLineReturnsEmptyVector)
 {
     EXPECT_TRUE(LinePreprocessor::tokenise("").empty());
 }
 
-TEST_F( LinePreprocessorTest, HandlesLeadingAndTrailingWhitespace)
+TEST( Chasem8_LinePreprocessorTest, HandlesLeadingAndTrailingWhitespace)
 {
     std::vector<std::string> expected = {"JP", "0x300"};
     EXPECT_EQ(LinePreprocessor::tokenise("   JP    0x300   "), expected);
 }
 
-TEST_F( LinePreprocessorTest, KeepsCommaSeparatedTokenTogether)
+TEST( Chasem8_LinePreprocessorTest, KeepsCommaSeparatedTokenTogether)
 {
     std::vector<std::string> tokens = LinePreprocessor::tokenise(".DB 0x12,0x34");
     ASSERT_EQ(tokens.size(), 2);

@@ -31,11 +31,9 @@
 class DataBytes
 {
 public:
-	DataBytes( unsigned int address, std::vector<uint8_t> byte_run )
-	{
-		this->address = address;
-		this->byte_run = byte_run;
-	}
+	DataBytes( unsigned int address, std::vector<uint8_t> byte_run ) :
+		address( address ),	byte_run( byte_run )
+	{}
 
 	bool operator<( const DataBytes &rhs ) const { return address < rhs.address; };
 	bool operator==( const DataBytes &rhs ) const { return address == rhs.address; };
@@ -48,4 +46,6 @@ private:
 	uint16_t address;
 	std::vector<uint8_t> byte_run;
 };
+
+std::ostream& operator<<( std::ostream& os, const DataBytes& data_bytes );
 

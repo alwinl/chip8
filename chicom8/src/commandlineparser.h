@@ -30,8 +30,8 @@ public:
     CommandLineParser( std::vector<std::string> arguments );
     CommandLineParser( int argc, char ** argv );
 
-    std::string get_input_name();
-	std::string get_output_name();
+    std::string get_input_name() const;
+	std::string get_output_name() const;
     bool is_verbose() const;
     bool show_help() const;
 
@@ -39,6 +39,5 @@ private:
     cxxopts::Options options;
     cxxopts::ParseResult result;
 
-	const std::string get_output_prefix();
     void parse_args(int argc, char** argv);
 };

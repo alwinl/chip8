@@ -24,73 +24,46 @@
 
 #include "ebnf_tokeniser.h"
 
-TEST(EBNFTokenTest, TokenStreamOutputSingleToken)
-{
-    Token token{Token::Type::NONTERMINAL, "Expr"};
-    std::stringstream ss;
-    ss << token;
-    
-    EXPECT_EQ(ss.str(), "NONTERMINAL(Expr)");
-}
-
-TEST(EBNFTokenTest, TokenStreamOutputMultipleTokens)
-{
-    Tokens tokens = {
-        {Token::Type::NONTERMINAL, "Expr"},
-        {Token::Type::COLON_EQ, "::="},
-        {Token::Type::STRING_LITERAL, "\"a\""},
-    };
-
-    std::stringstream ss;
-    ss << tokens;
-
-    EXPECT_EQ(ss.str(), "NONTERMINAL(Expr), COLON_EQ(::=), STRING_LITERAL(\"a\")");
-}
-
 TEST(EBNFTokenTest, TokeniseAllTokenTypes)
 {
-    std::string input = "<expr> ::= ( <something>? | <another>+ )* \"astring\" /[a-f]/ ; /*comment*/";
-    Tokens tokens = Tokeniser(input).tokenise_all();
+    Tokeniser lexer( std::string( "<expr> ::= ( <something>? | <another>+ )* \"astring\" /[a-f]/ ; /*comment*/") );
 
-    std::string expected = "NONTERMINAL(<expr>), COLON_EQ(::=), BRACKET((), NONTERMINAL(<something>), "
-                         "MODIFIER(?), PIPE(|), NONTERMINAL(<another>), MODIFIER(+), BRACKET()), "
-                         "MODIFIER(*), STRING_LITERAL(\"astring\"), REGEX(/[a-f]/), END_OF_PRODUCTION(;), "
-                         "COMMENT(/*comment*/), END_OF_INPUT()";
-
-    std::stringstream ss;
-    ss << tokens;
-
-    EXPECT_EQ( ss.str(), expected );
-
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<expr>", 1, 1 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::COLON_EQ, "::=", 1, 8 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::BRACKET, "(", 1, 12 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<something>", 1, 14 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::MODIFIER, "?", 1, 25 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::PIPE, "|", 1, 27 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<another>", 1, 29 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::MODIFIER, "+", 1, 38 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::BRACKET, ")", 1, 40 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::MODIFIER, "*", 1, 41 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::STRING_LITERAL, "\"astring\"", 1, 43 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::REGEX, "/[a-f]/", 1, 53 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_PRODUCTION, ";", 1, 61 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::COMMENT, "/*comment*/", 1, 63 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 74 ) );
 }
 
 TEST(EBNFTokeniserTest, TokeniseSimpleProduction)
 {
-    std::string input = "<Expr> ::= \"a\"";
-    Tokeniser tokenizer(input);
+    Tokeniser lexer( std::string("<Expr> ::= \"a\"") );
 
-    Tokens tokens = tokenizer.tokenise_all();
+    Tokens tokens = lexer.tokenise_all();
 
     ASSERT_EQ(tokens.size(), 4);
 
-    EXPECT_EQ(tokens[0].type, Token::Type::NONTERMINAL);
-    EXPECT_EQ(tokens[0].lexeme, "<Expr>");
-
-    EXPECT_EQ(tokens[1].type, Token::Type::COLON_EQ);
-    EXPECT_EQ(tokens[1].lexeme, "::=");
-
-    EXPECT_EQ(tokens[2].type, Token::Type::STRING_LITERAL);
-    EXPECT_EQ(tokens[2].lexeme, "\"a\"");
-
-    EXPECT_EQ(tokens[3].type, Token::Type::END_OF_INPUT);
+    EXPECT_EQ( tokens[0], Token( Token::Type::NONTERMINAL, "<Expr>", 1, 1 ) );
+    EXPECT_EQ( tokens[1], Token( Token::Type::COLON_EQ, "::=", 1, 8 ) );
+    EXPECT_EQ( tokens[2], Token( Token::Type::STRING_LITERAL, "\"a\"", 1, 12) );
+    EXPECT_EQ( tokens[3], Token( Token::Type::END_OF_INPUT, "", 1, 15 ) );
 }
 
 TEST(EBNFTokeniserTest, TokeniseHandlesWhitespaceAndComments)
 {
-    std::string input = "Expr ::= \"a\" // comment";
-    Tokeniser tokenizer(input);
+    Tokeniser lexer( std::string("Expr ::= \"a\" // comment"));
 
-    Tokens tokens = tokenizer.tokenise_all();
+    Tokens tokens = lexer.tokenise_all();
 
     bool foundComment = false;
     for (const auto& token : tokens) {
@@ -105,12 +78,10 @@ TEST(EBNFTokeniserTest, TokeniseHandlesWhitespaceAndComments)
 
 TEST(EBNFTokeniserTest, TokeniseRegex)
 {
-    std::string input = "<hex>     ::= /0x[0-9a-fA-F]+/";
+    Tokeniser lexer( std::string( "<hex>     ::= /0x[0-9a-fA-F]+/" ) );
 
-    Tokens tokens = Tokeniser(input).tokenise_all();
-
-    std::stringstream ss;
-    ss << tokens;
-
-    EXPECT_EQ(ss.str(), "NONTERMINAL(<hex>), COLON_EQ(::=), REGEX(/0x[0-9a-fA-F]+/), END_OF_INPUT()");
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<hex>", 1, 1 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::COLON_EQ, "::=", 1, 11 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::REGEX, "/0x[0-9a-fA-F]+/", 1, 15 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 31 ) );
 }

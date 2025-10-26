@@ -17,22 +17,261 @@
  * MA 02110-1301, USA.
  */
 
-#include "parser.h"
-
 #include <gtest/gtest.h>
 
-TEST(ParserTest, ParsesLetStatement) {
-    // Tokeniser tokeniser("let x = 42;");
-    // Parser parser(tokeniser);
+#include "parser.h"
 
-    // std::unique_ptr<Stmt> stmt = parser.parse_statement();
+void PrintTo( const Program& program, std::ostream* os )
+{
+    *os << "\n" << program;
+}
 
-    // ASSERT_NE(stmt, nullptr);
-    // ASSERT_EQ(stmt->type, StmtType::Let);
+class TestableParser : public Parser {
+public:
+    TestableParser( const Tokens& tokens ) : Parser(tokens) {
+        cursor = tokens.begin();
+    }
 
-    // LetStmt* let_stmt = dynamic_cast<LetStmt*>(stmt.get());
-    // ASSERT_EQ(let_stmt->name, "x");
+    // Expose protected members for testing
+    using Parser::consume;
+    using Parser::match;
+    using Parser::peek;
+    using Parser::forward_cursor;
+};
 
-    // NumberLiteral* value = dynamic_cast<NumberLiteral*>(let_stmt->initializer.get());
-    // ASSERT_EQ(value->value, 42);
+// Fixture for common parser setup.
+class ParserTest : public ::testing::Test {
+protected:
+    Tokens tokens;
+    std::unique_ptr<TestableParser> parser;
+
+    void SetUpParser(const std::string& source) {
+        tokens = Tokeniser( source ).tokenise_all();
+        parser = std::make_unique<TestableParser>(tokens);
+    }
+};
+
+//
+// ---- TESTS BEGIN ----
+//
+
+TEST_F(ParserTest, Consume_TypeOnly_SucceedsOnMatch)
+{
+    SetUpParser("var");
+
+    Token tok = parser->consume(Token::Type::KEYWORD, "Expected keyword");
+    EXPECT_EQ(tok.lexeme, "var");
+    EXPECT_EQ(tok.type, Token::Type::KEYWORD);
+}
+
+TEST_F(ParserTest, Consume_TypeOnly_ThrowsOnMismatch)
+{
+    SetUpParser("123");
+
+    EXPECT_THROW(
+        parser->consume(Token::Type::IDENTIFIER, "Expected identifier"),
+        std::runtime_error
+    );
+}
+
+TEST_F(ParserTest, Consume_TypeAndLexeme_Succeeds)
+{
+    SetUpParser(";");
+
+    Token tok = parser->consume(Token::Type::PUNCTUATION, ";", "Expected semicolon");
+    EXPECT_EQ(tok.lexeme, ";");
+}
+
+TEST_F(ParserTest, Consume_TypeAndLexeme_ThrowsOnWrongLexeme)
+{
+    SetUpParser("{");
+
+    EXPECT_THROW(
+        parser->consume(Token::Type::PUNCTUATION, ";", "Expected semicolon"),
+        std::runtime_error
+    );
+}
+
+TEST_F(ParserTest, Consume_TypeAndLexeme_ThrowsOnWrongType)
+{
+    SetUpParser("42");
+
+    EXPECT_THROW(
+        parser->consume(Token::Type::PUNCTUATION, ";", "Expected semicolon"),
+        std::runtime_error
+    );
+}
+
+//
+// Integration-level test: simple variable declaration
+//
+TEST_F(ParserTest, ParseVarDecl_Simple)
+{
+    SetUpParser("var counter : nibble;");
+
+    Program program = parser->AST();
+
+    Program expected {
+        .declarations {
+            VarDecl {
+                .identifier = "counter",
+                .type {
+                    .type = Type::eTypeTypes::NIBBLE,
+                    .sprite_size = 0
+                }
+            }
+        }
+    };
+
+    EXPECT_EQ( program, expected );
+}
+
+//
+// Integration-level test: multiple declarations
+//
+TEST_F(ParserTest, ParseMultipleDecls)
+{
+    SetUpParser(
+R"(
+    var x : byte;
+    var y : snack;
+)"
+    );
+
+    Program actual = parser->AST();
+
+    Program expected {
+        .declarations {
+            VarDecl {
+                .identifier = "x",
+                .type {
+                    .type = Type::eTypeTypes::BYTE,
+                    .sprite_size = 0
+                }
+            },
+            VarDecl {
+                .identifier = "y",
+                .type {
+                    .type = Type::eTypeTypes::SNACK,
+                    .sprite_size = 0
+                }
+            }
+        }
+    };
+
+    EXPECT_EQ( actual, expected );
+}
+
+//
+// Integration-level test: bad declaration throws
+//
+TEST_F(ParserTest, ParseVarDecl_MissingSemicolonThrows)
+{
+    SetUpParser("var counter : number");
+
+    EXPECT_THROW(parser->AST(), std::runtime_error);
+}
+
+TEST_F(ParserTest, ParseFuncDecl_Simple)
+{
+    SetUpParser("func foo() {}");
+
+    Program actual = parser->AST();
+
+    Program expected {
+        .declarations {
+            FuncDecl {
+                "foo",
+                ParamList {},
+                Vardecls {},
+                Stmts {}
+            },
+        }
+    };
+
+    EXPECT_EQ( actual, expected );
+}
+
+TEST_F(ParserTest, ParseFuncDecl_WithParams)
+{
+    SetUpParser("func add(a: number, b: sprite 5 ) {}");
+
+    Program actual = parser->AST();
+
+    Program expected {
+        .declarations {
+            FuncDecl {
+                "add",
+                ParamList {
+                    TypedIdentifier {
+                        "a",
+                        { .type = Type::eTypeTypes::NUMBER, .sprite_size = 0 }
+                    },
+                    TypedIdentifier {
+                        "b",
+                        { .type = Type::eTypeTypes::SPRITE, .sprite_size = 5 }
+                    }
+                },
+                Vardecls {},
+                Stmts {}
+            }
+        }
+    };
+
+    EXPECT_EQ(actual, expected);
+}
+
+// TEST_F(ParserTest, ParseFuncDecl_WithBody)
+// {
+//     SetUpParser(R"(func foo() {
+//     var x: number;
+//     x = 42;
+// })");
+
+//     Program actual = parser->AST();
+
+//     Program expected {
+//         .declarations {
+//             FuncDecl {
+//                 "foo",
+//                 ParamList {},
+//                 Vardecls {},
+//                 Stmts
+//                  {
+//                     VarDecl {
+//                         "x",
+//                         Type::eTypeTypes::NUMBER
+//                     },
+//                     // ExprStmt {
+//                     //     .expr = Expr {
+//                     //         .lhs = {
+//                     //             .type = Token::Type::IDENTIFIER,
+//                     //             .lexeme = "x",
+//                     //             .line = 3,
+//                     //             .column = 5
+//                     //         },
+//                     //         .op = "=",
+//                     //         .rhs = Expr {
+//                     //             .type = Token::Type::NUMBER,
+//                     //             .lexeme = "42",
+//                     //             .line = 3,
+//                     //             .column = 9
+//                     //         }
+//                     //     }
+//                     // }
+//                 }
+//             }
+//         }
+//     };
+
+//     EXPECT_EQ(actual, expected);
+// }
+
+TEST_F(ParserTest, ParseFuncDecl_Error_MissingBrace)
+{
+    SetUpParser("func foo() ");
+
+    EXPECT_THROW({
+        parser->AST();
+    }, std::runtime_error);
 }

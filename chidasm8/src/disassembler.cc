@@ -28,21 +28,28 @@
 
 #include "utils.h"
 
-/*
- * Input section
- */
-void Disassembler::read_binary( std::istream &is )
+
+OutputData Disassembler::disassemble()
 {
-	uint16_t address = origin;
-	uint8_t ch = is.get();
+	address_stack.push( origin );	// Push the start address
 
-	while( is.good() ) {
+	while( !address_stack.empty() ) {
 
-		data_set.insert( RawData( address, ch, false ) );
-		++address;
+		uint16_t address = address_stack.top();
+		address_stack.pop();
 
-		ch = is.get();
+		disassemble_instruction( address ); /* this call can push between 0 and 2 new addresses on the address stack */
 	}
+
+	collect_data_bytes( );
+
+	return OutputData {
+				bin_name,
+				origin,
+				instructions,
+				databytes,
+				jmp_targets
+			};
 }
 
 /*
@@ -53,7 +60,7 @@ void Disassembler::read_binary( std::istream &is )
  * It has two side effects: It formats a label for a target and adds an item to the jump target set.
  * Also this function is not at the same semantic level as the other functions of this class
  */
-std::string Disassembler::add_target( uint16_t source_address, uint16_t target_address, Target::eTargetKind type )
+std::string Disassembler::add_target( uint16_t target_address, Target::eTargetKind type )
 {
 	std::set<Target>::iterator it = jmp_targets.find( Target( target_address ) );
 
@@ -76,19 +83,6 @@ std::string Disassembler::add_target( uint16_t source_address, uint16_t target_a
 	return label;
 }
 
-void Disassembler::mark_as_instruction( uint16_t address )
-{
-	std::set<RawData>::iterator it = data_set.find( RawData( address ) );
-
-	if( it == data_set.end() )
-		return; // not allowed to happen, should throw a big wobbly here
-
-	RawData new_key = RawData( ( *it ).get_location(), ( *it ).val(), true );
-
-	data_set.erase( it );
-	data_set.insert( new_key );
-}
-
 Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 {
 	std::string mnemonic;
@@ -107,41 +101,40 @@ Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 	/* opcodes 00EF .. 0FFF not defined */
 	default:
 		// mnemonic = format_byte( opcode >> 8 ) + " " + format_byte( opcode & 0xFF );
-		mnemonic = "SYS";
-		label = add_target( address, opcode & 0xFFF, Target::eTargetKind::SUBROUTINE );
+		mnemonic = "NOP";
+		// label = add_target( opcode & 0xFFF, Target::eTargetKind::SUBROUTINE );
 
 		address_stack.push( address + 2 );
 		break;
 	}
 
-	return Instruction( address, mnemonic, label );
+	return Instruction( address, opcode, mnemonic, label );
 }
 
 Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
 {
 	uint16_t jmp_target = opcode & 0xFFF;
 
-	std::string label = add_target( address, jmp_target, Target::eTargetKind::JUMP );
+	std::string label = add_target( jmp_target, Target::eTargetKind::JUMP );
 
 	address_stack.push( jmp_target );
 
-	return Instruction( address, "JP", label );
+	return Instruction( address, opcode, "JP", label );
 }
 
 Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 {
 	uint16_t jmp_target = opcode & 0xFFF;
 
-	std::string label = add_target( address, jmp_target, Target::eTargetKind::SUBROUTINE );
+	std::string label = add_target( jmp_target, Target::eTargetKind::SUBROUTINE );
 
 	address_stack.push( jmp_target );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "CALL", label );
+	return Instruction( address, opcode, "CALL", label );
 }
 
-Instruction Disassembler::decode_SEI( uint16_t address,
-									  uint16_t opcode ) // SE Vx, byte : Skip next instruction if Vx = kk.
+Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )
 {
 	unsigned int reg_x = ( opcode >> 8 ) & 0xF;
 	unsigned int byte = ( opcode & 0xFF );
@@ -149,7 +142,7 @@ Instruction Disassembler::decode_SEI( uint16_t address,
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SE", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, opcode, "SE", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
@@ -160,7 +153,7 @@ Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SNE", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, opcode, "SNE", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
@@ -185,7 +178,7 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, mnemonic, argument );
+	return Instruction( address, opcode, mnemonic, argument );
 }
 
 Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
@@ -195,10 +188,10 @@ Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	if( reg_x == 0 )
-		V0_content = byte;
+	// if( reg_x == 0 )
+	// 	V0_content = byte;
 
-	return Instruction( address, "LD", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, opcode, "LD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
@@ -208,10 +201,10 @@ Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	if( reg_x == 0 )
-		V0_content += byte;
+	// if( reg_x == 0 )
+	// 	V0_content += byte;
 
-	return Instruction( address, "ADD", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, opcode, "ADD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
@@ -283,7 +276,7 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, mnemonic, argument );
+	return Instruction( address, opcode, mnemonic, argument );
 }
 
 Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
@@ -294,28 +287,28 @@ Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "SNE", format_register( reg_x ) + ", " + format_register( reg_y ) );
+	return Instruction( address, opcode, "SNE", format_register( reg_x ) + ", " + format_register( reg_y ) );
 }
 
 Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
 {
 	unsigned int load_address = opcode & 0xFFF;
 
-	std::string label = add_target( address, load_address, Target::eTargetKind::I_TARGET );
+	std::string label = add_target( load_address, Target::eTargetKind::I_TARGET );
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "LD", "I, " + label );
+	return Instruction( address, opcode, "LD", "I, " + label );
 }
 
 Instruction Disassembler::decode_JMP( uint16_t address, uint16_t opcode )
 {
 	unsigned int target = ( opcode >> 0 ) & 0xFFF;
 
-	std::string label = add_target( address, target, Target::eTargetKind::INDEXED );
+	std::string label = add_target( target, Target::eTargetKind::INDEXED );
 	// address_stack.push( target + V0 ); //this is a problem, we do not know the value of V0
 
-	return Instruction( address, "JMP", std::string( "V0, " ) + label );
+	return Instruction( address, opcode, "JMP", std::string( "V0, " ) + label );
 }
 
 Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
@@ -325,7 +318,7 @@ Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "RND", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction( address, opcode, "RND", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
 Instruction Disassembler::decode_DRW( uint16_t address, uint16_t opcode )
@@ -336,7 +329,7 @@ Instruction Disassembler::decode_DRW( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, "DRW",
+	return Instruction( address, opcode, "DRW",
 						format_register( reg_x ) + ", " + format_register( reg_y ) + ", " + std::to_string( nibble ) );
 }
 
@@ -368,7 +361,7 @@ Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, mnemonic, argument );
+	return Instruction( address, opcode, mnemonic, argument );
 }
 
 Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
@@ -439,25 +432,20 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, mnemonic, argument );
+	return Instruction( address, opcode, mnemonic, argument );
 }
 
 void Disassembler::disassemble_instruction( uint16_t address )
 {
+	unsigned int opcode;
+
 	if( instructions.find( Instruction( address ) ) != instructions.end() )
 		return; // the instruction has already been pushed so all is good
 
-	// find this address (and the next one) in our raw data set
-	std::set<RawData>::iterator first_byte = data_set.find( RawData( address ) );
-	std::set<RawData>::iterator second_byte = data_set.find( RawData( address + 1 ) );
+	if( (opcode = memory.get_byte(address + 1)) == (uint16_t)-1 )
+		return;	// not in raw bytes and not in instruction set. Worthy of an exception
 
-	if( ( first_byte == data_set.end() ) || ( second_byte == data_set.end() ) ) {
-		// not in raw bytes and not in instruction set. Worthy of an exception
-		return;
-	}
-
-	// Create instruction here, dissemble and add to the instruction set.
-	unsigned int opcode = ( ( *first_byte ).val() << 8 ) | ( *second_byte ).val();
+	opcode = memory.get_byte(address) << 8 | opcode;
 
 	switch( opcode >> 12 ) {
 	case 0x0: instructions.insert( decode_SYS( address, opcode ) ); break;
@@ -478,139 +466,123 @@ void Disassembler::disassemble_instruction( uint16_t address )
 	case 0xF: instructions.insert( decode_Misc( address, opcode ) ); break;
 	}
 
-	//  Remove from raw bytes
-	mark_as_instruction( address );
-	mark_as_instruction( address + 1 );
-}
-
-void Disassembler::disassemble()
-{
-	// Push the start address
-	address_stack.push( origin );
-
-	while( !address_stack.empty() ) {
-
-		uint16_t address = address_stack.top();
-		address_stack.pop();
-
-		disassemble_instruction( address ); /* this call can push between 0 and 2 new addresses on the address stack */
-	}
+    memory.mark_instruction(address);
+    memory.mark_instruction(address + 1);
 }
 
 void Disassembler::collect_data_bytes()
 {
-	std::vector<uint8_t> datarun;
-	uint16_t address = origin;
+    std::vector<uint8_t> datarun;
+    uint16_t run_start = 0;
+
+    const uint16_t start = memory.mem_start();
+    const uint16_t end   = memory.mem_end();
 
 	// The raw bytes that have not been marked as instruction bytes are thus data bytes
 	// Chuck them together into DataBytes objects
 
-	for( std::set<RawData>::iterator it = data_set.begin(); it != data_set.end(); ++it ) {
+    for( uint16_t addr = start; addr < end; ++addr ) {
 
-		if( !( *it ).instruction() ) {
-			// if we are not collecting data, start now
-			if( datarun.empty() )
-				address = ( *it ).get_location();
-			// if the location has a data label associated with it, we need to break the run
-			else if( jmp_targets.find( Target( ( *it ).get_location() ) ) != jmp_targets.end() ) {
-				databytes.insert( DataBytes( address, datarun ) );
-				datarun.clear();
-				address = ( *it ).get_location();
-			}
+        // If byte is NOT part of an instruction → it's data
+        if( !memory.is_instruction(addr) ) {
 
-			datarun.push_back( ( *it ).val() );
+            if( datarun.empty() )
+                run_start = addr;
 
-			// collect a maximum of 16 bytes
-			if( datarun.size() == 16 ) {
-				databytes.insert( DataBytes( address, datarun ) );
-				datarun.clear();
-			}
+            // If this byte is a jump target → end previous run
+            if( !datarun.empty() && jmp_targets.find(Target(addr)) != jmp_targets.end()) {
 
-		} else {
-			// this byte belongs to an instruction. End the data run if we are collecting and skip this byte
-			if( !datarun.empty() ) {
-				databytes.insert( DataBytes( address, datarun ) );
-				datarun.clear();
-			}
-		}
-	}
+                databytes.insert( DataBytes(run_start, datarun) );
+                datarun.clear();
+
+                run_start = addr;
+            }
+
+            datarun.push_back( memory.get_byte(addr) );
+
+            // Flush every 16 bytes (optional grouping rule)
+            if( datarun.size() == 16 ) {
+
+                databytes.insert( DataBytes(run_start, datarun) );
+                datarun.clear();
+            }
+
+        } else {
+
+            // Instruction byte interrupts data run
+            if( !datarun.empty() ) {
+
+                databytes.insert( DataBytes(run_start, datarun) );
+                datarun.clear();
+            }
+        }
+    }
+
+    // Flush leftover at end of memory block
+    if( !datarun.empty() )
+        databytes.insert( DataBytes(run_start, datarun) );
 }
 
-/*
- * Output section
- */
-void Disassembler::write_listing( std::ostream &os ) const
+
+std::istream &operator>>( std::istream &is, InputData &input )
 {
-	configure_stream( os );
-	write_header( os );
+	uint16_t address = input.origin;
+    int byte;
 
-	std::set<Instruction>::iterator instruction_iter = instructions.begin();
-	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
+    while( (byte = is.get()) != EOF )
+		input.memory.add_byte( address++, static_cast<uint8_t>(byte) );
 
-	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
+	return is;
+}
+
+std::ostream &operator<<( std::ostream &os, const OutputData &data )
+{
+	auto output_label = [data]( std::ostream &os, unsigned int address ){
+		std::set<Target>::iterator it = data.jmp_targets.find( Target( address ) );
+
+		if( it != data.jmp_targets.end() )
+			os << (*it);
+	};
+
+	// configure the stream
+	os << std::setfill( '0' );
+	os << std::setw( 3 );
+	os << std::hex << std::uppercase;
+
+	// write the header
+	os << "; Disasembly of " << data.bin_name << "\n";
+	os << "; Generated by chidisas8\n";
+	os << ";\n\n";
+	os << "\t.ORG " << format_address( data.origin ) << "\n\n";
+
+	std::set<Instruction>::iterator instruction_iter = data.instructions.begin();
+	std::set<DataBytes>::iterator datarun_iter = data.databytes.begin();
+
+	while( instruction_iter != data.instructions.end() && datarun_iter != data.databytes.end() ) {
 
 		if( ( *instruction_iter ).get_address() < ( *datarun_iter ).get_address() ) {
-			output_instruction( os, *instruction_iter );
+			output_label( os, (*instruction_iter).get_address() );
+			os << *instruction_iter;
 			++instruction_iter;
 		} else {
-			output_datarun( os, *datarun_iter );
+			output_label( os, (*datarun_iter).get_address() );
+			os << *datarun_iter;
 			++datarun_iter;
 		}
 	}
 
 	// what have we remaining
-	while( instruction_iter != instructions.end() ) {
-		output_instruction( os, *instruction_iter );
+	while( instruction_iter != data.instructions.end() ) {
+		output_label( os, (*instruction_iter).get_address() );
+		os << *instruction_iter;
 		++instruction_iter;
 	}
 
-	while( datarun_iter != databytes.end() ) {
-		output_datarun( os, *datarun_iter );
+	while( datarun_iter != data.databytes.end() ) {
+		output_label( os, (*datarun_iter).get_address() );
+		os << *datarun_iter;
 		++datarun_iter;
 	}
-}
 
-void Disassembler::configure_stream( std::ostream &os ) const
-{
-	os << std::setfill( '0' );
-	os << std::setw( 3 );
-	os << std::hex << std::uppercase;
-}
-
-void Disassembler::write_header( std::ostream &os ) const
-{
-	os << "; Disasembly of " << bin_name << "\n";
-	os << "; Generated by chidisas8\n";
-	os << ";\n\n";
-	os << "\t.ORG " << format_address( origin ) << "\n\n";
-}
-
-void Disassembler::output_instruction( std::ostream &os, Instruction inst ) const
-{
-	std::set<Target>::iterator target_iter;
-
-	if( label_present( target_iter, inst.get_address() ) )
-		( *target_iter ).print( os );
-
-	std::set<RawData>::iterator high_byte = data_set.find( RawData( inst.get_address() ) );
-	std::set<RawData>::iterator low_byte = data_set.find( RawData( inst.get_address() + 1 ) );
-
-	inst.print( os, ( *high_byte ).val(), ( *low_byte ).val() );
-}
-
-void Disassembler::output_datarun( std::ostream &os, DataBytes datarun ) const
-{
-	std::set<Target>::iterator target_iter;
-
-	if( label_present( target_iter, datarun.get_address() ) )
-		( *target_iter ).print( os );
-
-	datarun.print( os );
-}
-
-bool Disassembler::label_present( std::set<Target>::iterator &it, uint16_t address ) const
-{
-	it = jmp_targets.find( Target( address ) );
-
-	return it != jmp_targets.end();
+	return os;
 }
