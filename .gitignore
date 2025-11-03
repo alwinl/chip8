@@ -1,6 +1,3 @@
-**/resources/chip8-test-suite/*
-*.lst
-*.depend
-*.layout
-*~
 **/.build/*
+**/resources/chip8-test-suite/*
+**/*.lst
