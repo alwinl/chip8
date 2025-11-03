@@ -59,4 +59,5 @@ private:
     int column = 1;
 
     void update_position_tracking( std::string lexeme );
+    Token extract_keywords( Token::Type type, std::string lexeme, int line, int column );
 };

@@ -8,8 +8,8 @@
       "name": "Debug Google Test",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/.build/chicom8/test/compiler_test",  // <- path to your test binary
-      "args": ["--gtest_filter=TokeniserTest.*"],      // <- optional filter
+      "program": "${workspaceFolder}/.build/chicom8/test/chip8_compiler_test",  // <- path to your test binary
+      "args": ["--gtest_filter=ParserTest.ParseFullProgram"],      // <- optional filter
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

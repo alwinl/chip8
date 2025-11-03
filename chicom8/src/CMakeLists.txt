@@ -29,6 +29,9 @@ add_library(
     tokeniser.cc
     tokeniser.h
 
+    chip8_ast.cc
+    chip8_ast.h
+
     parser.cc
     parser.h
 )

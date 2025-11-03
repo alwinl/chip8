@@ -21,14 +21,45 @@
 #include <fstream>
 #include <iostream>
 
+#include "tokeniser.h"
+#include "parser.h"
+#include "generator.h"
+
 void Chip8Compiler::compile_file(const std::string& input_path, const std::string& output_path)
 {
-    std::ifstream infile(input_path);
-    if (!infile) throw std::runtime_error("Failed to open input file");
+    Tokeniser tokeniser( input_path );
+
+    Tokens tokens = tokeniser.tokenise_all();
+
+    Parser parser( tokens );
+
+    Program program = parser.AST();
+
+    // std::ifstream infile(input_path);
+    // if (!infile) throw std::runtime_error("Failed to open input file");
 
     std::ofstream outfile(output_path, std::ios::binary);
     if (!outfile) throw std::runtime_error("Failed to open output file");
 
     // Just a stub for now
     outfile.put(0x00); // e.g., CLS opcode
+}
+
+
+void checkEntryPoint( const std::vector<Decl*>& decls )
+{
+    bool foundMain = false;
+
+    for (auto decl : decls) {
+        if (auto func = dynamic_cast<FuncDecl*>(decl)) {
+            if( *func->identifier == Identifier("main") ) {
+                if (foundMain)
+                    throw std::runtime_error("Multiple definitions of 'main'");
+                foundMain = true;
+            }
+        }
+    }
+
+    if (!foundMain)
+        throw std::runtime_error("Program must define a function 'main'");
 }

@@ -2,81 +2,72 @@
 
 <decl>            ::= <func_decl> | <var_decl> ;
 
-<func_decl>       ::= "func" <identifier> "(" <param_list>? ")" "{" <var_decl>* <stmt>* "}" ;
+<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_body> PUNCTUATION("}") ;
 
-<param_list>      ::= <typed_identifier> ("," <typed_identifier>)* ;
+<func_body>       ::= ( <var_decl> | <stmt> )*  ;
 
-<typed_identifier> ::= <identifier> ":" <type> ;
+<param_list>      ::= <typed_identifier> ( PUNCTUATION(",") <typed_identifier> )* ;
 
-<var_decl>        ::= "var" <identifier> ":" <type> ";" ;
+<var_decl>        ::= KEYWORD("var") <typed_identifier> PUNCTUATION(";") ;
 
-<type> ::= "nibble" 
-         | "byte" 
-         | "snack" 
-         | "number" 
-         | "bool" 
-         | "key" 
-         | "sprite" <nibble>
+<typed_identifier> ::= IDENTIFIER PUNCTUATION(":") <type> ;
+
+<type> ::= TYPE_KEYWORD("nibble")
+         | TYPE_KEYWORD("byte")
+         | TYPE_KEYWORD("snack")
+         | TYPE_KEYWORD("number")
+         | TYPE_KEYWORD("bool")
+         | TYPE_KEYWORD("key")
+         | TYPE_KEYWORD("sprite") <expr>
          ;
 
 <stmt>            ::= <expr_stmt>
                    | <if_stmt>
                    | <while_stmt>
-                   | <return_stmt>
                    | <draw_stmt>
-                   | <getkey_stmt>
+                   | <return_stmt>
                    | <block>
                    ;
 
-<expr_stmt>       ::= <expr> ";" ;
+<expr_stmt>       ::= <expr> PUNCTUATION(";") ;
 
-<if_stmt>         ::= "if" "(" <expr> ")" <stmt> ("else" <stmt>)? ;
+<if_stmt>         ::= KEYWORD("if") PUNCTUATION("(") <expr> PUNCTUATION(")") <stmt> ( KEYWORD("else") <stmt> )? ;
 
-<while_stmt>      ::= "while" "(" <expr> ")" <stmt> ;
+<while_stmt>      ::= KEYWORD("while") PUNCTUATION("(") <expr> PUNCTUATION(")") <stmt>  ;
 
-<return_stmt>     ::= "return" <expr>? ";" ;
+<draw_stmt>       ::= KEYWORD("draw") <identifier> PUNCTUATION(",") <expr> PUNCTUATION(",") <expr> ( PUNCTUATION(",") <expr> )? PUNCTUATION(";") ; // draw sprite, x, y [, height]
 
-<draw_stmt>       ::= "draw" <identifier> "," <expr> "," <expr> ("," <expr>)? ";" ; // draw sprite, x, y [, height] 
+<return_stmt>     ::= KEYWORD("return") <expr>? PUNCTUATION(";") ;
 
-<getkey_stmt>     ::= "getkey" <identifier> ";" ;
-
-<block>           ::= "{" <stmt>* "}" ;
+<block>           ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
 
 
-<expr>            ::= <identifier> "=" <expr> | <logic_or> ;
+<expr>            ::= <identifier> OPERATOR("=") <expr> | <logic_or> ;
 
-<logic_or>        ::= <logic_and> ("||" <logic_and>)* ;
+<logic_or>        ::= <logic_and> ( OPERATOR("||") <logic_and> )* ;
 
-<logic_and>       ::= <equality> ("&&" <equality>)* ;
+<logic_and>       ::= <equality> ( OPERATOR("&&") <equality> )* ;
 
-<equality>        ::= <comparison> (("==" | "!=") <comparison>)* ;
+<equality>        ::= <comparison> ((OPERATOR("==") | OPERATOR("!=") ) <comparison>)* ;
 
-<comparison>      ::= <term> ((">" | ">=" | "<" | "<=") <term>)* ;
+<comparison>      ::= <term> ((OPERATOR(">") | OPERATOR(">=") | OPERATOR("<") | OPERATOR("<=") ) <term>)* ;
 
-<term>            ::= <factor> (("+" | "-") <factor>)* ;
+<term>            ::= <factor> ((OPERATOR("+") | OPERATOR("-") ) <factor>)* ;
 
-<factor>          ::= <unary> (("*" | "/") <unary>)* ;
+<factor>          ::= <unary> ( (OPERATOR("*") | OPERATOR("/") ) <unary>)* ;
 
-<unary>           ::= ("!" | "-") <unary> | <primary> ;
+<unary>           ::= ( OPERATOR("!") | OPERATOR("-") ) <unary> | <primary> ;
 
-<primary>         ::= <number> 
-                   | <identifier>
-                   | "true"
-                   | "false" 
-                   | "bcd" <identifier>
-                   | "rnd" <identifier>
-                   | "keydown" <identifier>
-                   | "(" <expr> ")"
+<primary>         ::= <number>
+                   | KEYWORD("true")
+                   | KEYWORD("false")
+                   | KEYWORD("bcd") <identifier>
+                   | KEYWORD("rnd") <expr>
+                   | KEYWORD("keydown") <identifier>
+                   | KEYWORD("getkey")
+                   | PUNCTUATION("(") <expr> PUNCTUATION(")")
+                   | <identifier> ( PUNCTUATION("(") (<expr> (PUNCTUATION(",") <expr>)*)? PUNCTUATION(")") )?
                    ;
 
-<number> ::= <decimal> | <hex> ;
-
-<decimal> ::= /[0-9]+/ ;
-
-<hex>     ::= /0x[0-9a-fA-F]+/ ;
-
-<nibble>  ::= /[0-9a-fA-F]/ ;
-
-<identifier> ::= /[a-zA-Z][0-9a-zA-Z_]*/ ;
-
-
+<identifier>      ::= IDENTIFIER ;
+<number>          ::= NUMBER ;

@@ -33,6 +33,7 @@ add_executable(
     chip8_cmdline_test.cc
     chip8_tokeniser_test.cc
     chip8_parser_test.cc
+    chip8_ostream_test.cc
 )
 
 target_link_libraries( ebnf_compiler_test  ebnf_compiler_lib gtest gtest_main )

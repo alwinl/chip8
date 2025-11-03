@@ -38,8 +38,6 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^\s+)"), Token::Type::WHITESPACE, true },
     TokenMatcher{ std::regex(R"(^==|!=|<=|>=|&&|\|\||\+=|\-=|\*=|/=|\+\+|\-\-)"), Token::Type::OPERATOR, false },
     TokenMatcher{ std::regex(R"(^[+\-*\/=<>!&|])"), Token::Type::OPERATOR, false },
-    TokenMatcher{ std::regex(R"(^nibble|byte|snack|number|bool|key|sprite)"), Token::Type::TYPE_KEYWORD, false},
-    TokenMatcher{ std::regex(R"(^let|var|func)"), Token::Type::KEYWORD, false},
     TokenMatcher{ std::regex(R"(^[a-zA-Z_][a-zA-Z0-9_]*)"), Token::Type::IDENTIFIER, false },
     TokenMatcher{ std::regex(R"(^"([^*]|\*[^/])*")"), Token::Type::STRING_LITERAL, false},
     TokenMatcher{ std::regex(R"(^[.,:;()\[\]{}])"), Token::Type::PUNCTUATION, false },
@@ -121,6 +119,9 @@ Token Tokeniser::next_token()
             if( match_entry.skip_token )
                 return next_token();
 
+            if( match_entry.type == Token::Type::IDENTIFIER )
+                return extract_keywords( match_entry.type, lexeme, tok_line, tok_column );
+
             return Token{ match_entry.type, lexeme, tok_line, tok_column };
         }
     }
@@ -160,4 +161,40 @@ void Tokeniser::update_position_tracking( std::string lexeme )
     }
 
     cursor += lexeme.length();
+}
+
+Token Tokeniser::extract_keywords( Token::Type type, std::string lexeme, int line, int column )
+{
+    static std::vector<std::string> type_keywords = {
+        "nibble",
+        "byte",
+        "snack",
+        "number",
+        "bool",
+        "key",
+        "sprite",
+    };
+
+    static std::vector<std::string> keywords = {
+        "func",
+        "var",
+        "if",
+        "while",
+        "return",
+        "draw",
+        "getkey",
+        "true",
+        "false",
+        "bcd",
+        "rnd",
+        "keydown"
+    };
+
+    if( std::find( type_keywords.begin(), type_keywords.end(), lexeme ) != type_keywords.end() )
+        return Token( Token::Type::TYPE_KEYWORD, lexeme, line, column );
+
+    if( std::find( keywords.begin(), keywords.end(), lexeme ) != keywords.end() )
+        return Token( Token::Type::KEYWORD, lexeme, line, column );
+
+    return Token( type, lexeme, line, column );
 }

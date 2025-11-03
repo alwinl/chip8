@@ -19,102 +19,17 @@
 
 #include "parser.h"
 
-#include <unordered_map>
+#include "unordered_map"
 
-std::ostream& operator<<( std::ostream& os, const Expr& expr )
-{
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Stmt& stmt )
-{
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Type& type_decl )
-{
-    std::unordered_map<Type::eTypeTypes, std::string> type_to_string = {
-        { Type::eTypeTypes::NIBBLE, "nibble" },
-        { Type::eTypeTypes::BYTE, "byte" },
-        { Type::eTypeTypes::SNACK, "snack" },
-        { Type::eTypeTypes::NUMBER, "number" },
-        { Type::eTypeTypes::BOOL, "bool" },
-        { Type::eTypeTypes::KEY, "key" },
-        { Type::eTypeTypes::SPRITE, "sprite" },
-    };
-
-    os << type_to_string.at( type_decl.type );
-    if( type_decl.type == Type::eTypeTypes::SPRITE )
-        os << " " << type_decl.sprite_size;
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const VarDecl& var_decl )
-{
-    os << "  VarDecl( " << var_decl.identifier << ": " << var_decl.type << ")";
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const TypedIdentifier& typed_identifier )
-{
-    os << typed_identifier.identifier << ": " << typed_identifier.type;
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const ParamList& params )
-{
-    for (size_t i = 0; i < params.size(); ++i) {
-        if (i > 0)
-            os << ", ";
-
-        os << params[i];
-    }
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const FuncDecl& func_decl )
-{
-    os << "FuncDecl(" << func_decl.identifier << "(" << func_decl.params << ")\n{";
-
-    for (size_t i = 0; i < func_decl.body.size(); ++i) {
-        if (i > 0)
-            os << ", ";
-
-        os << func_decl.body[i];
-    }
-
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Decl& declaration )
-{
-    std::visit([&os](const auto& value) {
-        os << value;  // calls the correct operator<< for VarDecl or FuncDecl
-    }, declaration);
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Program& program )
-{
-    os << "Program: [\n";
-
-    bool first = true;
-    for( const auto& declaration : program.declarations ) {
-        if( first )
-            first = false;
-        else
-            os << ",\n";
-
-        os << declaration;
-    }
-
-    os << "\n]";
-
-    return os;
-}
+static std::unordered_map<std::string, VarDecl::eTypes> string_to_type = {
+    { "nibble", VarDecl::eTypes::NIBBLE  },
+    { "byte"  , VarDecl::eTypes::BYTE    },
+    { "snack" , VarDecl::eTypes::SNACK   },
+    { "number", VarDecl::eTypes::NUMBER  },
+    { "bool"  , VarDecl::eTypes::BOOL    },
+    { "key"   , VarDecl::eTypes::KEY     },
+    { "sprite", VarDecl::eTypes::SPRITE  },
+};
 
 
 void Parser::forward_cursor()
@@ -125,19 +40,20 @@ void Parser::forward_cursor()
         ++cursor;
 }
 
-bool Parser::match( Token::Type type )
+bool Parser::match( Token::Type type, std::string lexeme )
 {
-    if( peek().type == type ) {
-        forward_cursor();
-        return true;
-    }
+    if( peek().type != type )
+        return false;
 
-    return false;
+    if( !lexeme.empty() && peek().lexeme != lexeme )
+        return false;
+
+    return true;
 }
 
-Token Parser::consume(Token::Type type, const std::string& message)
+Token Parser::consume( Token::Type type, const std::string& message )
 {
-    if( peek().type == type ) {
+    if( match( type ) ) {
         Token token = *cursor;
         forward_cursor();
         return token;
@@ -148,9 +64,7 @@ Token Parser::consume(Token::Type type, const std::string& message)
 
 Token Parser::consume( Token::Type type, const std::string &lexeme, const std::string &message )
 {
-    const Token& t = peek();
-
-    if( t.type == type && t.lexeme == lexeme ) {
+    if( match( type, lexeme ) ) {
         Token token = *cursor;
         forward_cursor();
         return token;
@@ -158,8 +72,8 @@ Token Parser::consume( Token::Type type, const std::string &lexeme, const std::s
 
     throw std::runtime_error(
         "Parse error: " + message +
-        "(expected '" + lexeme + "', got '" + t.lexeme + "')" +
-        " at line " + std::to_string(t.line) );
+        "(expected '" + lexeme + "', got '" + peek().lexeme + "')" +
+        " at line " + std::to_string(peek().line) );
 }
 
 Program Parser::AST()
@@ -168,119 +82,94 @@ Program Parser::AST()
 
     cursor = tokens.begin();
 
-    while( peek().type == Token::Type::COMMENT )
+    while( match( Token::Type::COMMENT ) )
         ++cursor;
 
-    while (peek().type != Token::Type::END_OF_INPUT)
+    while( ! match( Token::Type::END_OF_INPUT ) )
         program.declarations.push_back(parse_decl());
 
     return program;
 }
 
-Decl Parser::parse_decl()
+std::unique_ptr<Decl> Parser::parse_decl()
 {
-    if( peek().lexeme == "func" )
+    if( match( Token::Type::KEYWORD, "func" ) )
         return parse_func_decl();
 
-    if( peek().lexeme == "var" )
+    if( match( Token::Type::KEYWORD, "var" ) )
         return parse_var_decl();
 
-    throw std::runtime_error("Expected declaration (var or func)");
+    throw std::runtime_error("Expected declaration (var or func)" );
 }
 
-FuncDecl Parser::parse_func_decl()
+std::unique_ptr<Decl> Parser::parse_func_decl()
 {
-    ParamList params;
-    std::vector<VarDecl> vars;
+    std::vector<std::unique_ptr<VarDecl>> params;
+    std::vector<std::unique_ptr<VarDecl>> vars;
     std::vector<std::unique_ptr<Stmt>> body;
 
-    consume(Token::Type::KEYWORD, "func", "Expected 'func' keyword");
-    Token name = consume(Token::Type::IDENTIFIER, "Expected function name");
+    consume( Token::Type::KEYWORD, "func", "Expected 'func' keyword" );
 
-    consume(Token::Type::PUNCTUATION, "(", "Unexpected token");
-    if( peek().type != Token::Type::PUNCTUATION )
-        params = parse_param_list();
-    consume(Token::Type::PUNCTUATION, ")", "Unexpected token");
+    std::unique_ptr<Identifier> name = parse_identifier( "Expected function name" );
 
-    consume(Token::Type::PUNCTUATION, "{", "Unexpected token");
+    consume( Token::Type::PUNCTUATION, "(", "Unexpected token" );
 
-    while (peek().type != Token::Type::PUNCTUATION) {
-        if( peek().lexeme == "var" )
+    while( ! match( Token::Type::PUNCTUATION ) && ! match( Token::Type::END_OF_INPUT ) ) {
+
+        std::unique_ptr<Identifier> name = parse_identifier( "Expected variable name" );
+        // Token name = consume( Token::Type::IDENTIFIER, "Expected variable name" );
+        consume( Token::Type::PUNCTUATION, ":", "Unexpected token" );
+
+        Token tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
+
+        VarDecl::eTypes type = string_to_type.at( tok.lexeme );
+        std::unique_ptr<Expr> byte_size = ( tok.lexeme == "sprite" ) ? parse_expr() : nullptr;
+
+        params.push_back( std::make_unique<VarDecl>( std::move(name), type, std::move(byte_size) ) );
+
+        if( match( Token::Type::PUNCTUATION, "," ))
+            consume( Token::Type::PUNCTUATION, "Expected comma" );
+    }
+
+    consume( Token::Type::PUNCTUATION, ")", "Unexpected token" );
+
+    consume( Token::Type::PUNCTUATION, "{", "Unexpected token" );
+
+    while( ! match( Token::Type::PUNCTUATION ) && ! match( Token::Type::END_OF_INPUT ) ) {
+
+        if( match( Token::Type::KEYWORD, "var" ) )
             vars.push_back( parse_var_decl() );
         else
             body.push_back( parse_stmt() );
     }
 
-    consume(Token::Type::PUNCTUATION, "}", "Unexpected token");
+    consume( Token::Type::PUNCTUATION, "}", "Unexpected token" );
 
-    return FuncDecl{ name.lexeme, params, vars, std::move(body) };
+    return std::make_unique<FuncDecl>(  std::move(name), std::move(params), std::move(vars), std::move(body) );
 }
 
-ParamList Parser::parse_param_list()
-{
-    ParamList params;
-
-    while( peek().type != Token::Type::PUNCTUATION ) {
-
-        params.push_back( parse_typed_identifier() );
-
-        Token t = peek();
-        if( t.type == Token::Type::PUNCTUATION && t.lexeme == "," )
-            consume( Token::Type::PUNCTUATION, "Expected comma");
-    }
-
-	return params;
-}
-
-TypedIdentifier Parser::parse_typed_identifier()
-{
-    TypedIdentifier typed_identifier;
-
-    Token name = consume(Token::Type::IDENTIFIER, "Expected variable name");
-    consume(Token::Type::PUNCTUATION, ":", "Unexpected token");
-
-    Type type_value = parse_type();
-
-    return TypedIdentifier{ .identifier = name.lexeme, .type = type_value };
-}
-
-VarDecl Parser::parse_var_decl()
+std::unique_ptr<VarDecl> Parser::parse_var_decl()
 {
     consume( Token::Type::KEYWORD, "var", "Expected 'var' keyword" );
-    Token name = consume( Token::Type::IDENTIFIER, "Expected variable name" );
-    consume(Token::Type::PUNCTUATION, ":", "Unexpected token");
+    std::unique_ptr<Identifier> name = parse_identifier( "Expected variable name" );
+    consume( Token::Type::PUNCTUATION, ":", "Unexpected token" );
 
-    Type type_value = parse_type();
+    Token tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
 
-    consume(Token::Type::PUNCTUATION, ";", "Unexpected token");
+    VarDecl::eTypes type = string_to_type.at( tok.lexeme );
+    std::unique_ptr<Expr> byte_size = ( tok.lexeme == "sprite" ) ? parse_expr() : nullptr;
+    // int byte_size = 0;
 
-    return VarDecl{ name.lexeme, type_value };
+    // if( tok.lexeme == "sprite" ) {
+    //     Token nibble = consume( Token::Type::NUMBER, "Expected a nibble" );
+    //     byte_size = std::atoi( nibble.lexeme.c_str() );
+    // }
+
+    consume( Token::Type::PUNCTUATION, ";", "Unexpected token" );
+
+    return std::make_unique<VarDecl>( std::move(name), type, std::move(byte_size) );
 }
 
-Type Parser::parse_type()
-{
-    static std::unordered_map<std::string, Type::eTypeTypes> string_to_type = {
-        { "nibble", Type::eTypeTypes::NIBBLE  },
-        { "byte"  , Type::eTypeTypes::BYTE    },
-        { "snack" , Type::eTypeTypes::SNACK   },
-        { "number", Type::eTypeTypes::NUMBER  },
-        { "bool"  , Type::eTypeTypes::BOOL    },
-        { "key"   , Type::eTypeTypes::KEY     },
-        { "sprite", Type::eTypeTypes::SPRITE  },
-    };
-    Type value;
-
-    Token type = consume(Token::Type::TYPE_KEYWORD, "Expected type keyword name");
-
-    value.type = string_to_type.at(type.lexeme);
-
-    if( type.lexeme == "sprite" ) {
-        Token nibble = consume(Token::Type::NUMBER, "Expected a nibble");
-        value.sprite_size = std::atoi( nibble.lexeme.c_str() );
-    }
-
-    return value;
-}
 
 std::unique_ptr<Stmt> Parser::parse_stmt()
 {
@@ -289,118 +178,357 @@ std::unique_ptr<Stmt> Parser::parse_stmt()
         { "while",  &Parser::parse_while_stmt  },
         { "draw",   &Parser::parse_draw_stmt   },
         { "return", &Parser::parse_return_stmt },
-        { "getkey", &Parser::parse_getkey_stmt },
         { "{",      &Parser::parse_block       }
     };
 
     auto it = string_to_stmt_func.find( peek().lexeme );
 
-    if( it == string_to_stmt_func.end() )
-        throw std::runtime_error("Expected statement");
+    if( it != string_to_stmt_func.end() )
+        return (this->*(it->second))();
 
-    return (this->*(it->second))();
+    return parse_expr_stmt();
+}
+
+std::unique_ptr<Stmt> Parser::parse_expr_stmt()
+{
+    auto expr = parse_expr();
+
+    consume( Token::Type::PUNCTUATION, "Expected ';' after statement" );
+
+    return std::make_unique<ExprStmt>( std::move( expr) );
 }
 
 std::unique_ptr<Stmt> Parser::parse_if_stmt()
 {
-    // consume 'if'
-    consume(Token::Type::KEYWORD, "Expected 'if' keyword");
+    consume( Token::Type::KEYWORD, "if", "Expected 'if' keyword" );
+    consume( Token::Type::PUNCTUATION, "(", "Expected '(' after 'if'" );
 
-    // consume '('
-    consume(Token::Type::PUNCTUATION, "Expected '(' after 'if'");
-
-    // parse condition
     auto condition = parse_expr();
 
-    // consume ')'
-    consume(Token::Type::PUNCTUATION, "Expected ')' after if condition");
+    consume( Token::Type::PUNCTUATION, ")", "Expected ')' after if condition" );
 
-    // parse the 'then' branch
     auto then_branch = parse_stmt();
 
     // optional 'else'
     std::unique_ptr<Stmt> else_branch = nullptr;
-    if (peek().lexeme == "else") {
-        forward_cursor(); // consume 'else'
+
+    if( match(Token::Type::KEYWORD, "else") ) {
+        consume( Token::Type::KEYWORD, "else", "Expected 'else'" );
         else_branch = parse_stmt();
     }
 
-    // build and return
-
-    return std::make_unique<Stmt>( IfStmt { std::move(condition), std::move(then_branch), std::move(else_branch) } );
+    return std::make_unique<IfStmt>( std::move(condition), std::move(then_branch), std::move(else_branch) );
 }
-
 
 std::unique_ptr<Stmt> Parser::parse_while_stmt()
 {
-    return std::make_unique<Stmt>(Stmt{DummyStmt()});
+    consume( Token::Type::KEYWORD, "while", "Expected 'while' keyword" );
+    consume( Token::Type::PUNCTUATION, "(", "Expected '(' after 'while'" );
+
+    auto condition = parse_expr();
+
+    consume( Token::Type::PUNCTUATION, ")", "Expected ')' after while condition" );
+
+    std::unique_ptr<Stmt> body = parse_stmt();
+
+    return std::make_unique<WhileStmt>( std::move(condition), std::move(body) );
 }
 
 std::unique_ptr<Stmt> Parser::parse_draw_stmt()
 {
-    return std::make_unique<Stmt>(Stmt{DummyStmt()});
+    consume( Token::Type::KEYWORD, "draw", "Expected 'draw' keyword" );
+
+    consume( Token::Type::PUNCTUATION, "(", "Expected '(' after draw keyword" );
+
+    std::unique_ptr<Identifier> sprite = parse_identifier( "Expected sprite identifier" );
+
+    consume( Token::Type::PUNCTUATION, "Expected ',' between identifier and x" );
+    std::unique_ptr<Expr> x = parse_expr();
+
+    consume( Token::Type::PUNCTUATION, "Expected ',' between x and y" );
+    std::unique_ptr<Expr> y = parse_expr();
+
+    std::unique_ptr<Expr> height = nullptr;
+
+    if( match(Token::Type::PUNCTUATION, ",") ) {
+        consume( Token::Type::PUNCTUATION, ",", "" );
+        height = parse_expr();
+    }
+
+    consume( Token::Type::PUNCTUATION, ")", "Expected ')' after draw arguments" );
+    consume( Token::Type::PUNCTUATION, ";", "Expected ';' after draw statement" );
+
+    return std::make_unique<DrawStmt>( std::move(sprite), std::move(x), std::move(y), std::move(height) );
 }
 
 std::unique_ptr<Stmt> Parser::parse_return_stmt()
 {
-    return std::make_unique<Stmt>(Stmt{DummyStmt()});
-}
+    consume( Token::Type::KEYWORD, "Expected 'return' keyword" );
 
-std::unique_ptr<Stmt> Parser::parse_getkey_stmt()
-{
-    return std::make_unique<Stmt>( DummyStmt() );
+    std::unique_ptr<Expr> value = nullptr;
+
+    if( !match(Token::Type::PUNCTUATION, ";"))
+        value = parse_expr();
+
+    consume( Token::Type::PUNCTUATION, "Expected ';' after return statement" );
+
+    return std::make_unique<ReturnStmt>( std::move(value) );
 }
 
 std::unique_ptr<Stmt> Parser::parse_block()
 {
-    consume(Token::Type::PUNCTUATION, "Expected '{' to start block");
+    consume( Token::Type::PUNCTUATION, "Expected '{' to start block" );
 
-    Block block;
+    BlockStmt block;
 
-    while (peek().type != Token::Type::END_OF_INPUT &&
-           peek().lexeme != "}")
-    {
+    while( !match(Token::Type::PUNCTUATION, "}") && peek().type != Token::Type::END_OF_INPUT )
         block.statements.push_back(parse_stmt());
-    }
 
-    consume(Token::Type::PUNCTUATION, "Expected '}' after block");
+    consume( Token::Type::PUNCTUATION, "Expected '}' after block" );
 
-    return std::make_unique<Stmt>( block );
+    return std::make_unique<BlockStmt>( std::move( block ) );
 }
+
 
 std::unique_ptr<Expr> Parser::parse_expr()
 {
-	return std::make_unique<Expr>(Expr{});
+    std::unique_ptr<Expr> lhs = parse_logic_or();
+
+    if( auto id = dynamic_cast<Identifier*>(lhs.get()) ) {
+
+        if( match(Token::Type::OPERATOR, "=") ) {
+
+            Token eq = consume( Token::Type::OPERATOR, "=", "Expected '=' in assignment" );
+            std::unique_ptr<Expr> rhs = parse_expr();
+
+            return std::make_unique<BinaryExpr>(
+                std::move(lhs),
+                BinaryExpr::Operator::ASSIGN,
+                std::move(rhs)
+            );
+        }
+    }
+
+    return lhs;
 }
 
-// std::unique_ptr<Stmt> Parser::parse_statement()
-// {
-    // if (match(Token::Type::KEYWORD)) {
-    //     Token name = consume(Token::Type::Identifier, "Expected variable name.");
-    //     consume(Token::Type::Assign, "Expected '=' after variable name.");
-    //     auto value = parse_expression();
-    //     consume(Token::Type::Semicolon, "Expected ';' after expression.");
-    //     return std::make_unique<LetStmt>(name.lexeme, std::move(value));
-    // }
+std::unique_ptr<Expr> Parser::parse_logic_or()
+{
+    std::unique_ptr<Expr> lhs = parse_logic_and();
 
-//     throw std::runtime_error("Expected statement.");
-// }
+    while( match( Token::Type::OPERATOR, "||") ) {
 
-// std::unique_ptr<Expr> Parser::parse_expression()
-// {
-    // if (current.type == Token::Type::NUMBER) {
+        Token tok = consume( Token::Type::OPERATOR, "||", "Expected '||' operator" );
+        std::unique_ptr<Expr> rhs = parse_logic_and();
+        lhs = std::make_unique<BinaryExpr>( std::move(lhs), BinaryExpr::Operator::LOGIC_OR, std::move( rhs) );
+    }
 
-    //     int value = std::stoi(current.lexeme);
-    //     current = tokeniser.next_token();
-    //     return std::make_unique<NumberLiteral>(value);
+    return lhs;
+}
 
-    // } else if (current.type == Token::Type::IDENTIFIER) {
+std::unique_ptr<Expr> Parser::parse_logic_and()
+{
+    std::unique_ptr<Expr> lhs = parse_equality();
 
-    //     std::string name = current.lexeme;
-    //     current = tokeniser.next_token();
-    //     return std::make_unique<Variable>(name);
-        
-    // }
+    while( match( Token::Type::OPERATOR, "&&") ) {
 
-//     throw std::runtime_error("Expected expression.");
-// }
+        Token tok = consume( Token::Type::OPERATOR,  "&&", "Expected '&&' operator" );
+        std::unique_ptr<Expr> rhs = parse_equality();
+        lhs = std::make_unique<BinaryExpr>( std::move(lhs), BinaryExpr::Operator::LOGIC_AND, std::move( rhs) );
+    }
+
+    return lhs;
+}
+
+std::unique_ptr<Expr> Parser::parse_equality()
+{
+    std::unique_ptr<Expr> lhs = parse_comparison();
+
+    while( match( Token::Type::OPERATOR, "==") || match( Token::Type::OPERATOR, "!=") ) {
+
+        Token tok = consume( Token::Type::OPERATOR, "" );
+        std::unique_ptr<Expr> rhs = parse_comparison();
+        lhs = std::make_unique<BinaryExpr>(
+            std::move(lhs),
+            ( tok.lexeme == "==" ) ? BinaryExpr::Operator::EQUALS : BinaryExpr::Operator::NOT_EQ,
+            std::move( rhs)
+        );
+    }
+
+    return lhs;
+}
+
+
+std::unique_ptr<Expr> Parser::parse_comparison()
+{
+    std::unique_ptr<Expr> lhs = parse_term();
+
+    while( match( Token::Type::OPERATOR, ">") || match( Token::Type::OPERATOR, ">=")
+        || match( Token::Type::OPERATOR, "<") || match( Token::Type::OPERATOR, "<=") ) {
+
+        Token tok = consume( Token::Type::OPERATOR, "" );
+        std::unique_ptr<Expr> rhs = parse_term();
+        lhs = std::make_unique<BinaryExpr>(
+            std::move(lhs),
+            ( tok.lexeme == ">" ) ? BinaryExpr::Operator::GREATER_THAN :
+                ( tok.lexeme == ">=" ) ? BinaryExpr::Operator::GREATER_EQ :
+                    ( tok.lexeme == "<" ) ? BinaryExpr::Operator::LESS_THAN :
+                        BinaryExpr::Operator::LESS_EQ,
+            std::move( rhs)
+        );
+    }
+
+    return lhs;
+}
+
+std::unique_ptr<Expr> Parser::parse_term()
+{
+    std::unique_ptr<Expr> lhs = parse_factor();
+
+    while( match( Token::Type::OPERATOR, "+") || match( Token::Type::OPERATOR, "-") ) {
+
+        Token tok = consume( Token::Type::OPERATOR, "" );
+        std::unique_ptr<Expr> rhs = parse_factor();
+        lhs = std::make_unique<BinaryExpr>(
+            std::move(lhs),
+            ( tok.lexeme == "+" ) ? BinaryExpr::Operator::ADD : BinaryExpr::Operator::SUBTRACT,
+            std::move( rhs)
+        );
+    }
+
+    return lhs;
+}
+
+std::unique_ptr<Expr> Parser::parse_factor()
+{
+    std::unique_ptr<Expr> lhs = parse_unary();
+
+    while( match( Token::Type::OPERATOR, "*") || match( Token::Type::OPERATOR, "/") ) {
+
+        Token tok = consume( Token::Type::OPERATOR, "" );
+        std::unique_ptr<Expr> rhs = parse_unary();
+        lhs = std::make_unique<BinaryExpr>(
+            std::move(lhs),
+            ( tok.lexeme == "*" ) ? BinaryExpr::Operator::MULTIPLY : BinaryExpr::Operator::DIVIDE,
+            std::move( rhs)
+        );
+    }
+
+    return lhs;
+}
+
+std::unique_ptr<Expr> Parser::parse_unary()
+{
+    if( match( Token::Type::OPERATOR, "!") )
+        return std::make_unique<UnaryExpr>( parse_unary(), UnaryExpr::Operator::NOT );
+
+    if( match( Token::Type::OPERATOR, "-") )
+        return std::make_unique<UnaryExpr>( parse_unary(), UnaryExpr::Operator::NEGATIVE );
+
+    return parse_primary();
+}
+
+std::unique_ptr<Expr> Parser::parse_primary()
+{
+    if( match( Token::Type::NUMBER) ) {
+
+        Token number = consume( Token::Type::NUMBER, "Expected number" );
+        int value = std::stoi( number.lexeme );
+        return std::make_unique<Number>( value );
+    }
+
+    if( match( Token::Type::KEYWORD, "true" ) ) {
+
+        consume( Token::Type::KEYWORD, "true", "Expected 'true'" );
+        return std::make_unique<Bool>( true );
+    }
+
+    if( match( Token::Type::KEYWORD, "false" ) ) {
+
+        consume( Token::Type::KEYWORD, "false", "Expected 'false'" );
+        return std::make_unique<Bool>( false );
+    }
+
+    if( match( Token::Type::KEYWORD, "bcd" ) ) {
+
+        consume( Token::Type::KEYWORD, "bcd", "Expected 'bcd'" );
+        Token id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'bcd'" );
+        return std::make_unique<BcdExpr>( std::make_unique<Identifier>(id.lexeme));
+    }
+
+    if( match( Token::Type::KEYWORD, "rnd" ) ) {
+
+        consume( Token::Type::KEYWORD, "rnd", "Expected 'rnd'" );
+        // Token id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'rnd'" );
+        // return std::make_unique<RndExpr>( std::make_unique<Identifier>(id.lexeme));
+        return std::make_unique<RndExpr>( parse_expr() );
+    }
+
+    if( match( Token::Type::KEYWORD, "keydown" ) ) {
+
+        consume( Token::Type::KEYWORD, "keydown", "Expected 'keydown'" );
+        Token id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'keydown'" );
+        return std::make_unique<KeyDownExpr>( std::make_unique<Identifier>(id.lexeme));
+    }
+
+    if( match( Token::Type::KEYWORD, "getkey" ) ) {
+
+        consume( Token::Type::KEYWORD, "getkey", "Expected 'getkey'" );
+        return std::make_unique<GetKeyExpr>();
+    }
+
+    if( match( Token::Type::PUNCTUATION, "(" ) ) {
+
+        consume( Token::Type::PUNCTUATION, "Expected '('" );
+        std::unique_ptr<Expr> expr = parse_expr( );
+        consume( Token::Type::PUNCTUATION, "Expected ')'" );
+
+        return std::make_unique<BracedExpr>( std::move(expr) );
+    }
+
+    if( match( Token::Type::IDENTIFIER ) ) {
+
+        std::unique_ptr<Identifier> name = parse_identifier( "Expected an identifier" );
+
+        if( !match( Token::Type::PUNCTUATION, "(" ) )
+            return name;
+
+        consume( Token::Type::PUNCTUATION, "(", "Expected '(' for function call" );
+
+        std::vector<std::unique_ptr<Expr>> args;
+
+        if( !match(Token::Type::PUNCTUATION, ")") ) {
+
+            while( true ) {
+                args.push_back(parse_expr());
+
+                if( match( Token::Type::PUNCTUATION, "," ) )
+                    consume( Token::Type::PUNCTUATION, ",", "Expected ',' between function arguments" );
+                else
+                    break;
+            }
+        }
+
+        consume( Token::Type::PUNCTUATION, "Expected ')' to close function call" );
+
+        return std::make_unique<FuncCallExpr>( std::move(name), std::move(args) );
+    }
+
+    throw std::runtime_error("Expected expression." );
+}
+
+std::unique_ptr<Identifier> Parser::parse_identifier( std::string error_message )
+{
+    Token name = consume( Token::Type::IDENTIFIER, error_message );
+
+    return std::make_unique<Identifier>(name.lexeme);
+}
+
+std::unique_ptr<Number> Parser::parse_number( std::string error_message )
+{
+    Token tok = consume(Token::Type::NUMBER, error_message);
+
+    int value = 42; //parse_int_literal(tok.lexeme); // handle hex, decimal, etc.
+
+    return std::make_unique<Number>(value);
+}

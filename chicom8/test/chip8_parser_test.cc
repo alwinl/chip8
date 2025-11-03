@@ -111,17 +111,9 @@ TEST_F(ParserTest, ParseVarDecl_Simple)
 
     Program program = parser->AST();
 
-    Program expected {
-        .declarations {
-            VarDecl {
-                .identifier = "counter",
-                .type {
-                    .type = Type::eTypeTypes::NIBBLE,
-                    .sprite_size = 0
-                }
-            }
-        }
-    };
+    Program expected;
+
+    expected.declarations.push_back( std::make_unique<VarDecl> ( std::make_unique<Identifier>("counter"), VarDecl::eTypes::NIBBLE ) );
 
     EXPECT_EQ( program, expected );
 }
@@ -140,24 +132,10 @@ R"(
 
     Program actual = parser->AST();
 
-    Program expected {
-        .declarations {
-            VarDecl {
-                .identifier = "x",
-                .type {
-                    .type = Type::eTypeTypes::BYTE,
-                    .sprite_size = 0
-                }
-            },
-            VarDecl {
-                .identifier = "y",
-                .type {
-                    .type = Type::eTypeTypes::SNACK,
-                    .sprite_size = 0
-                }
-            }
-        }
-    };
+    Program expected;
+
+    expected.declarations.push_back( std::make_unique<VarDecl>( std::make_unique<Identifier>("x"), VarDecl::eTypes::BYTE ) );
+    expected.declarations.push_back( std::make_unique<VarDecl>( std::make_unique<Identifier>("y"), VarDecl::eTypes::SNACK ) );
 
     EXPECT_EQ( actual, expected );
 }
@@ -178,16 +156,16 @@ TEST_F(ParserTest, ParseFuncDecl_Simple)
 
     Program actual = parser->AST();
 
-    Program expected {
-        .declarations {
-            FuncDecl {
-                "foo",
-                ParamList {},
-                Vardecls {},
-                Stmts {}
-            },
-        }
-    };
+    Program expected;
+
+    std::vector<std::unique_ptr<VarDecl>> paramlist;
+    std::vector<std::unique_ptr<VarDecl>> vardecls;
+    std::vector<std::unique_ptr<Stmt>> stmt_list;
+
+    expected.declarations.push_back( std::make_unique<FuncDecl>( std::make_unique<Identifier>("foo"), std::move( paramlist ), std::move( vardecls ), std::move( stmt_list ) ) );
+
+    std::cout << "actual " << actual << '\n';
+    std::cout << "expected " << expected << '\n';
 
     EXPECT_EQ( actual, expected );
 }
@@ -198,74 +176,52 @@ TEST_F(ParserTest, ParseFuncDecl_WithParams)
 
     Program actual = parser->AST();
 
-    Program expected {
-        .declarations {
-            FuncDecl {
-                "add",
-                ParamList {
-                    TypedIdentifier {
-                        "a",
-                        { .type = Type::eTypeTypes::NUMBER, .sprite_size = 0 }
-                    },
-                    TypedIdentifier {
-                        "b",
-                        { .type = Type::eTypeTypes::SPRITE, .sprite_size = 5 }
-                    }
-                },
-                Vardecls {},
-                Stmts {}
-            }
-        }
-    };
+    Program expected;
+
+    std::vector<std::unique_ptr<VarDecl>> paramlist;
+    std::vector<std::unique_ptr<VarDecl>> vardecls;
+    std::vector<std::unique_ptr<Stmt>> stmt_list;
+
+    paramlist.push_back( std::make_unique<VarDecl>( std::make_unique<Identifier>("a"), VarDecl::eTypes::NUMBER ) );
+    paramlist.push_back( std::make_unique<VarDecl>( std::make_unique<Identifier>("b"), VarDecl::eTypes::SPRITE, std::make_unique<Number>(5) ) );
+
+    expected.declarations.push_back( std::make_unique<FuncDecl>(std::make_unique<Identifier>("add"), std::move(paramlist), std::move( vardecls ), std::move( stmt_list ) ) );
 
     EXPECT_EQ(actual, expected);
 }
 
-// TEST_F(ParserTest, ParseFuncDecl_WithBody)
-// {
-//     SetUpParser(R"(func foo() {
-//     var x: number;
-//     x = 42;
-// })");
+TEST_F(ParserTest, ParseFuncDecl_WithBody)
+{
+    SetUpParser(
+R"(func foo() {
+    var x: bool;
+    x = keydown KEY_1;
+})");
 
-//     Program actual = parser->AST();
+    Program actual = parser->AST();
 
-//     Program expected {
-//         .declarations {
-//             FuncDecl {
-//                 "foo",
-//                 ParamList {},
-//                 Vardecls {},
-//                 Stmts
-//                  {
-//                     VarDecl {
-//                         "x",
-//                         Type::eTypeTypes::NUMBER
-//                     },
-//                     // ExprStmt {
-//                     //     .expr = Expr {
-//                     //         .lhs = {
-//                     //             .type = Token::Type::IDENTIFIER,
-//                     //             .lexeme = "x",
-//                     //             .line = 3,
-//                     //             .column = 5
-//                     //         },
-//                     //         .op = "=",
-//                     //         .rhs = Expr {
-//                     //             .type = Token::Type::NUMBER,
-//                     //             .lexeme = "42",
-//                     //             .line = 3,
-//                     //             .column = 9
-//                     //         }
-//                     //     }
-//                     // }
-//                 }
-//             }
-//         }
-//     };
+    Program expected;
 
-//     EXPECT_EQ(actual, expected);
-// }
+    std::vector<std::unique_ptr<VarDecl>> paramlist;
+    std::vector<std::unique_ptr<VarDecl>> vardecls;
+    std::vector<std::unique_ptr<Stmt>> stmt_list;
+
+    vardecls.push_back( std::make_unique<VarDecl> ( std::make_unique<Identifier>("x"), VarDecl::eTypes::BOOL ) );
+
+    stmt_list.push_back(
+        std::make_unique<ExprStmt>(
+            std::make_unique<BinaryExpr>(
+                std::make_unique<Identifier>("x"),
+                BinaryExpr::Operator::ASSIGN,
+                std::make_unique<KeyDownExpr>( std::make_unique<Identifier>("KEY_1") )
+            )
+        )
+    );
+
+    expected.declarations.push_back( std::make_unique<FuncDecl>(std::make_unique<Identifier>("foo"), std::move(paramlist), std::move( vardecls ), std::move( stmt_list ) ) );
+
+    EXPECT_EQ(actual, expected);
+}
 
 TEST_F(ParserTest, ParseFuncDecl_Error_MissingBrace)
 {
@@ -274,4 +230,181 @@ TEST_F(ParserTest, ParseFuncDecl_Error_MissingBrace)
     EXPECT_THROW({
         parser->AST();
     }, std::runtime_error);
+}
+
+TEST_F(ParserTest, ParseFullProgram)
+{
+    const char* source_code = R"(
+        var flag : bool;
+        var word : byte;
+        var address : snack;
+        var image : sprite 5;
+
+        func foo( x : number, y : number, img : sprite 6 )
+        {
+            var internal : key;
+            var second : number;
+
+            if( x == 5 )
+                keydown KEY_1;
+
+            while( getkey ) {
+                internal = ( y + 6 ) * 3;
+                draw( img, x + 10, y + 10 );
+                second = rnd 2*8;
+            }
+            flag = false;
+        }
+
+        func main()
+        {
+            foo( X, Y, IMG );
+            return 9;
+        }
+    )";
+
+    SetUpParser(source_code);
+
+    // 1. Parse program
+    Program actual = parser->AST();
+
+    // 2. Build expected Program
+    Program expected;
+
+    // Global variables
+    expected.declarations.push_back(std::make_unique<VarDecl>(std::make_unique<Identifier>("flag"), VarDecl::eTypes::BOOL));
+    expected.declarations.push_back(std::make_unique<VarDecl>(std::make_unique<Identifier>("word"), VarDecl::eTypes::BYTE));
+    expected.declarations.push_back(std::make_unique<VarDecl>(std::make_unique<Identifier>("address"), VarDecl::eTypes::SNACK));
+    expected.declarations.push_back(std::make_unique<VarDecl>(
+        std::make_unique<Identifier>("image"), VarDecl::eTypes::SPRITE, std::make_unique<Number>(5)));
+
+    // Function foo
+    std::vector<std::unique_ptr<VarDecl>> foo_params;
+    foo_params.push_back(make_unique<VarDecl>( std::make_unique<Identifier>("x"), VarDecl::eTypes::NUMBER ));
+    foo_params.push_back(make_unique<VarDecl>( std::make_unique<Identifier>("y"), VarDecl::eTypes::NUMBER ));
+    foo_params.push_back(make_unique<VarDecl>( std::make_unique<Identifier>("img"), VarDecl::eTypes::SPRITE, std::make_unique<Number>(6) ));
+
+    std::vector<std::unique_ptr<VarDecl>> foo_vars;
+    foo_vars.push_back(std::make_unique<VarDecl>(std::make_unique<Identifier>("internal"), VarDecl::eTypes::KEY));
+    foo_vars.push_back(std::make_unique<VarDecl>(std::make_unique<Identifier>("second"), VarDecl::eTypes::NUMBER));
+
+    std::vector<std::unique_ptr<Stmt>> foo_body;
+
+    // if (x == 5) keydown KEY_1;
+    auto if_stmt = std::make_unique<IfStmt>(
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("x"),
+            BinaryExpr::Operator::EQUALS,
+            std::make_unique<Number>(5)),
+        std::make_unique<ExprStmt>(
+            std::make_unique<KeyDownExpr>(
+                std::make_unique<Identifier>("KEY_1"))),
+        nullptr
+    );
+    foo_body.push_back(std::move(if_stmt));
+
+    // while(getkey) { ... }
+    std::vector<std::unique_ptr<Stmt>> while_body;
+
+    // internal = (y + 6) * 3;
+    while_body.push_back(std::make_unique<ExprStmt>(
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("internal"),
+            BinaryExpr::Operator::ASSIGN,
+            std::make_unique<BinaryExpr>(
+                std::make_unique<BracedExpr>(
+                    std::make_unique<BinaryExpr>(
+                        std::make_unique<Identifier>("y"),
+                        BinaryExpr::Operator::ADD,
+                        std::make_unique<Number>(6))
+                ),
+                BinaryExpr::Operator::MULTIPLY,
+                std::make_unique<Number>(3)
+            )
+        )
+    ));
+
+    // draw img, x + 10, y + 10;
+    while_body.push_back(std::make_unique<DrawStmt>(
+        std::make_unique<Identifier>("img"),
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("x"),
+            BinaryExpr::Operator::ADD,
+            std::make_unique<Number>(10)
+        ),
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("y"),
+            BinaryExpr::Operator::ADD,
+            std::make_unique<Number>(10)
+        ),
+        nullptr
+    ));
+
+    // second = rnd 2*8;
+    while_body.push_back(std::make_unique<ExprStmt>(
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("second"),
+            BinaryExpr::Operator::ASSIGN,
+            std::make_unique<RndExpr>(
+                std::make_unique<BinaryExpr>(
+                    std::make_unique<Number>(2),
+                    BinaryExpr::Operator::MULTIPLY,
+                    std::make_unique<Number>(8)
+                )
+            )
+        )
+    ));
+
+    auto while_stmt = std::make_unique<WhileStmt>(
+        std::make_unique<GetKeyExpr>(),
+        std::make_unique<BlockStmt>(std::move(while_body))
+    );
+    foo_body.push_back(std::move(while_stmt));
+
+    // flag = false;
+    foo_body.push_back(std::make_unique<ExprStmt>(
+        std::make_unique<BinaryExpr>(
+            std::make_unique<Identifier>("flag"),
+            BinaryExpr::Operator::ASSIGN,
+            std::make_unique<Bool>(false)
+        )
+    ));
+
+    expected.declarations.push_back(std::make_unique<FuncDecl>(
+        std::make_unique<Identifier>("foo"),
+        std::move(foo_params),
+        std::move(foo_vars),
+        std::move(foo_body)
+    ));
+
+    // Function main
+    std::vector<std::unique_ptr<VarDecl>> main_params;
+    std::vector<std::unique_ptr<VarDecl>> main_vars;
+    std::vector<std::unique_ptr<Stmt>> main_body;
+
+    std::vector<std::unique_ptr<Expr>> args;
+    args.push_back( std::make_unique<Identifier>("X") );
+    args.push_back( std::make_unique<Identifier>("Y") );
+    args.push_back( std::make_unique<Identifier>("IMG") );
+
+    main_body.push_back(std::make_unique<ExprStmt>(
+        std::make_unique<FuncCallExpr>(
+            std::make_unique<Identifier>("foo"),
+            std::move( args)
+        )
+    ));
+
+    main_body.push_back(std::make_unique<ReturnStmt>(
+        std::make_unique<Number>(9)
+    ));
+
+    expected.declarations.push_back(std::make_unique<FuncDecl>(
+        std::make_unique<Identifier>("main"),
+        std::move(main_params),
+        std::move(main_vars),
+        std::move(main_body)
+    ));
+
+    // 3. Compare
+    EXPECT_EQ(actual, expected);
 }

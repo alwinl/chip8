@@ -136,7 +136,7 @@ TEST(TokeniserTest, InvalidToken)
 
 TEST(TokeniserTest, HandlesInvalidCharacter)
 {
-    Tokeniser lexer( std::string("let x = 42 @;"));
+    Tokeniser lexer( std::string("var x = 42 @;"));
 
     // Skip let x = 42
     for (int i = 0; i < 4; ++i)
@@ -171,23 +171,23 @@ TEST(TokeniserTest, ParsesSimpleExpression)
 
 TEST(TokeniserTest, ParsesFunctionCall)
 {
-    Tokeniser lexer( std::string("draw(x, y);") );
+    Tokeniser lexer( std::string("do_draw(x, y);") );
 
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "draw", 1, 1 ) ); // draw
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, "(", 1, 5 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "x", 1, 6 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ",", 1, 7 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "y", 1, 9 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ")", 1, 10 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ";", 1, 11 ) );
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 12 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "do_draw", 1, 1 ) ); // draw
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, "(", 1, 8 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "x", 1, 9 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ",", 1, 10 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "y", 1, 12 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ")", 1, 13 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::PUNCTUATION, ";", 1, 14 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 15 ) );
 }
 
 TEST(TokeniserTest, ParsesVariableDeclaration)
 {
-    Tokeniser lexer( std::string("let x = 42;") );
+    Tokeniser lexer( std::string("var x = 42;") );
 
-    EXPECT_EQ(lexer.next_token(), Token( Token::Type::KEYWORD, "let", 1, 1 ) );
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::KEYWORD, "var", 1, 1 ) );
     EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "x", 1, 5 ) );
     EXPECT_EQ(lexer.next_token(), Token( Token::Type::OPERATOR, "=", 1, 7 ) );
     EXPECT_EQ(lexer.next_token(), Token( Token::Type::NUMBER, "42", 1, 9 ) );
@@ -198,9 +198,9 @@ TEST(TokeniserTest, ParsesVariableDeclaration)
 
 TEST(TokeniserTest, HandlesUnterminatedStringLiteral)
 {
-    Tokeniser lexer( std::string("LET x = \"unterminated") );
+    Tokeniser lexer( std::string("var x = \"unterminated") );
 
-    // Skip LET x =
+    // Skip var x =
     for (int i = 0; i < 3; ++i)
         lexer.next_token();
 
@@ -209,10 +209,37 @@ TEST(TokeniserTest, HandlesUnterminatedStringLiteral)
 
 TEST(TokeniserTest, ParsesIdentifiersWithUnderscores)
 {
-    Tokeniser lexer( std::string("let my_var = 1;") );
+    Tokeniser lexer( std::string("var my_var = 1;") );
 
-    // Skip let
+    // Skip var
     lexer.next_token();
 
     EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "my_var", 1, 5 ) );
+}
+
+TEST(TokeniserTest, KEY_1_is_identifier)
+{
+    Tokeniser lexer( std::string("KEY_1") );
+
+    EXPECT_EQ(lexer.next_token(), Token( Token::Type::IDENTIFIER, "KEY_1", 1, 1 ) );
+}
+
+TEST(TokeniserTest, TestSnippet)
+{
+    ::testing::internal::CaptureStdout();
+
+    Tokeniser lexer( std::string(
+R"(func foo() {
+    x = keydown KEY_1;
+})") );
+
+    for (Token tok = lexer.next_token();
+        tok.type != Token::Type::END_OF_INPUT;
+        tok = lexer.next_token())
+    {
+        std::cout << tok << "\n";
+    }
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    std::cerr << output;
 }
