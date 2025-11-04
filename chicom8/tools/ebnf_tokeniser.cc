@@ -44,6 +44,7 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^/[^/]*/)"), Token::Type::REGEX, false },
     TokenMatcher{ std::regex(R"(^;)"), Token::Type::END_OF_PRODUCTION, false },
     TokenMatcher{ std::regex(R"(^"[^"]*")"), Token::Type::STRING_LITERAL, false },
+    TokenMatcher{ std::regex(R"(^[A-Z_]+(\("([^"\\]|\\.)*"\))?)"), Token::Type::TOKEN_PRODUCTION, false },
 };
 
 std::string escape_string( const std::string& input)
@@ -78,6 +79,7 @@ std::ostream& operator<<( std::ostream& os, const Token& token )
         { Token::Type::REGEX, "REGEX" },
         { Token::Type::END_OF_PRODUCTION, "END_OF_PRODUCTION" },
         { Token::Type::STRING_LITERAL, "STRING_LITERAL" },
+        { Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCTION" },
         { Token::Type::END_OF_INPUT, "END_OF_INPUT" },
         { Token::Type::INVALID, "INVALID" },
     };

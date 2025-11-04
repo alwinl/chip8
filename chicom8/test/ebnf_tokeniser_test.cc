@@ -85,3 +85,37 @@ TEST(EBNFTokeniserTest, TokeniseRegex)
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::REGEX, "/0x[0-9a-fA-F]+/", 1, 15 ) );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 31 ) );
 }
+
+TEST(EBNFTokeniserTest, TokeniseTokenProduction)
+{
+    Tokeniser lexer( std::string( "TOKEN_PRODUCT" ) );
+
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCT", 1, 1 ) );
+}
+
+TEST(EBNFTokeniserTest, TokeniseTokenProductionWithParam)
+{
+    Tokeniser lexer( std::string( "TOKEN_PRODUCT(\"-\")" ) );
+
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCT(\"-\")", 1, 1 ) );
+}
+
+TEST(EBNFTokeniserTest, TokeniseTokenProductionWithClosingBracketParam)
+{
+    Tokeniser lexer( std::string( "TOKEN_PRODUCT(\")\")" ) );
+
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCT(\")\")", 1, 1 ) );
+}
+
+TEST(EBNFTokeniserTest, TokeniseTokenProductionIntegration)
+{
+    Tokeniser lexer( std::string( "<typed_identifier> ::= IDENTIFIER PUNCTUATION(\":\") <type> ;" ) );
+
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<typed_identifier>", 1, 1 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::COLON_EQ, "::=", 1, 20 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "IDENTIFIER", 1, 24 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "PUNCTUATION(\":\")", 1, 35 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "<type>", 1, 52 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_PRODUCTION, ";", 1, 59 ) );
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_INPUT, "", 1, 60 ) );
+}
