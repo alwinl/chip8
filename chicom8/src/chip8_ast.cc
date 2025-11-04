@@ -51,27 +51,6 @@ inline bool equals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b)
     return equals(static_cast<const T&>(*a), static_cast<const T&>(*b));
 }
 
-// inline bool equals(const std::unique_ptr<Expr>& a, const std::unique_ptr<Expr>& b)
-// {
-//     if (!a && !b) return true;
-//     if (!a || !b) return false;
-//     return equals(*a, *b);
-// }
-
-// inline bool equals(const std::unique_ptr<Stmt>& a, const std::unique_ptr<Stmt>& b)
-// {
-//     if (!a && !b) return true;
-//     if (!a || !b) return false;
-//     return equals(*a, *b);
-// }
-
-// inline bool equals(const std::unique_ptr<Decl>& a, const std::unique_ptr<Decl>& b)
-// {
-//     if (!a && !b) return true;
-//     if (!a || !b) return false;
-//     return equals(*a, *b);
-// }
-
 template <typename T>
 bool equals_vector(const std::vector<std::unique_ptr<T>>& a,
                    const std::vector<std::unique_ptr<T>>& b)
