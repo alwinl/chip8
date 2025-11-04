@@ -4,7 +4,9 @@
 
 <func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_body> PUNCTUATION("}") ;
 
-<func_body>       ::= ( <var_decl> | <stmt> )*  ;
+<func_body>       ::= <func_imp>*  ;
+
+<func_imp>        ::= <var_decl> | <stmt> ;
 
 <param_list>      ::= <typed_identifier> ( PUNCTUATION(",") <typed_identifier> )* ;
 
