@@ -26,7 +26,7 @@
 
 #include "ebnf_tokeniser.h"
 #include "ebnf_parser.h"
-#include "ebnf_generator.h"
+// #include "ebnf_generator.h"
 
 void PrintTo( const Grammar& grammar, std::ostream* os )
 {

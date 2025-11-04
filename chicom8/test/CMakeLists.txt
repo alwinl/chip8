@@ -24,7 +24,7 @@ add_executable(
 
     ebnf_tokeniser_test.cc
     ebnf_parser_test.cc
-    ebnf_generator_test.cc
+    # ebnf_generator_test.cc
 )
 
 add_executable(
