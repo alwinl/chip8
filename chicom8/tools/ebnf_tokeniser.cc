@@ -38,60 +38,13 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^\s+)"), Token::Type::WHITESPACE, true },
     TokenMatcher{ std::regex(R"(^<[^>]*>)"), Token::Type::NONTERMINAL, false },
     TokenMatcher{ std::regex(R"(^::=)"), Token::Type::COLON_EQ, false },
-    TokenMatcher{ std::regex(R"(^[()])"), Token::Type::BRACKET, false },
+    TokenMatcher{ std::regex(R"(^[(])"), Token::Type::OPENBRACKET, false },
+    TokenMatcher{ std::regex(R"(^[)])"), Token::Type::CLOSEBRACKET, false },
     TokenMatcher{ std::regex(R"(^[?+*])"), Token::Type::MODIFIER, false },
     TokenMatcher{ std::regex(R"(^\|)"), Token::Type::PIPE, false },
-    TokenMatcher{ std::regex(R"(^/[^/]*/)"), Token::Type::REGEX, false },
     TokenMatcher{ std::regex(R"(^;)"), Token::Type::END_OF_PRODUCTION, false },
-    TokenMatcher{ std::regex(R"(^"[^"]*")"), Token::Type::STRING_LITERAL, false },
     TokenMatcher{ std::regex(R"(^[A-Z_]+(\("([^"\\]|\\.)*"\))?)"), Token::Type::TOKEN_PRODUCTION, false },
 };
-
-std::string escape_string( const std::string& input)
-{
-    // std::string escaped = "\"";
-    std::string escaped;
-    for( char c : input ) {
-        switch (c) {
-        case '"': escaped += "\\\""; break;
-        case '\\': escaped += "\\\\"; break;
-        case '\n': escaped += "\\n"; break;
-        case '\r': escaped += "\\r"; break;
-        case '\t': escaped += "\\t"; break;
-        default: escaped += c; break;
-        }
-    }
-    // escaped += "\"";
-    return escaped;
-}
-
-std::ostream& operator<<( std::ostream& os, const Token& token )
-{
-    static std::unordered_map<Token::Type, std::string> type_strings =
-    {
-        { Token::Type::COMMENT, "COMMENT" },
-        { Token::Type::WHITESPACE, "WHITESPACE" },
-        { Token::Type::NONTERMINAL, "NONTERMINAL" },
-        { Token::Type::COLON_EQ, "COLON_EQ" },
-        { Token::Type::BRACKET, "BRACKET" },
-        { Token::Type::MODIFIER, "MODIFIER" },
-        { Token::Type::PIPE, "PIPE" },
-        { Token::Type::REGEX, "REGEX" },
-        { Token::Type::END_OF_PRODUCTION, "END_OF_PRODUCTION" },
-        { Token::Type::STRING_LITERAL, "STRING_LITERAL" },
-        { Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCTION" },
-        { Token::Type::END_OF_INPUT, "END_OF_INPUT" },
-        { Token::Type::INVALID, "INVALID" },
-    };
-
-    os << "{ "
-            "type: " << type_strings[token.type] << ", "
-            "lexeme: " << token.lexeme << ", "
-            // "lexeme: " << escape_string(token.lexeme) << ", "
-            "line: " << token.line << ", "
-            "column: " << token.column << "}";
-    return os;
-}
 
 Tokeniser::Tokeniser( std::filesystem::path file_path )
 {
@@ -124,6 +77,8 @@ Token Tokeniser::next_token()
 
             if( match_entry.skip_token )
                 return next_token();
+
+            lexeme = post_process( match_entry.type, lexeme );
 
             return Token{ match_entry.type, lexeme, tok_line, tok_column };
         }
@@ -164,4 +119,12 @@ void Tokeniser::update_position_tracking( std::string lexeme )
     }
 
     cursor += lexeme.length();
+}
+
+std::string Tokeniser::post_process( Token::Type type, std::string lexeme )
+{
+    if( type == Token::Type::NONTERMINAL )
+        return lexeme.substr( 1, lexeme.size() - 2 );
+
+    return lexeme;
 }

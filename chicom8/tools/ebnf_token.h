@@ -1,5 +1,5 @@
 /*
- * ebnf_compiler.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * ebnf_token.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,25 @@
  * MA 02110-1301, USA.
  */
 
-#include <iostream>
-#include <filesystem>
+#pragma once
 
-#include <fstream>
+#include <string>
+#include <vector>
+#include <ostream>
 
-#include "ebnf_tokeniser.h"
-#include "ebnf_parser.h"
-#include "ebnf_printer.h"
-// #include "ebnf_generator.h"
-
-int main()
+struct Token
 {
-    std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
-    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.grammar");
+    enum class Type { COMMENT, WHITESPACE, NONTERMINAL, COLON_EQ, OPENBRACKET, CLOSEBRACKET,
+        PIPE, END_OF_PRODUCTION, TOKEN_PRODUCTION, MODIFIER, END_OF_INPUT, INVALID };
 
-    Tokens tokens = Tokeniser( source_file ).tokenise_all();
-    Grammar grammar = Parser( tokens ).parse_all();
+    Type type;
+    std::string lexeme;
+    int line;
+    int column;
 
+    auto operator<=>(const Token&) const = default;
+};
 
-    std::ofstream output( grammar_file );
-    output << grammar;
-    // Generator().generateAstFiles( std::cout, grammar);
-    
-    return 0;
-}
+using Tokens = std::vector<Token>;
+
+std::ostream& operator<<( std::ostream& os, const Token& token );

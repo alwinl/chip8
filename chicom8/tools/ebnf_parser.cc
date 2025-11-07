@@ -17,112 +17,9 @@
  * MA 02110-1301, USA.
  */
 
-#include "ebnf_parser.h"
-
 #include <stdexcept>
 
-std::ostream& operator<<( std::ostream& os, const Symbol& symbol )
-{
-    if( symbol.symbol_group.empty() )
-        os << "        Symbol: " << symbol.token;
-    else
-        os << "        \(" << symbol.symbol_group << ")";
-
-    if( symbol.optional )
-        os << "?";
-
-    if( symbol.repeated )
-        os << "*";
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Part& part )
-{
-    os << "      Part : [\n";
-
-    bool first = true;
-    for( const auto& symbol : part ) {
-        if( first )
-            first = false;
-        else
-            os << ",\n";
-
-        os << symbol;
-    }
-
-    os << "\n      ]";
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Production& production )
-{
-    os << "    production : [\n";
-
-    bool first = true;
-    for( const auto& part : production ) {
-        if( first )
-            first = false;
-        else
-            os << ",\n";
-
-        os << part;
-    }
-
-    os << "\n    ]\n";
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Rule& rule )
-{
-    os << "  Rule : {\n";
-    os << "    name : " << rule.name << ",\n" ;
-    os << rule.production;
-    os << "  }";
-
-    return os;
-}
-
-std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
-{
-    os << "Grammar: [\n";
-
-    bool first = true;
-    for( const auto& rule : grammar ) {
-        if( first )
-            first = false;
-        else
-            os << ",\n";
-
-        os << rule;
-    }
-
-    os << "\n]";
-
-    return os;
-}
-
-
-
-std::string sanitise_non_terminal( const Token& token )
-{
-    if( token.type != Token::Type::NONTERMINAL )
-        return token.lexeme;
-
-    std::string lexeme = token.lexeme;
-
-    // Remove angle brackets
-    lexeme.erase(0,1);
-    lexeme.pop_back();
-
-    return lexeme;
-}
-
-
-
-
+#include "ebnf_parser.h"
 
 void Parser::forward_cursor()
 {
@@ -132,166 +29,144 @@ void Parser::forward_cursor()
         ++cursor; // consume the comment
 }
 
-
-std::string Parser::parse_rule_name()
+bool Parser::match( Token::Type type, std::string lexeme )
 {
-    auto token = peek();
+    if( peek().type != type )
+        return false;
 
-    if( token.type != Token::Type::NONTERMINAL )
-        throw std::runtime_error( "Expected rule name at token: " + token.lexeme + "\n");
+    if( !lexeme.empty() && peek().lexeme != lexeme )
+        return false;
 
-    std::string rule_name = sanitise_non_terminal( token );
-
-    forward_cursor();
-
-    return rule_name;
+    return true;
 }
 
-void Parser::parse_colon_eq()
+Token Parser::consume( Token::Type type, const std::string& message )
 {
-    if( peek().type != Token::Type::COLON_EQ )
-        throw std::runtime_error( "Expected '::=' after rule name\n" );
-
-    forward_cursor();
-}
-
-Symbol Parser::apply_modifier( Symbol& symbol)
-{
-    if( peek().type != Token::Type::MODIFIER )
-        return symbol;
-
-    auto mod = peek().lexeme;
-    symbol.optional = (mod == "?");
-    symbol.repeated = (mod == "*");
-
-    forward_cursor();
-
-    return symbol;
-}
-
-Symbol Parser::parse_regular_token( const Token& token )
-{
-    Symbol symbol;
-
-    symbol.token = token;
-
-    symbol.token.lexeme = sanitise_non_terminal( token );
-
-    forward_cursor();
-
-    apply_modifier( symbol );
-
-    return symbol;
-}
-
-Symbol Parser::parse_group_token( )
-{
-    Symbol symbol;
-
-    forward_cursor(); // consume '('
-
-    symbol.symbol_group = parse_part( true ); // recursive parse
-
-    if( peek().type != Token::Type::BRACKET || peek().lexeme != ")" )
-        throw std::runtime_error("Unmatched '(' in production" );
-
-    forward_cursor(); // consume ')'
-
-    apply_modifier( symbol );
-
-    return symbol;
-}
-
-Part Parser::parse_part( bool in_group )
-{
-    Part part;
-
-    while( true ) {
-        
-        Token token = peek();
-
-        if( token.type == Token::Type::END_OF_PRODUCTION || token.type == Token::Type::END_OF_INPUT )
-            break;
-
-        if( token.type == Token::Type::PIPE )
-            if( !in_group )
-                break;
-            else {
-                forward_cursor(); // consume '|'
-                continue;
-            }
-
-        if( token.type == Token::Type::BRACKET && token.lexeme == ")" )            // end of group
-            break;
-
-        if( token.type == Token::Type::BRACKET && token.lexeme == "(" ) {                   // start of group
-
-            Symbol symbol = parse_group_token( );
-
-            part.push_back( std::move(symbol) );
-
-        } else {                                                                        // regular token
-
-            Symbol symbol = parse_regular_token( token );
-
-            part.push_back( std::move(symbol) );
-        }
+    if( match( type ) ) {
+        Token token = *cursor;
+        forward_cursor();
+        return token;
     }
 
-    return part;
+    throw std::runtime_error("Parse error: " + message);
 }
 
-Production Parser::parse_production()
+Token Parser::consume( Token::Type type, const std::string &lexeme, const std::string &message )
 {
-    Production production;
-    Part part;
-
-    while( true ) {
-
-        Token tok = peek();
-
-        if( tok.type == Token::Type::END_OF_INPUT || tok.type == Token::Type::END_OF_PRODUCTION )
-            break;
-
-        if( tok.type == Token::Type::PIPE ) {
-            production.push_back( part );
-            part.clear();
-            forward_cursor();
-            continue;
-        }
-
-        Part parsed_symbols = parse_part( false );
-        part.insert( part.end(), parsed_symbols.begin(), parsed_symbols.end() );
+    if( match( type, lexeme ) ) {
+        Token token = *cursor;
+        forward_cursor();
+        return token;
     }
 
-    if( !part.empty() )
-        production.push_back( part );
-
-    forward_cursor();
-
-    return production;
+    throw std::runtime_error(
+        "Parse error: " + message +
+        "(expected '" + lexeme + "', got '" + peek().lexeme + "')" +
+        " at line " + std::to_string(peek().line) );
 }
 
-Rule Parser::parse_rule()
+Rules Parser::parse_all()
 {
-    Rule rule;
+    Rules rules;
 
-    rule.name = parse_rule_name();
-    parse_colon_eq();
-    rule.production = parse_production();
+    while( match( Token::Type::COMMENT ) )
+        ++cursor;
 
-    return rule;
+    while( ! match( Token::Type::END_OF_INPUT ) )
+        rules.push_back( next_rule() );
+
+    return rules;
 }
 
-Grammar Parser::syntax_tree( )
+Rule Parser::next_rule()
 {
-    Grammar grammar;
+    Token name = consume(Token::Type::NONTERMINAL, "Expected rule name" );
+    consume( Token::Type::COLON_EQ, "Expected '::='");
 
-    cursor = tokens.begin();
+    std::unique_ptr<Production> production = parse_production();
 
-    while( peek().type != Token::Type::END_OF_INPUT )
-        grammar.push_back( parse_rule() );
+    consume( Token::Type::END_OF_PRODUCTION, "Expected ';");
 
-    return grammar;
+    return Rule { name.lexeme, std::move( production) };
 }
+
+std::unique_ptr<Production> Parser::parse_production()
+{
+    Part::Pointer part = parse_part();
+
+    if( ! match(Token::Type::PIPE) )
+        return std::make_unique<Production>( std::move(part) );
+
+    std::vector<Part::Pointer> subparts;
+
+    subparts.push_back( std::move(part) );
+
+    while( match(Token::Type::PIPE) ) {
+        consume( Token::Type::PIPE, "" );
+        subparts.push_back( parse_part() );
+    }
+
+    Part::Pointer content = std::make_unique<AlternateParts>( std::move(subparts) );
+
+    return std::make_unique<Production>( std::move(content) );
+}
+
+Part::Pointer Parser::parse_part()
+{
+    std::vector<Element::Pointer> element_list;
+
+    element_list.push_back( std::move( parse_element() ) );
+
+    // a list of elements finishes with a pipe, end of production, modifier or end of input
+    while( ! match(Token::Type::PIPE) && ! match(Token::Type::END_OF_PRODUCTION) && !match(Token::Type::CLOSEBRACKET) && !match(Token::Type::END_OF_INPUT) )
+        element_list.push_back( std::move( parse_element() ) );
+
+    return std::make_unique<SubPart>( std::move( element_list ) );
+}
+
+
+Element::Pointer Parser::parse_element()
+{
+    Element::Pointer element;
+
+    if( match( Token::Type::OPENBRACKET ) ) {
+        consume( Token::Type::OPENBRACKET, "(" );
+        element = std::move( std::make_unique<Group>( parse_production(), Cardinality::ONCE ) );
+        consume( Token::Type::CLOSEBRACKET, ")", "Expected closing brace" );
+    } else if( match( Token::Type::NONTERMINAL ) ) {
+        Token tok = consume( Token::Type::NONTERMINAL, "" );
+        element = std::move( std::make_unique<Symbol>( tok, Cardinality::ONCE ) );
+    } else if( match( Token::Type::TOKEN_PRODUCTION ) ) {
+        Token tok = consume( Token::Type::TOKEN_PRODUCTION, "" );
+        element = std::move( std::make_unique<Symbol>( tok, Cardinality::ONCE ) );
+    } else {
+        throw std::runtime_error("Unknown Token: " + peek().lexeme);
+    }
+
+    element->card = parse_cardinal();
+
+    return element;
+}
+
+Cardinality Parser::parse_cardinal()
+{
+    if( !match( Token::Type::MODIFIER ) )
+        return Cardinality::ONCE;
+
+    Token mod = consume( Token::Type::MODIFIER, "Expected modifier" );
+    switch( mod.lexeme[0] ) {
+    case '*': return Cardinality::ZERO_OR_MORE;
+    case '+': return Cardinality::ONE_OR_MORE;
+    case '?': return Cardinality::OPTIONAL;
+    }
+
+    throw std::runtime_error("Unknown cardinality modifier: " + mod.lexeme);
+}
+
+void Group::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
+void Symbol::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
+void SubPart::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
+void AlternateParts::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
+void Production::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
+void Rule::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
 

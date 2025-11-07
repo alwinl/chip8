@@ -23,21 +23,7 @@
 #include <vector>
 #include <filesystem>
 
-struct Token
-{
-    enum class Type { COMMENT, WHITESPACE, NONTERMINAL, COLON_EQ, BRACKET, MODIFIER, PIPE, REGEX, END_OF_PRODUCTION, STRING_LITERAL,  END_OF_INPUT, TOKEN_PRODUCTION, INVALID };
-
-    Type type;
-    std::string lexeme;
-    int line;
-    int column;
-
-    auto operator<=>(const Token&) const = default;
-};
-
-using Tokens = std::vector<Token>;
-
-std::ostream& operator<<( std::ostream& os, const Token& token );
+#include "ebnf_token.h"
 
 class Tokeniser
 {
@@ -55,4 +41,5 @@ private:
     int column = 1;
 
     void update_position_tracking( std::string lexeme );
+    std::string post_process( Token::Type type, std::string lexeme );
 };

@@ -19,63 +19,33 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <ostream>
+#include "ebnf_ast.h"
 
 #include "ebnf_tokeniser.h"
 
-struct Symbol
-{
-    Token token = { Token::Type::INVALID, "" };
-    bool optional = false;
-    bool repeated = false;
-    std::vector<Symbol> symbol_group;
-
-    auto operator<=>(const Symbol&) const = default;
-};
-
-using Part = std::vector<Symbol>;
-using Production = std::vector<Part>;
-
-struct Rule
-{
-    std::string name;
-    Production production;
-
-    auto operator<=>(const Rule&) const = default;
-};
-
-using Grammar = std::vector<Rule>;
-
-std::ostream& operator<<( std::ostream& os, const Symbol& symbol );
-std::ostream& operator<<( std::ostream& os, const Part& part );
-std::ostream& operator<<( std::ostream& os, const Production& production );
-std::ostream& operator<<( std::ostream& os, const Rule& rule );
-std::ostream& operator<<( std::ostream& os, const Grammar& grammar );
 
 class Parser
 {
 public:
-    Parser( const Tokens& tokens ) : tokens(tokens ) {}
+    Parser( const Tokens& tokens ) : tokens(tokens ), cursor( tokens.begin() ) {}
+    Parser( const std::string& source ) : tokens( Tokeniser( source ).tokenise_all() ), cursor( tokens.begin() )  {}
+    Parser( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ), cursor( tokens.begin() ) {}
 
-    Grammar syntax_tree();
+    Rule next_rule();
+    Rules parse_all();
 
 private:
-    const Tokens& tokens;
+    const Tokens tokens;
     Tokens::const_iterator cursor;
 
-    std::string parse_rule_name();
-    void parse_colon_eq();
-
-    Symbol parse_regular_token( const Token& token );
-    Symbol parse_group_token( );
-    Part parse_part( bool in_group );
-    Production parse_production();
-    Rule parse_rule();
-
-    Symbol apply_modifier( Symbol& symbol);
-
-    const Token& peek() { return (cursor != tokens.end()) ? *cursor : tokens.back(); }
     void forward_cursor();
+    const Token& peek() { return (cursor != tokens.end()) ? *cursor : tokens.back(); }
+    bool match(Token::Type type, std::string lexeme = "" );
+    Token consume(Token::Type type, const std::string& message);
+    Token consume(Token::Type type, const std::string& lexeme, const std::string& message);
+
+    Production::Pointer parse_production();
+    Part::Pointer       parse_part();
+    Element::Pointer    parse_element();
+    Cardinality         parse_cardinal();
 };

@@ -21,7 +21,10 @@ add_library(
     ebnf_compiler_lib STATIC
 
     ebnf_tokeniser.cc
+    ebnf_token.cc
     ebnf_parser.cc
+    ebnf_ast.cc
+    ebnf_printer.cc
     # ebnf_generator.cc
     # ebnf_tarjan.cc
     # ebnf_transformer.cc

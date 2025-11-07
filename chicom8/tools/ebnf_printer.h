@@ -1,5 +1,5 @@
 /*
- * ebnf_compiler.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * ebnf_printer.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,24 @@
  * MA 02110-1301, USA.
  */
 
-#include <iostream>
-#include <filesystem>
+#pragma once
 
-#include <fstream>
+#include "ebnf_ast.h"
 
-#include "ebnf_tokeniser.h"
-#include "ebnf_parser.h"
-#include "ebnf_printer.h"
-// #include "ebnf_generator.h"
-
-int main()
+struct PrintVisitor : ASTVisitor
 {
-    std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
-    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.grammar");
+    PrintVisitor( std::ostream& os ) : os(os) {};
 
-    Tokens tokens = Tokeniser( source_file ).tokenise_all();
-    Grammar grammar = Parser( tokens ).parse_all();
+    void visit( const Group& group ) override;
+    void visit( const Symbol& symbol ) override;
+    void visit( const SubPart& subpart ) override;
+    void visit( const AlternateParts& alternates ) override;
+    void visit( const Production& production ) override;
+    void visit( const Rule& rule ) override;
+    void visit( const Grammar& grammar ) override;
 
+    std::ostream& os;
+    int indent = 0;
+};
 
-    std::ofstream output( grammar_file );
-    output << grammar;
-    // Generator().generateAstFiles( std::cout, grammar);
-    
-    return 0;
-}
+std::ostream& operator<<( std::ostream& os, const Grammar& grammar );
