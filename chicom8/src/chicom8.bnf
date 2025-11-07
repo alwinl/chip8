@@ -2,25 +2,25 @@
 
 <decl>            ::= <func_decl> | <var_decl> ;
 
-<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_body> PUNCTUATION("}") ;
+<func_decl>       ::= <func> <identifier> <open_bracket> <param_list>? <close_bracket> <open_curly> <func_body> <close_curly> ;
 
 <func_body>       ::= <func_imp>*  ;
 
 <func_imp>        ::= <var_decl> | <stmt> ;
 
-<param_list>      ::= <typed_identifier> ( PUNCTUATION(",") <typed_identifier> )* ;
+<param_list>      ::= <typed_identifier> ( <comma> <typed_identifier> )* ;
 
-<var_decl>        ::= KEYWORD("var") <typed_identifier> PUNCTUATION(";") ;
+<var_decl>        ::= <var> <typed_identifier> <semi_colon> ;
 
-<typed_identifier> ::= IDENTIFIER PUNCTUATION(":") <type> ;
+<typed_identifier> ::= <identifier> <colon> <type> ;
 
-<type> ::= TYPE_KEYWORD("nibble")
-         | TYPE_KEYWORD("byte")
-         | TYPE_KEYWORD("snack")
-         | TYPE_KEYWORD("number")
-         | TYPE_KEYWORD("bool")
-         | TYPE_KEYWORD("key")
-         | TYPE_KEYWORD("sprite") <expr>
+<type> ::= <nibble_t>
+         | <byte_t>
+         | <snack_t>
+         | <number_t>
+         | <bool_t>
+         | <key_t>
+         | <sprite_t>
          ;
 
 <stmt>            ::= <expr_stmt>
@@ -31,45 +31,93 @@
                    | <block>
                    ;
 
-<expr_stmt>       ::= <expr> PUNCTUATION(";") ;
+<expr_stmt>       ::= <expr> <semi_colon> ;
 
-<if_stmt>         ::= KEYWORD("if") PUNCTUATION("(") <expr> PUNCTUATION(")") <stmt> ( KEYWORD("else") <stmt> )? ;
+<if_stmt>         ::= <if> <open_bracket> <expr> <close_bracket> <stmt> ( <else> <stmt> )? ;
 
-<while_stmt>      ::= KEYWORD("while") PUNCTUATION("(") <expr> PUNCTUATION(")") <stmt>  ;
+<while_stmt>      ::= <while> <open_bracket> <expr> <close_bracket> <stmt>  ;
 
-<draw_stmt>       ::= KEYWORD("draw") <identifier> PUNCTUATION(",") <expr> PUNCTUATION(",") <expr> ( PUNCTUATION(",") <expr> )? PUNCTUATION(";") ; // draw sprite, x, y [, height]
+<draw_stmt>       ::= <draw> <identifier> <comma> <expr> <comma> <expr> ( <comma> <expr> )? <semi_colon> ; // draw sprite, x, y [, height]
 
-<return_stmt>     ::= KEYWORD("return") <expr>? PUNCTUATION(";") ;
+<return_stmt>     ::= <return> <expr>? <semi_colon> ;
 
-<block>           ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
+<block>           ::= <open_curly> <stmt>* <close_curly> ;
 
 
-<expr>            ::= <identifier> OPERATOR("=") <expr> | <logic_or> ;
+<expr>            ::= <identifier> <equal_operator> <expr> | <logic_or> ;
 
-<logic_or>        ::= <logic_and> ( OPERATOR("||") <logic_and> )* ;
+<logic_or>        ::= <logic_and> ( <or_operator> <logic_and> )* ;
 
-<logic_and>       ::= <equality> ( OPERATOR("&&") <equality> )* ;
+<logic_and>       ::= <equality> ( <and_operator> <equality> )* ;
 
-<equality>        ::= <comparison> ((OPERATOR("==") | OPERATOR("!=") ) <comparison>)* ;
+<equality>        ::= <comparison> ( (<equality_operator> | <inequality_operator> ) <comparison> )* ;
 
-<comparison>      ::= <term> ((OPERATOR(">") | OPERATOR(">=") | OPERATOR("<") | OPERATOR("<=") ) <term>)* ;
+<comparison>      ::= <term> ( (<gt_than_operator> | <gteq_than_operator>  | <lt_than_operator> | <lteq_than_operator>) <term>)* ;
 
-<term>            ::= <factor> ((OPERATOR("+") | OPERATOR("-") ) <factor>)* ;
+<term>            ::= <factor> ( (<plus_operator> | <minus_operator>) <factor>)* ;
 
-<factor>          ::= <unary> ( (OPERATOR("*") | OPERATOR("/") ) <unary>)* ;
+<factor>          ::= <unary> ( (<mult_operator> | <div_operator>) <unary>)* ;
 
-<unary>           ::= ( OPERATOR("!") | OPERATOR("-") ) <unary> | <primary> ;
+<unary>           ::= (<not_operator> | <minus_operator>) <unary> | <primary> ;
 
 <primary>         ::= <number>
-                   | KEYWORD("true")
-                   | KEYWORD("false")
-                   | KEYWORD("bcd") <identifier>
-                   | KEYWORD("rnd") <expr>
-                   | KEYWORD("keydown") <identifier>
-                   | KEYWORD("getkey")
-                   | PUNCTUATION("(") <expr> PUNCTUATION(")")
-                   | <identifier> ( PUNCTUATION("(") (<expr> (PUNCTUATION(",") <expr>)*)? PUNCTUATION(")") )?
+                   | <true>
+                   | <false>
+                   | <bcd>
+                   | <rnd>
+                   | <keydown>
+                   | <getkey>
+                   | <open_bracket> <expr> <close_bracket>
+                   | <identifier> ( <open_bracket> (<expr> (<comma> <expr>)*)? <close_bracket> )?
                    ;
 
-<identifier>      ::= IDENTIFIER ;
-<number>          ::= NUMBER ;
+
+
+<true>    ::= KEYWORD("true") ;
+<false>   ::= KEYWORD("false") ;
+<bcd>     ::= KEYWORD("bcd") ;
+<rnd>     ::= KEYWORD("rnd") ;
+<keydown> ::= KEYWORD("keydown") ;
+<getkey>  ::= KEYWORD("getkey") ;
+<func>    ::= KEYWORD("func") ;
+<var>     ::= KEYWORD("var") ;
+<if>      ::= KEYWORD("if") ;
+<else>    ::= KEYWORD("else") ;
+<while>   ::= KEYWORD("while") ;
+<draw>    ::= KEYWORD("draw") ;
+<return>  ::= KEYWORD("return") ;
+
+<nibble_t> ::= TYPE_KEYWORD("nibble") ;
+<byte_t>   ::= TYPE_KEYWORD("byte") ;
+<snack_t>  ::= TYPE_KEYWORD("snack") ;
+<number_t> ::= TYPE_KEYWORD("number") ;
+<bool_t>   ::= TYPE_KEYWORD("bool") ;
+<key_t>    ::= TYPE_KEYWORD("key") ;
+<sprite_t> ::= TYPE_KEYWORD("sprite") ;
+
+
+<identifier> ::= IDENTIFIER ;
+<number>     ::= NUMBER ;
+
+<equality_operator>   ::= OPERATOR("==") ;
+<inequality_operator> ::= OPERATOR("!=") ;
+<gt_than_operator>    ::= OPERATOR(">") ;
+<gteq_than_operator>  ::= OPERATOR(">=") ;
+<lt_than_operator>    ::= OPERATOR("<") ;
+<lteq_than_operator>  ::= OPERATOR("<=") ;
+<plus_operator>       ::= OPERATOR("+") ;
+<minus_operator>      ::= OPERATOR("-") ;
+<mult_operator>       ::= OPERATOR("*") ;
+<div_operator>        ::= OPERATOR("/") ;
+<not_operator>        ::= OPERATOR("!") ;
+<equal_operator>      ::= OPERATOR("=") ;
+<or_operator>         ::= OPERATOR("||") ;
+<and_operator>        ::= OPERATOR("&&") ;
+
+<comma>          ::= PUNCTUATION(",") ;
+<colon>          ::= PUNCTUATION(":");
+<semi_colon>     ::= PUNCTUATION(";") ;
+<open_bracket>   ::= PUNCTUATION("(") ;
+<close_bracket>  ::= PUNCTUATION(")") ;
+<open_curly>     ::= PUNCTUATION("{") ;
+<close_curly>    ::= PUNCTUATION("}") ;
