@@ -1,0 +1,23 @@
+<grammar>        ::= { <rule> } ;
+
+<rule>           ::= <non_terminal> <colon_eq> <production> <end_of_production> ;
+
+<production>     ::= <part> { <pipe> <part> } ;
+
+<part>           ::= { <element> [<cardinality>] } ;
+
+<element>        ::= <symbol> | <group>
+
+<symbol>         ::= <non_terminal> | <token_production> ;
+
+<group>          ::= <open_bracket> <production> <close_bracket> ;
+
+<cardinality>       ::= MODIFIER("+") | MODIFIER("?") | MODIFIER("*")
+
+<non_terminal>      ::= NONTERMINAL ;
+<colon_eq>          ::= COLON_EQ ;
+<open_bracket>      ::= OPENBRACKET ;
+<close_bracket>     ::= CLOSEBRACKET ;
+<pipe>              ::= PIPE ;
+<end_of_production> ::= END_OF_PRODUCTION ;
+<token_production>  ::= TOKEN_PRODUCTION ;
