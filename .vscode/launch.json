@@ -23,6 +23,25 @@
         }
       ],
     },
+    {
+      "name": "Debug EBNF Test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/.build/chicom8/test/ebnf_compiler_test",  // <- path to your test binary
+      // "args": ["--gtest_filter=ParserTest.ParseFullProgram"],      // <- optional filter
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb", // or "lldb" or "lldb-mi" for clang/MacOS
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+    },
 {
       "name": "Run EBNF Compiler",
       "type": "cppdbg",
