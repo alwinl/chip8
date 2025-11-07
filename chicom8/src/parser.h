@@ -28,6 +28,8 @@
 class Parser {
 public:
     Parser( const Tokens& tokens ) : tokens(tokens ) {}
+    Parser( const std::string& source ) : tokens( Tokeniser( source ).tokenise_all() )  {}
+    Parser( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ) {}
 
     Program AST();
 
