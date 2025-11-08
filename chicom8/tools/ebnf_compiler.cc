@@ -25,7 +25,7 @@
 #include "ebnf_tokeniser.h"
 #include "ebnf_parser.h"
 #include "ebnf_printer.h"
-// #include "ebnf_generator.h"
+#include "ebnf_transformer.h"
 
 int main()
 {
@@ -35,10 +35,12 @@ int main()
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
     Grammar grammar = Parser( tokens ).parse_all();
 
-
     std::ofstream output( grammar_file );
     output << grammar;
-    // Generator().generateAstFiles( std::cout, grammar);
-    
+
+    Transformer transformer = Transformer( grammar );
+
+    std::cout << transformer;
+
     return 0;
 }

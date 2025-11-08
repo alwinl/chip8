@@ -25,9 +25,9 @@ add_library(
     ebnf_parser.cc
     ebnf_ast.cc
     ebnf_printer.cc
+    ebnf_transformer.cc
     # ebnf_generator.cc
     # ebnf_tarjan.cc
-    # ebnf_transformer.cc
 )
 
 target_include_directories(ebnf_compiler_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

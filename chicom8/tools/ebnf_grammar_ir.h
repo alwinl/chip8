@@ -1,5 +1,5 @@
 /*
- * ebnf_transformer.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * ebnf_grammar_ir.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,13 @@
  * MA 02110-1301, USA.
  */
 
-#include "ebnf_transformer.h"
+#pragma once
 
-GrammarIR Transformer::transform_all()
+#include <vector>
+#include <string>
+
+struct GrammarIR
 {
-    grammar_ir = GrammarIR{};
-
-	return grammar_ir;
-}
-
-void Transformer::print( std::ostream &os ) const
-{
-    os << "Forward declarations:\n";
-    for( const auto& fwd : grammar_ir.forward_decls )
-        os << "  " << fwd << '\n';
-
-    os << "\nClass list:\n";
-    for( const auto& cls : grammar_ir.class_list )
-        os << "  " << cls << '\n';
-}
-
-std::ostream& operator<<( std::ostream& os, const Transformer& transformer )
-{
-    transformer.print( os );
-	return os;
+    std::vector<std::string> forward_decls;
+    std::vector<std::string> class_list;
 };

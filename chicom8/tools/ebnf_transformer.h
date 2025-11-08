@@ -19,14 +19,21 @@
 
 #pragma once
 
-#include <vector>
-
-struct IRGrammar
-{
-    // std::vector<
-};
+#include "ebnf_ast.h"
+#include "ebnf_grammar_ir.h"
 
 class Transformer
 {
+public:
+    Transformer( const Grammar& grammar ) : grammar( grammar ) {};
 
+    GrammarIR transform_all();
+
+    void print( std::ostream& os ) const;
+
+private:
+    Grammar grammar;
+    GrammarIR grammar_ir;
 };
+
+std::ostream& operator<<( std::ostream& os, const Transformer& transformer );
