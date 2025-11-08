@@ -32,7 +32,7 @@ public:
     Parser( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ), cursor( tokens.begin() ) {}
 
     Rule next_rule();
-    Rules parse_all();
+    Grammar parse_all();
 
 private:
     const Tokens tokens;

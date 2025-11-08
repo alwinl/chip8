@@ -99,7 +99,7 @@ void PrintVisitor::visit( const Grammar& grammar )
     os << "Grammar: {\n";
     indent += 4;
 
-    for( const auto& rule : grammar )
+    for( const auto& rule : grammar.rules )
         visit( rule );
 
     indent -= 4;

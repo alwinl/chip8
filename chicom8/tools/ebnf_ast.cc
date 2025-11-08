@@ -35,6 +35,20 @@ inline bool equals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b)
 }
 
 template <typename T>
+bool equals_vector( const std::vector<T>& a, const std::vector<T>& b )
+{
+    if (a.size() != b.size())
+        return false;
+
+    for( size_t i = 0; i < a.size(); ++i )
+        if( !equals( a[i], b[i] ) )
+        // if( a[i] != b[i] )
+            return false;
+
+    return true;
+}
+
+template <typename T>
 bool equals_vector( const std::vector<std::unique_ptr<T>>& a, const std::vector<std::unique_ptr<T>>& b )
 {
     if (a.size() != b.size())
@@ -88,11 +102,11 @@ bool equals( const Rule& a, const Rule& b )
 
 bool operator==( const Grammar& a, const Grammar& b )
 {
-    if (a.size() != b.size())
+    if (a.rules.size() != b.rules.size())
         return false;
 
-    for( size_t i = 0; i < a.size(); ++i )
-        if( !equals( a[i], b[i] ) )
+    for( size_t i = 0; i < a.rules.size(); ++i )
+        if( ! equals( a.rules[i], b.rules[i]) )
             return false;
 
     return true;

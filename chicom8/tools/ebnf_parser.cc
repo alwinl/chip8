@@ -65,17 +65,17 @@ Token Parser::consume( Token::Type type, const std::string &lexeme, const std::s
         " at line " + std::to_string(peek().line) );
 }
 
-Rules Parser::parse_all()
+Grammar Parser::parse_all()
 {
-    Rules rules;
+    Grammar grammar;
 
     while( match( Token::Type::COMMENT ) )
         ++cursor;
 
     while( ! match( Token::Type::END_OF_INPUT ) )
-        rules.push_back( next_rule() );
+        grammar.rules.push_back( next_rule() );
 
-    return rules;
+    return grammar;
 }
 
 Rule Parser::next_rule()

@@ -32,7 +32,7 @@ TEST(EBNFParserUnit, ParsesSimpleRule)
 {
     std::string source = "<expr> ::= <term> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     ASSERT_EQ(rules.size(), 1);
     EXPECT_EQ(rules[0].name, "expr");
@@ -51,7 +51,7 @@ TEST(EBNFParserUnit, ParsesAlternation)
 {
     std::string source = "<expr> ::= <term> | <factor> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     ASSERT_EQ(rules.size(), 1);
 
@@ -77,7 +77,7 @@ TEST(EBNFParserUnit, ParsesGroupWithCardinality)
 {
     std::string source = "<expr> ::= (<term> | <factor>)* ;";
     Parser parser(source);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     ASSERT_EQ(rules.size(), 1);
 
@@ -98,7 +98,7 @@ TEST(EBNFParserUnit, ParsesSequenceOfSymbols)
 {
     std::string source = "<pair> ::= <key> <value> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     ASSERT_EQ(rules.size(), 1);
 
@@ -114,7 +114,7 @@ TEST(EBNFParserUnit, ParsesSymbolModifiers)
 {
     std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
     Parser parser(source);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     auto* sub = dynamic_cast<SubPart*>(rules[0].production->content.get());
     ASSERT_NE(sub, nullptr);
@@ -153,7 +153,7 @@ TEST(EBNFParserIntegration, ParsesMiniGrammar)
     )abc";
 
     Parser parser(grammar);
-    Rules rules = parser.parse_all();
+    Rules rules = parser.parse_all().rules;
 
     ASSERT_EQ(rules.size(), 3);
     EXPECT_EQ(rules[0].name, "expr");

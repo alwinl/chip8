@@ -33,6 +33,18 @@ std::unique_ptr<T> clone_unique( const std::unique_ptr<T>& src )
     return src ? std::unique_ptr<T>(static_cast<T*>(src->clone().release())) : nullptr;
 }
 
+template<typename T>
+std::vector<T> clone_vector(const std::vector<T>& src)
+{
+    std::vector<T> result;
+    result.reserve(src.size());
+
+    for( const auto& item : src )
+        result.push_back( item.clone() );
+
+    return result;
+}
+
 template <typename T>
 std::vector<std::unique_ptr<T>> clone_vector(const std::vector<std::unique_ptr<T>>& src)
 {
@@ -136,6 +148,9 @@ struct Rule
     Rule(std::string n, Production::Pointer p)
         : name(std::move(n)), production(std::move(p)) {}
 
+    using Pointer = std::unique_ptr<Rule>;
+
+    Rule clone() const { return Rule( name, clone_unique(production) ); }
     void accept( ASTVisitor& visitor );
 
     std::string name;
@@ -143,7 +158,24 @@ struct Rule
 };
 
 using Rules = std::vector<Rule>;
-using Grammar = Rules;
+
+struct Grammar
+{
+    Grammar() = default;
+
+    Grammar(const Grammar& other) : rules( clone_vector(other.rules) ) {}
+    Grammar& operator=( const Grammar& other )
+    {
+        if( this != &other )
+            rules = clone_vector( other.rules );
+        return *this;
+    }
+    Grammar(Grammar&&) noexcept = default;
+    Grammar& operator=(Grammar&&) noexcept = default;
+
+    std::vector<Rule> rules;
+};
+
 
 struct ASTVisitor
 {
