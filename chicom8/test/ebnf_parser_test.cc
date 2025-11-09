@@ -32,13 +32,13 @@ TEST(EBNFParserUnit, ParsesSimpleRule)
 {
     std::string source = "<expr> ::= <term> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all().rules;
+    Grammar grammar = parser.parse_all();
 
-    ASSERT_EQ(rules.size(), 1);
-    EXPECT_EQ(rules[0].name, "expr");
+    ASSERT_EQ(grammar.rules.size(), 1);
+    EXPECT_EQ(grammar.rules[0].name, "expr");
 
     // Production → SubPart → Symbol
-    auto* prod = dynamic_cast<SubPart*>(rules[0].production->content.get());
+    auto* prod = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
     ASSERT_NE(prod, nullptr);
     ASSERT_EQ(prod->element.size(), 1);
 
@@ -51,11 +51,11 @@ TEST(EBNFParserUnit, ParsesAlternation)
 {
     std::string source = "<expr> ::= <term> | <factor> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all().rules;
+    Grammar grammar = parser.parse_all();
 
-    ASSERT_EQ(rules.size(), 1);
+    ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* alt = dynamic_cast<AlternateParts*>(rules[0].production->content.get());
+    auto* alt = dynamic_cast<AlternateParts*>(grammar.rules[0].production->content.get());
     ASSERT_NE(alt, nullptr);
     ASSERT_EQ(alt->subparts.size(), 2);
 
@@ -77,11 +77,11 @@ TEST(EBNFParserUnit, ParsesGroupWithCardinality)
 {
     std::string source = "<expr> ::= (<term> | <factor>)* ;";
     Parser parser(source);
-    Rules rules = parser.parse_all().rules;
+    Grammar grammar = parser.parse_all();
 
-    ASSERT_EQ(rules.size(), 1);
+    ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* part = dynamic_cast<SubPart*>(rules[0].production->content.get());
+    auto* part = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
     ASSERT_NE(part, nullptr);
     ASSERT_EQ(part->element.size(), 1);
 
@@ -98,11 +98,11 @@ TEST(EBNFParserUnit, ParsesSequenceOfSymbols)
 {
     std::string source = "<pair> ::= <key> <value> ;";
     Parser parser(source);
-    Rules rules = parser.parse_all().rules;
+    Grammar grammar = parser.parse_all();
 
-    ASSERT_EQ(rules.size(), 1);
+    ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* sub = dynamic_cast<SubPart*>(rules[0].production->content.get());
+    auto* sub = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
     ASSERT_NE(sub, nullptr);
     ASSERT_EQ(sub->element.size(), 2);
 
@@ -114,9 +114,9 @@ TEST(EBNFParserUnit, ParsesSymbolModifiers)
 {
     std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
     Parser parser(source);
-    Rules rules = parser.parse_all().rules;
+    Grammar grammar = parser.parse_all();
 
-    auto* sub = dynamic_cast<SubPart*>(rules[0].production->content.get());
+    auto* sub = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
     ASSERT_NE(sub, nullptr);
     ASSERT_EQ(sub->element.size(), 3);
 
@@ -146,19 +146,19 @@ TEST(EBNFParserError, UnexpectedToken)
 
 TEST(EBNFParserIntegration, ParsesMiniGrammar)
 {
-    std::string grammar = R"abc(
+    std::string source = R"abc(
         <expr> ::= <term> | <term> OPERATOR("+") <expr> ;
         <term> ::= <factor> | <factor> OPERATOR("*") <term> ;
         <factor> ::= <number> | PUNCTIATION("(") <expr> PUNCTIATION(")") ;
     )abc";
 
-    Parser parser(grammar);
-    Rules rules = parser.parse_all().rules;
+    Parser parser(source);
+    Grammar grammar = parser.parse_all();
 
-    ASSERT_EQ(rules.size(), 3);
-    EXPECT_EQ(rules[0].name, "expr");
-    EXPECT_EQ(rules[1].name, "term");
-    EXPECT_EQ(rules[2].name, "factor");
+    ASSERT_EQ(grammar.rules.size(), 3);
+    EXPECT_EQ(grammar.rules[0].name, "expr");
+    EXPECT_EQ(grammar.rules[1].name, "term");
+    EXPECT_EQ(grammar.rules[2].name, "factor");
 }
 
 // void PrintTo( const Grammar& grammar, std::ostream* os )

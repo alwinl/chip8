@@ -163,10 +163,3 @@ Cardinality Parser::parse_cardinal()
     throw std::runtime_error("Unknown cardinality modifier: " + mod.lexeme);
 }
 
-void Group::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-void Symbol::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-void SubPart::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-void AlternateParts::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-void Production::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-void Rule::accept( ASTVisitor& visitor ) { visitor.visit( *this); };
-

@@ -21,6 +21,70 @@
 
 #include "ebnf_ast.h"
 
+void Symbol::accept( ASTVisitor& visitor )
+{
+    visitor.pre_symbol( *this );
+
+    visitor.visit( *this);
+
+    visitor.post_symbol( *this );
+}
+
+void Group::accept( ASTVisitor& visitor )
+{
+    visitor.pre_group( *this );
+
+    if( inner )
+        inner->accept( visitor );
+
+    visitor.post_group( *this );
+}
+
+void SubPart::accept( ASTVisitor& visitor )
+{
+    visitor.pre_elements( *this );
+
+    for( const auto& e : element )
+        e->accept( visitor );
+
+    visitor.post_elements( *this );
+}
+
+void AlternateParts::accept( ASTVisitor& visitor )
+{
+    visitor.pre_alternates( *this );
+
+    for( const auto& part : subparts )
+        part->accept( visitor );
+
+    visitor.post_alternates( *this );
+}
+
+void Production::accept( ASTVisitor& visitor )
+{
+    content->accept( visitor );
+}
+
+void Rule::accept( ASTVisitor& visitor ) const
+{
+    visitor.pre_production( *this );
+
+    production->accept( visitor );
+
+    visitor.post_production( *this );
+}
+
+void Grammar::accept( ASTVisitor& visitor ) const
+{
+    visitor.pre_rules( *this );
+
+    for( auto& rule : rules )
+        rule.accept( visitor );
+
+    visitor.post_rules( *this );
+}
+
+
 bool equals( const Part& a, const Part& b );
 bool equals( const Element& a, const Element& b );
 bool equals( const Production& a, const Production& b );
@@ -42,7 +106,6 @@ bool equals_vector( const std::vector<T>& a, const std::vector<T>& b )
 
     for( size_t i = 0; i < a.size(); ++i )
         if( !equals( a[i], b[i] ) )
-        // if( a[i] != b[i] )
             return false;
 
     return true;
@@ -111,4 +174,3 @@ bool operator==( const Grammar& a, const Grammar& b )
 
     return true;
 }
-

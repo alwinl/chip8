@@ -151,13 +151,11 @@ struct Rule
     using Pointer = std::unique_ptr<Rule>;
 
     Rule clone() const { return Rule( name, clone_unique(production) ); }
-    void accept( ASTVisitor& visitor );
+    void accept( ASTVisitor& visitor ) const;
 
     std::string name;
     Production::Pointer production;
 };
-
-using Rules = std::vector<Rule>;
 
 struct Grammar
 {
@@ -173,6 +171,8 @@ struct Grammar
     Grammar(Grammar&&) noexcept = default;
     Grammar& operator=(Grammar&&) noexcept = default;
 
+    void accept( ASTVisitor& visitor ) const;
+
     std::vector<Rule> rules;
 };
 
@@ -181,12 +181,18 @@ struct ASTVisitor
 {
     virtual ~ASTVisitor() = default;
 
-    virtual void visit( const Group& group ) = 0;
-    virtual void visit( const Symbol& symbol ) = 0;
-    virtual void visit( const SubPart& subpart ) = 0;
-    virtual void visit( const AlternateParts& alternates ) = 0;
-    virtual void visit( const Production& production ) = 0;
-    virtual void visit( const Rule& rule ) = 0;
-    virtual void visit( const Grammar& grammar ) = 0;
+    virtual void visit( const Symbol& symbol ) {};
+    virtual void pre_symbol( const Symbol& symbol ) {};
+    virtual void post_symbol( const Symbol& symbol ) {};
+    virtual void pre_group( const Group& group ) {};
+    virtual void post_group( const Group& group ) {};
+    virtual void pre_elements( const SubPart& subpart ) {};
+    virtual void post_elements( const SubPart& subpart ) {};
+    virtual void pre_alternates( const AlternateParts& alternates ) {};
+    virtual void post_alternates( const AlternateParts& alternates ) {};
+    virtual void pre_production( const Rule& rule ) {};
+    virtual void post_production( const Rule& rule ) {};
+    virtual void pre_rules( const Grammar& grammar ) {};
+    virtual void post_rules( const Grammar& grammar ) {};
 };
 

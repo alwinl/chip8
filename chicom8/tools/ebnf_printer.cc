@@ -19,98 +19,98 @@
 
 #include "ebnf_printer.h"
 
-void PrintVisitor::visit( const Group& group )
+std::ostream& operator<<( std::ostream& os, const Cardinality& card )
 {
-    os << std::string(indent, ' ')  << "Group "<< ": {\n";
-    indent += 4;
-
-    visit( *group.inner );
-
-    indent -= 4;
-    os << std::string(indent, ' ')  << "}";
-    if( group.card == Cardinality::ONE_OR_MORE ) os << "+";
-    if( group.card == Cardinality::OPTIONAL ) os << "?";
-    if( group.card == Cardinality::ZERO_OR_MORE ) os << "*";
-    os << "\n";
-}
-
-void PrintVisitor::visit( const Symbol& symbol )
-{
-    os << std::string(indent, ' ')  << "Symbol "<< ": ";
-    indent += 4;
-
-    os << symbol.token;
-    if( symbol.card == Cardinality::ONE_OR_MORE ) os << "+";
-    if( symbol.card == Cardinality::OPTIONAL ) os << "?";
-    if( symbol.card == Cardinality::ZERO_OR_MORE ) os << "*";
-
-    indent -= 4;
-    os << "\n";
-}
-
-void PrintVisitor::visit( const SubPart& subpart )
-{
-    os << std::string(indent, ' ')  << "Subpart "<< ": {\n";
-    indent += 4;
-
-    for( const auto& element : subpart.element )
-        element->accept( *this );        // dynamic dispatch
-
-    indent -= 4;
-    os << std::string(indent, ' ')  << "}\n";
-}
-
-void PrintVisitor::visit( const AlternateParts& alternates )
-{
-    os << std::string(indent, ' ')  << "Alternates "<< ": {\n";
-    indent += 4;
-
-    for( const auto& part : alternates.subparts )
-        part->accept( *this );        // dynamic dispatch
-
-    indent -= 4;
-    os << std::string(indent, ' ')  << "}\n";
-}
-
-void PrintVisitor::visit( const Production& production )
-{
-    // os << std::string(indent, ' ')  << "Production "<< ": {\n";
-    // indent += 4;
-
-    production.content->accept( *this );        // dynamic dispatch
-
-    // indent -= 4;
-    // os << std::string(indent, ' ')  << "}\n";
-}
-
-void PrintVisitor::visit( const Rule& rule )
-{
-    os << std::string(indent, ' ')  << "Rule " << rule.name << ": {\n";
-    indent += 4;
-
-    visit( *rule.production );
-
-    indent -= 4;
-    os << std::string(indent, ' ')  << "}\n";
-}
-
-void PrintVisitor::visit( const Grammar& grammar )
-{
-    os << "Grammar: {\n";
-    indent += 4;
-
-    for( const auto& rule : grammar.rules )
-        visit( rule );
-
-    indent -= 4;
-    os << "}\n";
-}
-
-std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
-{
-    PrintVisitor printer( os );
-    printer.visit( grammar );
+    if( card == Cardinality::ONE_OR_MORE ) os << "+";
+    if( card == Cardinality::OPTIONAL ) os << "?";
+    if( card == Cardinality::ZERO_OR_MORE ) os << "*";
 
     return os;
 }
 
+void PrintVisitor::visit( const Symbol& symbol )
+{
+    os << symbol.token << symbol.card;
+}
+
+void PrintVisitor::pre_symbol( const Symbol& symbol )
+{
+    os << std::string(indent, ' ')  << "Symbol "<< ": ";
+    indent += 4;
+}
+
+void PrintVisitor::post_symbol( const Symbol& symbol )
+{
+    indent -= 4;
+    os << "\n";
+}
+
+void PrintVisitor::pre_group( const Group& group )
+{
+    os << std::string(indent, ' ')  << "Group "<< ": {\n";
+    indent += 4;
+}
+
+void PrintVisitor::post_group( const Group& group )
+{
+    indent -= 4;
+    os << std::string(indent, ' ')  << "}" << group.card;
+
+    os << "\n";
+}
+
+void PrintVisitor::pre_elements( const SubPart& subpart )
+{
+    os << std::string(indent, ' ')  << "Subpart "<< ": {\n";
+    indent += 4;
+}
+
+void PrintVisitor::post_elements( const SubPart& subpart )
+{
+    indent -= 4;
+    os << std::string(indent, ' ')  << "}\n";
+}
+
+void PrintVisitor::pre_alternates( const AlternateParts& alternates )
+{
+    os << std::string(indent, ' ')  << "Alternates "<< ": {\n";
+    indent += 4;
+}
+
+void PrintVisitor::post_alternates( const AlternateParts& alternates )
+{
+    indent -= 4;
+    os << std::string(indent, ' ')  << "}\n";
+}
+
+void PrintVisitor::pre_production( const Rule& rule )
+{
+    os << std::string(indent, ' ')  << "Rule " << rule.name << ": {\n";
+    indent += 4;
+}
+
+void PrintVisitor::post_production( const Rule& rule )
+{
+    indent -= 4;
+    os << std::string(indent, ' ')  << "}\n";
+}
+
+void PrintVisitor::pre_rules( const Grammar& grammar )
+{
+    os << "Grammar: {\n";
+    indent += 4;
+}
+
+void PrintVisitor::post_rules( const Grammar& grammar )
+{
+    indent -= 4;
+    os << "}\n";
+}
+
+
+std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
+{
+    PrintVisitor printer( os );
+    grammar.accept( printer );
+    return os;
+}

@@ -25,13 +25,19 @@ struct PrintVisitor : ASTVisitor
 {
     PrintVisitor( std::ostream& os ) : os(os) {};
 
-    void visit( const Group& group ) override;
     void visit( const Symbol& symbol ) override;
-    void visit( const SubPart& subpart ) override;
-    void visit( const AlternateParts& alternates ) override;
-    void visit( const Production& production ) override;
-    void visit( const Rule& rule ) override;
-    void visit( const Grammar& grammar ) override;
+    void pre_symbol( const Symbol& symbol ) override;
+    void post_symbol( const Symbol& symbol ) override;
+    void pre_group( const Group& group ) override;
+    void post_group( const Group& group ) override;
+    void pre_elements( const SubPart& subpart ) override;
+    void post_elements( const SubPart& subpart ) override;
+    void pre_alternates( const AlternateParts& alternates ) override;
+    void post_alternates( const AlternateParts& alternates ) override;
+    void pre_production( const Rule& rule ) override;
+    void post_production( const Rule& rule ) override;
+    void pre_rules( const Grammar& grammar ) override;
+    void post_rules( const Grammar& grammar ) override;
 
     std::ostream& os;
     int indent = 0;
