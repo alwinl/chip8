@@ -17,14 +17,113 @@
  * MA 02110-1301, USA.
  */
 
+#include <algorithm>
+
 #include "ebnf_transformer.h"
+#include "ebnf_graph.h"
+
 
 GrammarIR Transformer::transform_all()
 {
-    grammar_ir = GrammarIR{};
+    GraphBuilderVisitor graph_visitor;
+
+    grammar.accept( graph_visitor );
+
+    build_connected_component_list( graph_visitor.graph );
+
+    std::vector<std::string> forward_decls = most_referenced_nodes( sccs );
+    std::vector<std::string> class_list = ordered_class_list( sccs );
+
+    grammar_ir = GrammarIR{ forward_decls, class_list };
 
 	return grammar_ir;
 }
+
+void Transformer::build_connected_component_list( Graph &graph )
+{
+    for( auto& [node, node_data] : graph )
+        if( ! node_data.visited )
+            strong_connect( graph, node );
+
+    for( const auto& [node, node_data] : graph )
+        for( const auto& edge : node_data.edges )
+            ++graph.at( edge ).usage_count;
+}
+
+void Transformer::strong_connect( Graph &graph, const Node& node )
+{
+    NodeData& node_data = graph.at( node );
+
+    node_data.lowlink =
+    node_data.index = index++;
+    node_data.visited = true;
+
+    node_stack.push( node );
+    node_data.on_stack = true;
+
+    for( const auto& neighbour : node_data.edges ) {
+
+        NodeData& next = graph.at( neighbour );
+
+        if( !next.visited ) {
+            strong_connect( graph, neighbour );
+            node_data.lowlink = std::min( node_data.lowlink, next.lowlink );
+        } else if( next.on_stack )
+            node_data.lowlink = std::min( node_data.lowlink, next.index );
+    }
+
+    if( node_data.lowlink == node_data.index ) {
+
+        ComponentGroup new_component;
+        Node member_node;
+
+        do {
+            member_node = node_stack.top();
+            node_stack.pop();
+            graph.at( member_node ).on_stack = false;
+
+            new_component.push_back( member_node );
+
+        } while( member_node != node );
+
+        sccs.push_back( std::move( new_component) );
+    }
+}
+
+
+std::vector<std::string> Transformer::most_referenced_nodes( ComponentGroupList& sccs )
+{
+	return std::vector<std::string>();
+}
+
+std::vector<std::string> Transformer::ordered_class_list( ComponentGroupList& sccs )
+{
+	return std::vector<std::string>();
+}
+
+
+void Transformer::print_all_cycles( std::ostream& os ) const
+{
+    for( const auto& cycle : sccs ) {
+
+        bool first = true;
+        for( const auto& node : cycle ) {
+            if( first )
+                first = false;
+            else
+                os << std::string(" --> ");
+
+            os << node;
+        }
+
+        if (cycle.size() > 1)
+            os << "  [recursive cycle]";
+
+        os << std::string("\n");
+    }
+}
+
+
 
 void Transformer::print( std::ostream &os ) const
 {

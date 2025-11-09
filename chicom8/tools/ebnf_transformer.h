@@ -20,7 +20,12 @@
 #pragma once
 
 #include "ebnf_ast.h"
+#include "ebnf_graph.h"
 #include "ebnf_grammar_ir.h"
+
+using ComponentGroup = std::vector<Node>;
+using ComponentGroupList = std::vector<ComponentGroup>;
+
 
 class Transformer
 {
@@ -29,11 +34,22 @@ public:
 
     GrammarIR transform_all();
 
+    void print_all_cycles( std::ostream& os ) const;
     void print( std::ostream& os ) const;
 
 private:
     Grammar grammar;
     GrammarIR grammar_ir;
+
+    ComponentGroupList sccs;
+    int index = 0;
+    std::stack<Node> node_stack;
+
+    void build_connected_component_list( Graph& graph );
+    void strong_connect( Graph &graph, const Node& node );
+
+    std::vector<std::string> most_referenced_nodes( ComponentGroupList& sccs );
+    std::vector<std::string> ordered_class_list( ComponentGroupList& sccs );
 };
 
 std::ostream& operator<<( std::ostream& os, const Transformer& transformer );

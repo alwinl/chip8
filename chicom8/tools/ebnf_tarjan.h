@@ -56,7 +56,7 @@ private:
     std::unordered_map<Node, int> usage_count;
 
     void run();
-    void strongConnect(const Node& node);
+    void strong_connect(const Node& node);
     void get_usage_counts();
 
 };

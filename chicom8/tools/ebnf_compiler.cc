@@ -38,9 +38,15 @@ int main()
     std::ofstream output( grammar_file );
     output << grammar;
 
-    Transformer transformer = Transformer( grammar );
+    GraphBuilderVisitor graph_visitor;
+    grammar.accept( graph_visitor );
+    std::cout << graph_visitor.graph;
 
-    std::cout << transformer;
+    Transformer transformer = Transformer( grammar );
+    transformer.transform_all();
+    transformer.print_all_cycles( std::cout );
+
+    // std::cout << transformer;
 
     return 0;
 }

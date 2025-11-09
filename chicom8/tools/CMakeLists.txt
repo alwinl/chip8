@@ -25,6 +25,7 @@ add_library(
     ebnf_parser.cc
     ebnf_ast.cc
     ebnf_printer.cc
+    ebnf_graph.cc
     ebnf_transformer.cc
     # ebnf_generator.cc
     # ebnf_tarjan.cc

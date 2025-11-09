@@ -25,12 +25,12 @@ void TarjanSCC::run()
 {
     for( const auto& [node, _] : graph )
         if( indices.find(node) == indices.end() )
-            strongConnect( node );
+            strong_connect( node );
 
     get_usage_counts();
 }
 
-void TarjanSCC::strongConnect( const Node& node )
+void TarjanSCC::strong_connect( const Node& node )
 {
     indices[node] = lowlink[node] = index++;
     stack.push(node);
@@ -43,7 +43,7 @@ void TarjanSCC::strongConnect( const Node& node )
 
             if( indices.find(neighbour) == indices.end() ) {
                 // Neighbour has not yet been visited; recurse on it
-                strongConnect( neighbour );
+                strong_connect( neighbour );
                 lowlink[node] = std::min( lowlink[node], lowlink[neighbour] );
             } else if( onStack.count(neighbour) ) {
                 // The neighbour is on stack, thus belongs to the current SCC
@@ -115,10 +115,10 @@ std::unordered_set<Node> TarjanSCC::detect_cycles()
 
 void rotate_scc( std::vector<Node>& scc, const std::unordered_set<Node>& forward_decls )
 {
-    auto it = std::find_if( scc.begin(), scc.end(), [&](const Node& node) { return forward_decls.contains(node); });
+    // auto it = std::find_if( scc.begin(), scc.end(), [&](const Node& node) { return forward_decls.contains(node); });
 
-    if( it != scc.end() )
-        std::rotate(scc.begin(), it + 1, scc.end());
+    // if( it != scc.end() )
+    //     std::rotate(scc.begin(), it + 1, scc.end());
 }
 
 std::vector<Node> TarjanSCC::topologicalSort()
