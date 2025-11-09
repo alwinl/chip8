@@ -42,7 +42,7 @@
         }
       ],
     },
-{
+    {
       "name": "Run EBNF Compiler",
       "type": "cppdbg",
       "request": "launch",
@@ -56,5 +56,24 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb"
-    }  ]
+    },
+    {
+      "name": "Debug EBNF Compiler",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/.build/chicom8/tools/ebnf_compiler",
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb", // or "lldb" or "lldb-mi" for clang/MacOS
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+    }
+  ]
 }
