@@ -41,7 +41,7 @@ private:
     void forward_cursor();
     const Token& peek() { return (cursor != tokens.end()) ? *cursor : tokens.back(); }
     bool match(Token::Type type, std::string lexeme = "" );
-    Token consume(Token::Type type, const std::string& message);
+    Token consume(Token::Type type, const std::string& message) { return consume( type, "", message ); };
     Token consume(Token::Type type, const std::string& lexeme, const std::string& message);
 
     Production::Pointer  parse_production();

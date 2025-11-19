@@ -125,13 +125,22 @@ TEST(EBNFParserUnit, ParsesSymbolModifiers)
     EXPECT_EQ(sub->element[2]->card, Element::Cardinality::ONE_OR_MORE);
 }
 
-TEST(EBNFParserError, MissingSemicolon) {
+TEST(EBNFParserError, MissingSemicolon)
+{
     std::string source = "<expr> ::= <term>";
     Parser parser(source);
 
-    EXPECT_THROW({
+    try {
         parser.parse_all();
-    }, std::runtime_error);
+        FAIL() << "Expected std::runtime_error";
+    }
+    catch (const std::runtime_error& e) {
+        const char* expected = "FileName:1:18: Parse error: Expected ';' (expected '', got '')";
+        EXPECT_STREQ(expected, e.what());
+    }
+    catch (...) {
+        FAIL() << "Expected std::runtime_error, but caught a different exception type";
+    }
 }
 
 TEST(EBNFParserError, UnexpectedToken)
@@ -139,9 +148,17 @@ TEST(EBNFParserError, UnexpectedToken)
     std::string source = "<expr> <term> ;"; // Missing ::=
     Parser parser(source);
 
-    EXPECT_THROW({
+    try {
         parser.parse_all();
-    }, std::runtime_error);
+        FAIL() << "Expected std::runtime_error";
+    }
+    catch (const std::runtime_error& e) {
+        const char* expected = "FileName:1:8: Parse error: Expected '::=' (expected '', got 'term')";
+        EXPECT_STREQ(expected, e.what());
+    }
+    catch (...) {
+        FAIL() << "Expected std::runtime_error, but caught a different exception type";
+    }
 }
 
 TEST(EBNFParserIntegration, ParsesMiniGrammar)

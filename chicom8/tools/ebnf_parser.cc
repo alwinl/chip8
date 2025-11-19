@@ -40,17 +40,6 @@ bool Parser::match( Token::Type type, std::string lexeme )
     return true;
 }
 
-Token Parser::consume( Token::Type type, const std::string& message )
-{
-    if( match( type ) ) {
-        Token token = *cursor;
-        forward_cursor();
-        return token;
-    }
-
-    throw std::runtime_error("Parse error: " + message);
-}
-
 Token Parser::consume( Token::Type type, const std::string &lexeme, const std::string &message )
 {
     if( match( type, lexeme ) ) {
@@ -60,9 +49,8 @@ Token Parser::consume( Token::Type type, const std::string &lexeme, const std::s
     }
 
     throw std::runtime_error(
-        "Parse error: " + message +
-        "(expected '" + lexeme + "', got '" + peek().lexeme + "')" +
-        " at line " + std::to_string(peek().line) );
+        "FileName:" + std::to_string(peek().line) + ":" + std::to_string(peek().column)
+        + ": Parse error: " + message + " (expected '" + lexeme + "', got '" + peek().lexeme + "')" );
 }
 
 Grammar Parser::parse_all()
@@ -85,7 +73,7 @@ Rule Parser::next_rule()
 
     std::unique_ptr<Production> production = parse_production();
 
-    consume( Token::Type::END_OF_PRODUCTION, "Expected ';");
+    consume( Token::Type::END_OF_PRODUCTION, "Expected ';'");
 
     return Rule { name.lexeme, std::move( production) };
 }
