@@ -131,14 +131,14 @@ Element::Pointer Parser::parse_element()
 
     if( match( Token::Type::OPENBRACKET ) ) {
         consume( Token::Type::OPENBRACKET, "(" );
-        element = std::move( std::make_unique<Group>( parse_production(), Cardinality::ONCE ) );
+        element = std::move( std::make_unique<Group>( parse_production(), Element::Cardinality::ONCE ) );
         consume( Token::Type::CLOSEBRACKET, ")", "Expected closing brace" );
     } else if( match( Token::Type::NONTERMINAL ) ) {
         Token tok = consume( Token::Type::NONTERMINAL, "" );
-        element = std::move( std::make_unique<Symbol>( tok, Cardinality::ONCE ) );
+        element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
     } else if( match( Token::Type::TOKEN_PRODUCTION ) ) {
         Token tok = consume( Token::Type::TOKEN_PRODUCTION, "" );
-        element = std::move( std::make_unique<Symbol>( tok, Cardinality::ONCE ) );
+        element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
     } else {
         throw std::runtime_error("Unknown Token: " + peek().lexeme);
     }
@@ -148,16 +148,16 @@ Element::Pointer Parser::parse_element()
     return element;
 }
 
-Cardinality Parser::parse_cardinal()
+Element::Cardinality Parser::parse_cardinal()
 {
     if( !match( Token::Type::MODIFIER ) )
-        return Cardinality::ONCE;
+        return Element::Cardinality::ONCE;
 
     Token mod = consume( Token::Type::MODIFIER, "Expected modifier" );
     switch( mod.lexeme[0] ) {
-    case '*': return Cardinality::ZERO_OR_MORE;
-    case '+': return Cardinality::ONE_OR_MORE;
-    case '?': return Cardinality::OPTIONAL;
+    case '*': return Element::Cardinality::ZERO_OR_MORE;
+    case '+': return Element::Cardinality::ONE_OR_MORE;
+    case '?': return Element::Cardinality::OPTIONAL;
     }
 
     throw std::runtime_error("Unknown cardinality modifier: " + mod.lexeme);

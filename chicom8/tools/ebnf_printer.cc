@@ -19,11 +19,11 @@
 
 #include "ebnf_printer.h"
 
-std::ostream& operator<<( std::ostream& os, const Cardinality& card )
+std::ostream& operator<<( std::ostream& os, const Element::Cardinality& card )
 {
-    if( card == Cardinality::ONE_OR_MORE ) os << "+";
-    if( card == Cardinality::OPTIONAL ) os << "?";
-    if( card == Cardinality::ZERO_OR_MORE ) os << "*";
+    if( card == Element::Cardinality::ONE_OR_MORE ) os << "+";
+    if( card == Element::Cardinality::OPTIONAL ) os << "?";
+    if( card == Element::Cardinality::ZERO_OR_MORE ) os << "*";
 
     return os;
 }

@@ -87,7 +87,7 @@ TEST(EBNFParserUnit, ParsesGroupWithCardinality)
 
     auto* group = dynamic_cast<Group*>(part->element[0].get());
     ASSERT_NE(group, nullptr);
-    EXPECT_EQ(group->card, Cardinality::ZERO_OR_MORE);
+    EXPECT_EQ(group->card, Element::Cardinality::ZERO_OR_MORE);
 
     auto* inner_alt = dynamic_cast<AlternateParts*>(group->inner->content.get());
     ASSERT_NE(inner_alt, nullptr);
@@ -120,9 +120,9 @@ TEST(EBNFParserUnit, ParsesSymbolModifiers)
     ASSERT_NE(sub, nullptr);
     ASSERT_EQ(sub->element.size(), 3);
 
-    EXPECT_EQ(sub->element[0]->card, Cardinality::ZERO_OR_MORE);
-    EXPECT_EQ(sub->element[1]->card, Cardinality::OPTIONAL);
-    EXPECT_EQ(sub->element[2]->card, Cardinality::ONE_OR_MORE);
+    EXPECT_EQ(sub->element[0]->card, Element::Cardinality::ZERO_OR_MORE);
+    EXPECT_EQ(sub->element[1]->card, Element::Cardinality::OPTIONAL);
+    EXPECT_EQ(sub->element[2]->card, Element::Cardinality::ONE_OR_MORE);
 }
 
 TEST(EBNFParserError, MissingSemicolon) {

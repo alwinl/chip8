@@ -61,11 +61,11 @@ struct Production;
 
 struct ASTVisitor;
 
-enum class Cardinality { ONCE, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE };
-
 struct Element
 {
     using Pointer = std::unique_ptr<Element>;
+
+    enum class Cardinality { ONCE, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE };
 
     explicit Element( Cardinality card ) : card(card) {}
     virtual ~Element() = default;
@@ -78,7 +78,7 @@ struct Element
 
 struct Group : Element
 {
-   explicit Group(std::unique_ptr<Production> p, Cardinality card = Cardinality::ONCE)
+   explicit Group(std::unique_ptr<Production> p, Element::Cardinality card = Element::Cardinality::ONCE)
         : Element(card), inner(std::move(p)) { }
 
     Pointer clone() const override { return std::make_unique<Group>( clone_unique(inner) ); }
@@ -89,7 +89,7 @@ struct Group : Element
 
 struct Symbol : Element
 {
-   explicit Symbol(Token token, Cardinality card = Cardinality::ONCE)
+   explicit Symbol(Token token, Element::Cardinality card = Element::Cardinality::ONCE)
         : Element(card), token(std::move(token)) { }
 
     Pointer clone() const override { return std::make_unique<Symbol>( token, card ); }

@@ -44,8 +44,8 @@ private:
     Token consume(Token::Type type, const std::string& message);
     Token consume(Token::Type type, const std::string& lexeme, const std::string& message);
 
-    Production::Pointer parse_production();
-    Part::Pointer       parse_part();
-    Element::Pointer    parse_element();
-    Cardinality         parse_cardinal();
+    Production::Pointer  parse_production();
+    Part::Pointer        parse_part();
+    Element::Pointer     parse_element();
+    Element::Cardinality parse_cardinal();
 };
