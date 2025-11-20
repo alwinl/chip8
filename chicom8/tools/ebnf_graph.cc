@@ -27,7 +27,7 @@ std::ostream& operator<<( std::ostream& os, const Graph& graph )
 
         os << "    {\n\t\"name\": \"" + entry.first + "\",\n\t[\n";
 
-        for( const Edge& edge : entry.second.edges )
+        for( const Node& edge : entry.second.edges )
             os << "\t\t{ \"edge\": \"" + edge + "\" },\n";
 
         os << "\t],\n    },\n";

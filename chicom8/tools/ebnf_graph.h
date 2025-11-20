@@ -27,8 +27,7 @@
 #include <stack>
 
 using Node = std::string;
-using Edge = std::string;
-using Edges = std::unordered_set<Edge>;
+using Edges = std::unordered_set<Node>;
 
 struct NodeData
 {
