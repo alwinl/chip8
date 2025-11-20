@@ -45,6 +45,34 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^\d+)"), Token::Type::NUMBER, false},
 };
 
+std::vector<std::string> type_keywords =
+{
+    "nibble",
+    "byte",
+    "snack",
+    "number",
+    "bool",
+    "key",
+    "sprite",
+};
+
+std::vector<std::string> keywords =
+{
+    "func",
+    "var",
+    "if",
+    "while",
+    "return",
+    "draw",
+    "getkey",
+    "true",
+    "false",
+    "bcd",
+    "rnd",
+    "keydown"
+};
+
+
 std::string escape_string( const std::string& input)
 {
     std::string escaped = "\"";
@@ -110,7 +138,8 @@ Token Tokeniser::next_token()
 
         if (std::regex_search(begin, end, match, match_entry.pattern) && match.position() == 0) {
 
-            std::string lexeme = match[0];
+            std::string const lexeme = match[0];
+            auto type = match_entry.type;
             auto tok_line = line;
             auto tok_column = column;
 
@@ -118,10 +147,16 @@ Token Tokeniser::next_token()
 
             if( match_entry.skip_token )
                 return next_token();
+            if( type == Token::Type::IDENTIFIER ) {
 
-            if( match_entry.type == Token::Type::IDENTIFIER )
-                return extract_keywords( match_entry.type, lexeme, tok_line, tok_column );
+                if( std::find( type_keywords.begin(), type_keywords.end(), lexeme ) != type_keywords.end() )
+                    type = Token::Type::TYPE_KEYWORD;
 
+                if( std::find( keywords.begin(), keywords.end(), lexeme ) != keywords.end() )
+                    type = Token::Type::KEYWORD;
+            }
+
+            return Token{ type, lexeme, tok_line, tok_column };
             return Token{ match_entry.type, lexeme, tok_line, tok_column };
         }
     }
@@ -161,40 +196,4 @@ void Tokeniser::update_position_tracking( std::string lexeme )
     }
 
     cursor += lexeme.length();
-}
-
-Token Tokeniser::extract_keywords( Token::Type type, std::string lexeme, int line, int column )
-{
-    static std::vector<std::string> type_keywords = {
-        "nibble",
-        "byte",
-        "snack",
-        "number",
-        "bool",
-        "key",
-        "sprite",
-    };
-
-    static std::vector<std::string> keywords = {
-        "func",
-        "var",
-        "if",
-        "while",
-        "return",
-        "draw",
-        "getkey",
-        "true",
-        "false",
-        "bcd",
-        "rnd",
-        "keydown"
-    };
-
-    if( std::find( type_keywords.begin(), type_keywords.end(), lexeme ) != type_keywords.end() )
-        return Token( Token::Type::TYPE_KEYWORD, lexeme, line, column );
-
-    if( std::find( keywords.begin(), keywords.end(), lexeme ) != keywords.end() )
-        return Token( Token::Type::KEYWORD, lexeme, line, column );
-
-    return Token( type, lexeme, line, column );
 }
