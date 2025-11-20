@@ -32,17 +32,17 @@ TEST(EBNFParserUnit, ParsesSimpleRule)
 {
     std::string source = "<expr> ::= <term> ;";
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
     ASSERT_EQ(grammar.rules.size(), 1);
     EXPECT_EQ(grammar.rules[0].name, "expr");
 
-    // Production → SubPart → Symbol
-    auto* prod = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
+    // ProductionNode → SubPartNode → SymbolNode
+    auto* prod = dynamic_cast<SubPartNode*>(grammar.rules[0].production->content.get());
     ASSERT_NE(prod, nullptr);
     ASSERT_EQ(prod->element.size(), 1);
 
-    auto* sym = dynamic_cast<Symbol*>(prod->element[0].get());
+    auto* sym = dynamic_cast<SymbolNode*>(prod->element[0].get());
     ASSERT_NE(sym, nullptr);
     EXPECT_EQ(sym->token.lexeme, "term");
 }
@@ -51,21 +51,21 @@ TEST(EBNFParserUnit, ParsesAlternation)
 {
     std::string source = "<expr> ::= <term> | <factor> ;";
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
     ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* alt = dynamic_cast<AlternateParts*>(grammar.rules[0].production->content.get());
+    auto* alt = dynamic_cast<AlternatePartsNode*>(grammar.rules[0].production->content.get());
     ASSERT_NE(alt, nullptr);
     ASSERT_EQ(alt->subparts.size(), 2);
 
-    auto* left = dynamic_cast<SubPart*>(alt->subparts[0].get());
-    auto* right = dynamic_cast<SubPart*>(alt->subparts[1].get());
+    auto* left = dynamic_cast<SubPartNode*>(alt->subparts[0].get());
+    auto* right = dynamic_cast<SubPartNode*>(alt->subparts[1].get());
     ASSERT_NE(left, nullptr);
     ASSERT_NE(right, nullptr);
 
-    auto* left_symbol = dynamic_cast<Symbol*>(left->element[0].get());
-    auto* right_symbol = dynamic_cast<Symbol*>(right->element[0].get());
+    auto* left_symbol = dynamic_cast<SymbolNode*>(left->element[0].get());
+    auto* right_symbol = dynamic_cast<SymbolNode*>(right->element[0].get());
     ASSERT_NE(left_symbol, nullptr);
     ASSERT_NE(right_symbol, nullptr);
 
@@ -77,19 +77,19 @@ TEST(EBNFParserUnit, ParsesGroupWithCardinality)
 {
     std::string source = "<expr> ::= (<term> | <factor>)* ;";
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
     ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* part = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
+    auto* part = dynamic_cast<SubPartNode*>(grammar.rules[0].production->content.get());
     ASSERT_NE(part, nullptr);
     ASSERT_EQ(part->element.size(), 1);
 
-    auto* group = dynamic_cast<Group*>(part->element[0].get());
+    auto* group = dynamic_cast<GroupNode*>(part->element[0].get());
     ASSERT_NE(group, nullptr);
-    EXPECT_EQ(group->card, Element::Cardinality::ZERO_OR_MORE);
+    EXPECT_EQ(group->card, ElementNode::Cardinality::ZERO_OR_MORE);
 
-    auto* inner_alt = dynamic_cast<AlternateParts*>(group->inner->content.get());
+    auto* inner_alt = dynamic_cast<AlternatePartsNode*>(group->inner->content.get());
     ASSERT_NE(inner_alt, nullptr);
     ASSERT_EQ(inner_alt->subparts.size(), 2);
 }
@@ -98,31 +98,31 @@ TEST(EBNFParserUnit, ParsesSequenceOfSymbols)
 {
     std::string source = "<pair> ::= <key> <value> ;";
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
     ASSERT_EQ(grammar.rules.size(), 1);
 
-    auto* sub = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
+    auto* sub = dynamic_cast<SubPartNode*>(grammar.rules[0].production->content.get());
     ASSERT_NE(sub, nullptr);
     ASSERT_EQ(sub->element.size(), 2);
 
-    EXPECT_EQ(dynamic_cast<Symbol*>(sub->element[0].get())->token.lexeme, "key");
-    EXPECT_EQ(dynamic_cast<Symbol*>(sub->element[1].get())->token.lexeme, "value");
+    EXPECT_EQ(dynamic_cast<SymbolNode*>(sub->element[0].get())->token.lexeme, "key");
+    EXPECT_EQ(dynamic_cast<SymbolNode*>(sub->element[1].get())->token.lexeme, "value");
 }
 
 TEST(EBNFParserUnit, ParsesSymbolModifiers)
 {
     std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
-    auto* sub = dynamic_cast<SubPart*>(grammar.rules[0].production->content.get());
+    auto* sub = dynamic_cast<SubPartNode*>(grammar.rules[0].production->content.get());
     ASSERT_NE(sub, nullptr);
     ASSERT_EQ(sub->element.size(), 3);
 
-    EXPECT_EQ(sub->element[0]->card, Element::Cardinality::ZERO_OR_MORE);
-    EXPECT_EQ(sub->element[1]->card, Element::Cardinality::OPTIONAL);
-    EXPECT_EQ(sub->element[2]->card, Element::Cardinality::ONE_OR_MORE);
+    EXPECT_EQ(sub->element[0]->card, ElementNode::Cardinality::ZERO_OR_MORE);
+    EXPECT_EQ(sub->element[1]->card, ElementNode::Cardinality::OPTIONAL);
+    EXPECT_EQ(sub->element[2]->card, ElementNode::Cardinality::ONE_OR_MORE);
 }
 
 TEST(EBNFParserError, MissingSemicolon)
@@ -170,7 +170,7 @@ TEST(EBNFParserIntegration, ParsesMiniGrammar)
     )abc";
 
     Parser parser(source);
-    Grammar grammar = parser.parse_all();
+    SyntaxTree grammar = parser.parse_all();
 
     ASSERT_EQ(grammar.rules.size(), 3);
     EXPECT_EQ(grammar.rules[0].name, "expr");
@@ -184,7 +184,7 @@ TEST(EBNFParserIntegration, ParsesChiComGrammar)
     Parser parser( file_name );
 
     try {
-        Grammar grammar = parser.parse_all();
+        SyntaxTree grammar = parser.parse_all();
     }
     catch(...) {
         FAIL() << "Did not expect to throw an exception parsing 'chicom8.bnf'";

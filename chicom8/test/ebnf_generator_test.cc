@@ -18,7 +18,7 @@
  */
 
  // TEST(EbnfCompilerTest, GenerateAstClassOutput) {
-//     Rule rule;
+//     RuleNode rule;
 //     rule.name = "<expr>";
 //     rule.productions = { {"\"42\""}, {"<ident>"} };
 

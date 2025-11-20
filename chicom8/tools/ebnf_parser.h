@@ -31,8 +31,8 @@ public:
     Parser( const std::string& source ) : tokens( Tokeniser( source ).tokenise_all() ), cursor( tokens.begin() )  {}
     Parser( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ), cursor( tokens.begin() ) {}
 
-    Rule next_rule();
-    Grammar parse_all();
+    RuleNode next_rule();
+    SyntaxTree parse_all();
 
 private:
     const Tokens tokens;
@@ -43,8 +43,8 @@ private:
     bool match(Token::Type type, std::string lexeme = "" );
     Token consume(Token::Type type, const std::string& lexeme, const std::string& message);
 
-    Production::Pointer  parse_production();
-    Part::Pointer        parse_part();
-    Element::Pointer     parse_element();
-    Element::Cardinality parse_cardinal();
+    ProductionNode::Pointer  parse_production();
+    PartNode::Pointer        parse_part();
+    ElementNode::Pointer     parse_element();
+    ElementNode::Cardinality parse_cardinal();
 };

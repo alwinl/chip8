@@ -53,9 +53,9 @@ Token Parser::consume( Token::Type type, const std::string &lexeme, const std::s
         + ": Parse error: " + message + " (expected '" + lexeme + "', got '" + peek().lexeme + "')" );
 }
 
-Grammar Parser::parse_all()
+SyntaxTree Parser::parse_all()
 {
-    Grammar grammar;
+    SyntaxTree grammar;
 
     while( match( Token::Type::COMMENT ) )
         ++cursor;
@@ -66,26 +66,26 @@ Grammar Parser::parse_all()
     return grammar;
 }
 
-Rule Parser::next_rule()
+RuleNode Parser::next_rule()
 {
     Token name = consume(Token::Type::NONTERMINAL, "", "not a valid rule name" );
     consume( Token::Type::COLON_EQ, "::=", "missing operator");
 
-    std::unique_ptr<Production> production = parse_production();
+    std::unique_ptr<ProductionNode> production = parse_production();
 
     consume( Token::Type::END_OF_PRODUCTION, ";", "missing operator");
 
-    return Rule { name.lexeme, std::move( production) };
+    return RuleNode { name.lexeme, std::move( production) };
 }
 
-std::unique_ptr<Production> Parser::parse_production()
+std::unique_ptr<ProductionNode> Parser::parse_production()
 {
-    Part::Pointer part = parse_part();
+    PartNode::Pointer part = parse_part();
 
     if( ! match(Token::Type::PIPE) )
-        return std::make_unique<Production>( std::move(part) );
+        return std::make_unique<ProductionNode>( std::move(part) );
 
-    std::vector<Part::Pointer> subparts;
+    std::vector<PartNode::Pointer> subparts;
 
     subparts.push_back( std::move(part) );
 
@@ -94,14 +94,14 @@ std::unique_ptr<Production> Parser::parse_production()
         subparts.push_back( parse_part() );
     }
 
-    Part::Pointer content = std::make_unique<AlternateParts>( std::move(subparts) );
+    PartNode::Pointer content = std::make_unique<AlternatePartsNode>( std::move(subparts) );
 
-    return std::make_unique<Production>( std::move(content) );
+    return std::make_unique<ProductionNode>( std::move(content) );
 }
 
-Part::Pointer Parser::parse_part()
+PartNode::Pointer Parser::parse_part()
 {
-    std::vector<Element::Pointer> element_list;
+    std::vector<ElementNode::Pointer> element_list;
 
     element_list.push_back( std::move( parse_element() ) );
 
@@ -109,24 +109,24 @@ Part::Pointer Parser::parse_part()
     while( ! match(Token::Type::PIPE) && ! match(Token::Type::END_OF_PRODUCTION) && !match(Token::Type::CLOSEBRACKET) && !match(Token::Type::END_OF_INPUT) )
         element_list.push_back( std::move( parse_element() ) );
 
-    return std::make_unique<SubPart>( std::move( element_list ) );
+    return std::make_unique<SubPartNode>( std::move( element_list ) );
 }
 
 
-Element::Pointer Parser::parse_element()
+ElementNode::Pointer Parser::parse_element()
 {
-    Element::Pointer element;
+    ElementNode::Pointer element;
 
     if( match( Token::Type::OPENBRACKET ) ) {
         consume( Token::Type::OPENBRACKET, "(", "missing symbol" );
-        element = std::move( std::make_unique<Group>( parse_production(), Element::Cardinality::ONCE ) );
+        element = std::move( std::make_unique<GroupNode>( parse_production(), ElementNode::Cardinality::ONCE ) );
         consume( Token::Type::CLOSEBRACKET, ")", "missing symbol" );
     } else if( match( Token::Type::NONTERMINAL ) ) {
         Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
-        element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
+        element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else if( match( Token::Type::TOKEN_PRODUCTION ) ) {
         Token tok = consume( Token::Type::TOKEN_PRODUCTION, "", "missing production" );
-        element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
+        element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else {
         throw std::runtime_error("Unknown token: " + peek().lexeme);
     }
@@ -136,16 +136,16 @@ Element::Pointer Parser::parse_element()
     return element;
 }
 
-Element::Cardinality Parser::parse_cardinal()
+ElementNode::Cardinality Parser::parse_cardinal()
 {
     if( !match( Token::Type::MODIFIER ) )
-        return Element::Cardinality::ONCE;
+        return ElementNode::Cardinality::ONCE;
 
     Token mod = consume( Token::Type::MODIFIER, "", "expected modifier" );
     switch( mod.lexeme[0] ) {
-    case '*': return Element::Cardinality::ZERO_OR_MORE;
-    case '+': return Element::Cardinality::ONE_OR_MORE;
-    case '?': return Element::Cardinality::OPTIONAL;
+    case '*': return ElementNode::Cardinality::ZERO_OR_MORE;
+    case '+': return ElementNode::Cardinality::ONE_OR_MORE;
+    case '?': return ElementNode::Cardinality::OPTIONAL;
     }
 
     throw std::runtime_error("Unknown modifier: " + mod.lexeme);

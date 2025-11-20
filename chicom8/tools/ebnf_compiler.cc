@@ -33,7 +33,7 @@ int main()
     std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.grammar");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
-    Grammar grammar = Parser( tokens ).parse_all();
+    SyntaxTree grammar = Parser( tokens ).parse_all();
 
     std::ofstream output( grammar_file );
     output << grammar;

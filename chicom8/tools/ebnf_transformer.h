@@ -30,7 +30,7 @@ using ComponentGroupList = std::vector<ComponentGroup>;
 class Transformer
 {
 public:
-    Transformer( const Grammar& grammar ) : grammar( grammar ) {};
+    Transformer( const SyntaxTree& grammar ) : grammar( grammar ) {};
 
     GrammarIR transform_all();
 
@@ -38,7 +38,7 @@ public:
     void print( std::ostream& os ) const;
 
 private:
-    Grammar grammar;
+    SyntaxTree grammar;
     GrammarIR grammar_ir;
 
     ComponentGroupList sccs;

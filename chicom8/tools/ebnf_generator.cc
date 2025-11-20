@@ -51,7 +51,7 @@ std::string sanitize_type_name(const std::string& name)
     return capitalize(name);
 }
 
-std::string get_symbol_type( const Symbol& symbol, const std::string& parentRuleName, int groupIndex )
+std::string get_symbol_type( const SymbolNode& symbol, const std::string& parentRuleName, int groupIndex )
 {
     std::string symbol_type("/* UnknownType */");
 
@@ -73,7 +73,7 @@ std::string get_symbol_type( const Symbol& symbol, const std::string& parentRule
     return symbol_type;
 }
 
-std::string build_field( const Symbol & symbol, int spaces, const std::string& groupName, int index )
+std::string build_field( const SymbolNode & symbol, int spaces, const std::string& groupName, int index )
 {
     // if( symbol.token.type == Token::Type::STRING_LITERAL )
     //     return "";
@@ -86,7 +86,7 @@ std::string build_field( const Symbol & symbol, int spaces, const std::string& g
     return out;
 }
 
-std::string build_group_struct( const std::string& groupName, const Part& part  )
+std::string build_group_struct( const std::string& groupName, const PartNode& part  )
 {
     std::string out = "struct " + groupName + "\n{\n";
 
@@ -137,7 +137,7 @@ std::string display_graph( const Graph& graph )
 }
 
 
-void Generator::generateAstFiles( std::ostream& os, const Grammar& rules)
+void Generator::generateAstFiles( std::ostream& os, const SyntaxTree& rules)
 {
     Graph graph = build_graph( rules);
 
@@ -145,7 +145,7 @@ void Generator::generateAstFiles( std::ostream& os, const Grammar& rules)
 
 
     RuleMap rule_map;
-    for( const Rule& rule : rules )
+    for( const RuleNode& rule : rules )
         rule_map[rule.name] = rule;
 
     generateHeader( os );
@@ -159,23 +159,23 @@ void Generator::generateAstFiles( std::ostream& os, const Grammar& rules)
 }
 
 
-Graph Generator::build_graph( const Grammar& rules )
+Graph Generator::build_graph( const SyntaxTree& rules )
 {
     Graph graph;
 
-    auto add_dependency = [&]( const Rule& rule, const Symbol & symbol )
+    auto add_dependency = [&]( const RuleNode& rule, const SymbolNode & symbol )
     {
         if( symbol.token.type == Token::Type::NONTERMINAL )
             graph[rule.name].insert( symbol.token.lexeme );
     };
 
-    auto process_part = [&]( const Rule& rule, const Part& part )
+    auto process_part = [&]( const RuleNode& rule, const PartNode& part )
     {
         for( const auto& symbol : part )
             add_dependency( rule, symbol );
     };
 
-    auto process_rule = [&]( const Rule& rule )
+    auto process_rule = [&]( const RuleNode& rule )
     {
         for( const auto& part : rule.production )
             process_part( rule, part );
@@ -202,7 +202,7 @@ void Generator::generateHeader( std::ostream & os )
     os << "\n\n";
 }
 
-void Generator::generateAstClass( std::ostream& os, const Rule& rule)
+void Generator::generateAstClass( std::ostream& os, const RuleNode& rule)
 {
     os << "// AST node for rule: " << rule.name << "\n";
 
@@ -224,7 +224,7 @@ void Generator::generateAstClass( std::ostream& os, const Rule& rule)
     os << "};\n\n";
 }
 
-void Generator::generateGroupStructures( std::ostream & os, std::string base_name, const Part& part )
+void Generator::generateGroupStructures( std::ostream & os, std::string base_name, const PartNode& part )
 {
     for( size_t i = 0; const auto& symbol : part ) {
 
@@ -243,7 +243,7 @@ void Generator::generateGroupStructures( std::ostream & os, std::string base_nam
     }
 }
 
-void Generator::generateSingleProduction( std::ostream & os, std::string &className, const Rule & rule )
+void Generator::generateSingleProduction( std::ostream & os, std::string &className, const RuleNode & rule )
 {
     // Single-production rule — plain struct
     for( size_t i = 0; const auto& symbol : rule.production[0] )
@@ -252,7 +252,7 @@ void Generator::generateSingleProduction( std::ostream & os, std::string &classN
         os << "    " + get_symbol_type( symbol, className, 0 ) + " field" + std::to_string(i++) + ";\n";
 }
 
-void Generator::generateMultiProduction( std::ostream & os, std::string &className, const Rule & rule )
+void Generator::generateMultiProduction( std::ostream & os, std::string &className, const RuleNode & rule )
 {
     // os << "    using Ptr = std::shared_ptr<" + className + ">;\n";
 
@@ -269,7 +269,7 @@ void Generator::generateMultiProduction( std::ostream & os, std::string &classNa
     }
 }
 
-void Generator::generateVariant(std::ostream & os, const Production &production )
+void Generator::generateVariant(std::ostream & os, const ProductionNode &production )
 {
     os << "    using Value = std::variant<";
 

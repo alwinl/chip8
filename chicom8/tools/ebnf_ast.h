@@ -57,18 +57,18 @@ std::vector<std::unique_ptr<T>> clone_vector(const std::vector<std::unique_ptr<T
     return result;
 }
 
-struct Production;
+struct ProductionNode;
 
 struct ASTVisitor;
 
-struct Element
+struct ElementNode
 {
-    using Pointer = std::unique_ptr<Element>;
+    using Pointer = std::unique_ptr<ElementNode>;
 
     enum class Cardinality { ONCE, OPTIONAL, ZERO_OR_MORE, ONE_OR_MORE };
 
-    explicit Element( Cardinality card ) : card(card) {}
-    virtual ~Element() = default;
+    explicit ElementNode( Cardinality card ) : card(card) {}
+    virtual ~ElementNode() = default;
 
     virtual Pointer clone() const = 0;
     virtual void accept( ASTVisitor& visitor ) = 0;
@@ -76,104 +76,104 @@ struct Element
     Cardinality card;
 };
 
-struct Group : Element
+struct GroupNode : ElementNode
 {
-   explicit Group(std::unique_ptr<Production> p, Element::Cardinality card = Element::Cardinality::ONCE)
-        : Element(card), inner(std::move(p)) { }
+   explicit GroupNode(std::unique_ptr<ProductionNode> p, ElementNode::Cardinality card = ElementNode::Cardinality::ONCE)
+        : ElementNode(card), inner(std::move(p)) { }
 
-    Pointer clone() const override { return std::make_unique<Group>( clone_unique(inner) ); }
+    Pointer clone() const override { return std::make_unique<GroupNode>( clone_unique(inner) ); }
     void accept( ASTVisitor& visitor ) override;
 
-    std::unique_ptr<Production> inner;
+    std::unique_ptr<ProductionNode> inner;
 };
 
-struct Symbol : Element
+struct SymbolNode : ElementNode
 {
-   explicit Symbol(Token token, Element::Cardinality card = Element::Cardinality::ONCE)
-        : Element(card), token(std::move(token)) { }
+   explicit SymbolNode(Token token, ElementNode::Cardinality card = ElementNode::Cardinality::ONCE)
+        : ElementNode(card), token(std::move(token)) { }
 
-    Pointer clone() const override { return std::make_unique<Symbol>( token, card ); }
+    Pointer clone() const override { return std::make_unique<SymbolNode>( token, card ); }
     void accept( ASTVisitor& visitor ) override;
 
    Token token;
 };
 
-struct Part
+struct PartNode
 {
-    using Pointer = std::unique_ptr<Part>;
+    using Pointer = std::unique_ptr<PartNode>;
 
-    explicit Part() = default;
-    virtual ~Part() = default;
+    explicit PartNode() = default;
+    virtual ~PartNode() = default;
 
     virtual Pointer clone() const = 0;
     virtual void accept( ASTVisitor& visitor ) = 0;
 };
 
-struct SubPart : Part
+struct SubPartNode : PartNode
 {
-    explicit SubPart(std::vector<Element::Pointer> elems)
+    explicit SubPartNode(std::vector<ElementNode::Pointer> elems)
         : element(std::move(elems)) {}
 
-    Pointer clone() const override { return std::make_unique<SubPart>( clone_vector(element) ); }
+    Pointer clone() const override { return std::make_unique<SubPartNode>( clone_vector(element) ); }
     void accept( ASTVisitor& visitor ) override;
 
-    std::vector<Element::Pointer> element;
+    std::vector<ElementNode::Pointer> element;
 };
 
-struct AlternateParts : Part
+struct AlternatePartsNode : PartNode
 {
-    explicit AlternateParts(std::vector<Part::Pointer> parts)
+    explicit AlternatePartsNode(std::vector<PartNode::Pointer> parts)
         : subparts(std::move(parts)) {}
 
-    Pointer clone() const override { return std::make_unique<AlternateParts>( clone_vector(subparts) ); }
+    Pointer clone() const override { return std::make_unique<AlternatePartsNode>( clone_vector(subparts) ); }
     void accept( ASTVisitor& visitor ) override;
 
-    std::vector<Part::Pointer> subparts;
+    std::vector<PartNode::Pointer> subparts;
 };
 
-struct Production
+struct ProductionNode
 {
-    explicit Production(Part::Pointer p) : content(std::move(p)) {}
+    explicit ProductionNode(PartNode::Pointer p) : content(std::move(p)) {}
 
-    using Pointer = std::unique_ptr<Production>;
+    using Pointer = std::unique_ptr<ProductionNode>;
 
-    Pointer clone() const { return std::make_unique<Production>( clone_unique(content) ); }
+    Pointer clone() const { return std::make_unique<ProductionNode>( clone_unique(content) ); }
     void accept( ASTVisitor& visitor );
 
-    Part::Pointer content;
+    PartNode::Pointer content;
 };
 
-struct Rule
+struct RuleNode
 {
-    Rule(std::string n, Production::Pointer p)
+    RuleNode(std::string n, ProductionNode::Pointer p)
         : name(std::move(n)), production(std::move(p)) {}
 
-    using Pointer = std::unique_ptr<Rule>;
+    using Pointer = std::unique_ptr<RuleNode>;
 
-    Rule clone() const { return Rule( name, clone_unique(production) ); }
+    RuleNode clone() const { return RuleNode( name, clone_unique(production) ); }
     void accept( ASTVisitor& visitor ) const;
 
     std::string name;
-    Production::Pointer production;
+    ProductionNode::Pointer production;
 };
 
-struct Grammar
+struct SyntaxTree
 {
-    Grammar() = default;
+    SyntaxTree() = default;
 
-    Grammar(const Grammar& other) : rules( clone_vector(other.rules) ) {}
-    Grammar& operator=( const Grammar& other )
+    SyntaxTree(const SyntaxTree& other) : rules( clone_vector(other.rules) ) {}
+    SyntaxTree& operator=( const SyntaxTree& other )
     {
         if( this != &other )
             rules = clone_vector( other.rules );
         return *this;
     }
-    Grammar(Grammar&&) noexcept = default;
-    Grammar& operator=(Grammar&&) noexcept = default;
+    SyntaxTree(SyntaxTree&&) noexcept = default;
+    SyntaxTree& operator=(SyntaxTree&&) noexcept = default;
 
     void accept( ASTVisitor& visitor ) const;
 
-    std::vector<Rule> rules;
+    std::vector<RuleNode> rules;
 };
 
 
@@ -181,18 +181,18 @@ struct ASTVisitor
 {
     virtual ~ASTVisitor() = default;
 
-    virtual void visit( const Symbol& symbol ) {};
-    virtual void pre_symbol( const Symbol& symbol ) {};
-    virtual void post_symbol( const Symbol& symbol ) {};
-    virtual void pre_group( const Group& group ) {};
-    virtual void post_group( const Group& group ) {};
-    virtual void pre_elements( const SubPart& subpart ) {};
-    virtual void post_elements( const SubPart& subpart ) {};
-    virtual void pre_alternates( const AlternateParts& alternates ) {};
-    virtual void post_alternates( const AlternateParts& alternates ) {};
-    virtual void pre_production( const Rule& rule ) {};
-    virtual void post_production( const Rule& rule ) {};
-    virtual void pre_rules( const Grammar& grammar ) {};
-    virtual void post_rules( const Grammar& grammar ) {};
+    virtual void visit( const SymbolNode& symbol ) {};
+    virtual void pre_symbol( const SymbolNode& symbol ) {};
+    virtual void post_symbol( const SymbolNode& symbol ) {};
+    virtual void pre_group( const GroupNode& group ) {};
+    virtual void post_group( const GroupNode& group ) {};
+    virtual void pre_elements( const SubPartNode& subpart ) {};
+    virtual void post_elements( const SubPartNode& subpart ) {};
+    virtual void pre_alternates( const AlternatePartsNode& alternates ) {};
+    virtual void post_alternates( const AlternatePartsNode& alternates ) {};
+    virtual void pre_production( const RuleNode& rule ) {};
+    virtual void post_production( const RuleNode& rule ) {};
+    virtual void pre_rules( const SyntaxTree& grammar ) {};
+    virtual void post_rules( const SyntaxTree& grammar ) {};
 };
 

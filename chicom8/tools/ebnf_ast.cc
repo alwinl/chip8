@@ -21,7 +21,7 @@
 
 #include "ebnf_ast.h"
 
-void Symbol::accept( ASTVisitor& visitor )
+void SymbolNode::accept( ASTVisitor& visitor )
 {
     visitor.pre_symbol( *this );
 
@@ -30,7 +30,7 @@ void Symbol::accept( ASTVisitor& visitor )
     visitor.post_symbol( *this );
 }
 
-void Group::accept( ASTVisitor& visitor )
+void GroupNode::accept( ASTVisitor& visitor )
 {
     visitor.pre_group( *this );
 
@@ -40,7 +40,7 @@ void Group::accept( ASTVisitor& visitor )
     visitor.post_group( *this );
 }
 
-void SubPart::accept( ASTVisitor& visitor )
+void SubPartNode::accept( ASTVisitor& visitor )
 {
     visitor.pre_elements( *this );
 
@@ -50,7 +50,7 @@ void SubPart::accept( ASTVisitor& visitor )
     visitor.post_elements( *this );
 }
 
-void AlternateParts::accept( ASTVisitor& visitor )
+void AlternatePartsNode::accept( ASTVisitor& visitor )
 {
     visitor.pre_alternates( *this );
 
@@ -60,12 +60,12 @@ void AlternateParts::accept( ASTVisitor& visitor )
     visitor.post_alternates( *this );
 }
 
-void Production::accept( ASTVisitor& visitor )
+void ProductionNode::accept( ASTVisitor& visitor )
 {
     content->accept( visitor );
 }
 
-void Rule::accept( ASTVisitor& visitor ) const
+void RuleNode::accept( ASTVisitor& visitor ) const
 {
     visitor.pre_production( *this );
 
@@ -74,7 +74,7 @@ void Rule::accept( ASTVisitor& visitor ) const
     visitor.post_production( *this );
 }
 
-void Grammar::accept( ASTVisitor& visitor ) const
+void SyntaxTree::accept( ASTVisitor& visitor ) const
 {
     visitor.pre_rules( *this );
 
@@ -85,9 +85,9 @@ void Grammar::accept( ASTVisitor& visitor ) const
 }
 
 
-bool equals( const Part& a, const Part& b );
-bool equals( const Element& a, const Element& b );
-bool equals( const Production& a, const Production& b );
+bool equals( const PartNode& a, const PartNode& b );
+bool equals( const ElementNode& a, const ElementNode& b );
+bool equals( const ProductionNode& a, const ProductionNode& b );
 
 template <typename T>
 inline bool equals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b)
@@ -124,46 +124,46 @@ bool equals_vector( const std::vector<std::unique_ptr<T>>& a, const std::vector<
     return true;
 }
 
-bool equals( const Element& a, const Element& b )
+bool equals( const ElementNode& a, const ElementNode& b )
 {
     if( typeid(a) != typeid(b) )
         return false;
 
-    if( auto sa = dynamic_cast<const Symbol*>(&a) )
-        return (sa->token == dynamic_cast<const Symbol*>(&b)->token ) &&
-                (sa->card == dynamic_cast<const Symbol*>(&b)->card );
+    if( auto sa = dynamic_cast<const SymbolNode*>(&a) )
+        return (sa->token == dynamic_cast<const SymbolNode*>(&b)->token ) &&
+                (sa->card == dynamic_cast<const SymbolNode*>(&b)->card );
 
-    if( auto aa = dynamic_cast<const Group*>(&a) )
-        return equals( aa->inner, dynamic_cast<const Group*>(&b)->inner );
+    if( auto aa = dynamic_cast<const GroupNode*>(&a) )
+        return equals( aa->inner, dynamic_cast<const GroupNode*>(&b)->inner );
 
     return false;
 }
 
-bool equals( const Part& a, const Part& b )
+bool equals( const PartNode& a, const PartNode& b )
 {
     if( typeid(a) != typeid(b) )
         return false;
 
-    if( auto sa = dynamic_cast<const SubPart*>(&a) )
-        return equals_vector( sa->element, dynamic_cast<const SubPart*>(&b)->element );
+    if( auto sa = dynamic_cast<const SubPartNode*>(&a) )
+        return equals_vector( sa->element, dynamic_cast<const SubPartNode*>(&b)->element );
 
-    if( auto aa = dynamic_cast<const AlternateParts*>(&a) )
-        return equals_vector( aa->subparts, dynamic_cast<const AlternateParts*>(&b)->subparts );
+    if( auto aa = dynamic_cast<const AlternatePartsNode*>(&a) )
+        return equals_vector( aa->subparts, dynamic_cast<const AlternatePartsNode*>(&b)->subparts );
 
     return false;
 }
 
-bool equals( const Production& a, const Production& b )
+bool equals( const ProductionNode& a, const ProductionNode& b )
 {
     return equals( a.content, b.content );
 }
 
-bool equals( const Rule& a, const Rule& b )
+bool equals( const RuleNode& a, const RuleNode& b )
 {
     return( a.name == b.name && equals( a.production, b.production) );
 }
 
-bool operator==( const Grammar& a, const Grammar& b )
+bool operator==( const SyntaxTree& a, const SyntaxTree& b )
 {
     if (a.rules.size() != b.rules.size())
         return false;

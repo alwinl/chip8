@@ -48,7 +48,7 @@ struct GraphBuilderVisitor : ASTVisitor
 {
     GraphBuilderVisitor( ) = default;
 
-    void visit( const Symbol& symbol ) override
+    void visit( const SymbolNode& symbol ) override
     {
         if( !rule_stack.empty() && (symbol.token.type == Token::Type::NONTERMINAL) )
         {
@@ -58,13 +58,13 @@ struct GraphBuilderVisitor : ASTVisitor
         }
     }
 
-    void pre_production( const Rule& rule ) override
+    void pre_production( const RuleNode& rule ) override
     {
         rule_stack.push(rule.name);
         graph.try_emplace( rule.name );
     }
 
-    void post_production( const Rule& rule ) override
+    void post_production( const RuleNode& rule ) override
     {
         rule_stack.pop();
     }

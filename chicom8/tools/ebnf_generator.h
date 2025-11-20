@@ -27,25 +27,25 @@
 #include "ebnf_parser.h"
 #include "ebnf_tarjan.h"
 
-using RuleMap = std::unordered_map<std::string,Rule>;
+using RuleMap = std::unordered_map<std::string,RuleNode>;
 
 class Generator
 {
 public:
     Generator( ) {};
 
-    void generateAstFiles( std::ostream& os, const Grammar& rules);
+    void generateAstFiles( std::ostream& os, const SyntaxTree& rules);
 
 	void generateHeader( std::ostream &os );
-    void generateGroupStructures( std::ostream & os, std::string base_name, const Part& part );
+    void generateGroupStructures( std::ostream & os, std::string base_name, const PartNode& part );
 
-	void generateAstClass( std::ostream &os, const Rule &rule );
-	void generateVariant( std::ostream &os, const Production &production );
-	void generateMultiProduction( std::ostream &os, std::string &className, const Rule &rule );
-	void generateSingleProduction( std::ostream &os, std::string &className, const Rule &rule );
+	void generateAstClass( std::ostream &os, const RuleNode &rule );
+	void generateVariant( std::ostream &os, const ProductionNode &production );
+	void generateMultiProduction( std::ostream &os, std::string &className, const RuleNode &rule );
+	void generateSingleProduction( std::ostream &os, std::string &className, const RuleNode &rule );
 
 private:
-    Graph build_graph( const Grammar& rules );
+    Graph build_graph( const SyntaxTree& rules );
 
 
     void debugPrintDependencies( const Graph& graph ) const;

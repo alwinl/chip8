@@ -19,39 +19,39 @@
 
 #include "ebnf_printer.h"
 
-std::ostream& operator<<( std::ostream& os, const Element::Cardinality& card )
+std::ostream& operator<<( std::ostream& os, const ElementNode::Cardinality& card )
 {
-    if( card == Element::Cardinality::ONE_OR_MORE ) os << "+";
-    if( card == Element::Cardinality::OPTIONAL ) os << "?";
-    if( card == Element::Cardinality::ZERO_OR_MORE ) os << "*";
+    if( card == ElementNode::Cardinality::ONE_OR_MORE ) os << "+";
+    if( card == ElementNode::Cardinality::OPTIONAL ) os << "?";
+    if( card == ElementNode::Cardinality::ZERO_OR_MORE ) os << "*";
 
     return os;
 }
 
-void PrintVisitor::visit( const Symbol& symbol )
+void PrintVisitor::visit( const SymbolNode& symbol )
 {
     os << symbol.token << symbol.card;
 }
 
-void PrintVisitor::pre_symbol( const Symbol& symbol )
+void PrintVisitor::pre_symbol( const SymbolNode& symbol )
 {
     os << std::string(indent, ' ')  << "Symbol "<< ": ";
     indent += 4;
 }
 
-void PrintVisitor::post_symbol( const Symbol& symbol )
+void PrintVisitor::post_symbol( const SymbolNode& symbol )
 {
     indent -= 4;
     os << "\n";
 }
 
-void PrintVisitor::pre_group( const Group& group )
+void PrintVisitor::pre_group( const GroupNode& group )
 {
     os << std::string(indent, ' ')  << "Group "<< ": {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_group( const Group& group )
+void PrintVisitor::post_group( const GroupNode& group )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}" << group.card;
@@ -59,56 +59,56 @@ void PrintVisitor::post_group( const Group& group )
     os << "\n";
 }
 
-void PrintVisitor::pre_elements( const SubPart& subpart )
+void PrintVisitor::pre_elements( const SubPartNode& subpart )
 {
     os << std::string(indent, ' ')  << "Subpart "<< ": {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_elements( const SubPart& subpart )
+void PrintVisitor::post_elements( const SubPartNode& subpart )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_alternates( const AlternateParts& alternates )
+void PrintVisitor::pre_alternates( const AlternatePartsNode& alternates )
 {
     os << std::string(indent, ' ')  << "Alternates "<< ": {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_alternates( const AlternateParts& alternates )
+void PrintVisitor::post_alternates( const AlternatePartsNode& alternates )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_production( const Rule& rule )
+void PrintVisitor::pre_production( const RuleNode& rule )
 {
     os << std::string(indent, ' ')  << "Rule " << rule.name << ": {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_production( const Rule& rule )
+void PrintVisitor::post_production( const RuleNode& rule )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_rules( const Grammar& grammar )
+void PrintVisitor::pre_rules( const SyntaxTree& grammar )
 {
     os << "Grammar: {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_rules( const Grammar& grammar )
+void PrintVisitor::post_rules( const SyntaxTree& grammar )
 {
     indent -= 4;
     os << "}\n";
 }
 
 
-std::ostream& operator<<( std::ostream& os, const Grammar& grammar )
+std::ostream& operator<<( std::ostream& os, const SyntaxTree& grammar )
 {
     PrintVisitor printer( os );
     grammar.accept( printer );

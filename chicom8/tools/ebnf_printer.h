@@ -25,22 +25,22 @@ struct PrintVisitor : ASTVisitor
 {
     PrintVisitor( std::ostream& os ) : os(os) {};
 
-    void visit( const Symbol& symbol ) override;
-    void pre_symbol( const Symbol& symbol ) override;
-    void post_symbol( const Symbol& symbol ) override;
-    void pre_group( const Group& group ) override;
-    void post_group( const Group& group ) override;
-    void pre_elements( const SubPart& subpart ) override;
-    void post_elements( const SubPart& subpart ) override;
-    void pre_alternates( const AlternateParts& alternates ) override;
-    void post_alternates( const AlternateParts& alternates ) override;
-    void pre_production( const Rule& rule ) override;
-    void post_production( const Rule& rule ) override;
-    void pre_rules( const Grammar& grammar ) override;
-    void post_rules( const Grammar& grammar ) override;
+    void visit( const SymbolNode& symbol ) override;
+    void pre_symbol( const SymbolNode& symbol ) override;
+    void post_symbol( const SymbolNode& symbol ) override;
+    void pre_group( const GroupNode& group ) override;
+    void post_group( const GroupNode& group ) override;
+    void pre_elements( const SubPartNode& subpart ) override;
+    void post_elements( const SubPartNode& subpart ) override;
+    void pre_alternates( const AlternatePartsNode& alternates ) override;
+    void post_alternates( const AlternatePartsNode& alternates ) override;
+    void pre_production( const RuleNode& rule ) override;
+    void post_production( const RuleNode& rule ) override;
+    void pre_rules( const SyntaxTree& grammar ) override;
+    void post_rules( const SyntaxTree& grammar ) override;
 
     std::ostream& os;
     int indent = 0;
 };
 
-std::ostream& operator<<( std::ostream& os, const Grammar& grammar );
+std::ostream& operator<<( std::ostream& os, const SyntaxTree& grammar );
