@@ -48,7 +48,7 @@ private:
     void build_connected_component_list( Graph& graph );
     void strong_connect( Graph &graph, const Node& node );
 
-    std::vector<std::string> most_referenced_nodes( ComponentGroupList& sccs );
+    std::vector<Node> most_referenced_nodes( Graph &graph, ComponentGroupList& sccs );
     std::vector<std::string> ordered_class_list( ComponentGroupList& sccs );
 };
 

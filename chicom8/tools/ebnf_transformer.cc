@@ -31,7 +31,7 @@ GrammarIR Transformer::transform_all()
 
     build_connected_component_list( graph_visitor.graph );
 
-    std::vector<std::string> forward_decls = most_referenced_nodes( sccs );
+    std::vector<std::string> forward_decls = most_referenced_nodes( graph_visitor.graph, sccs );
     std::vector<std::string> class_list = ordered_class_list( sccs );
 
     grammar_ir = GrammarIR{ forward_decls, class_list };
@@ -91,9 +91,19 @@ void Transformer::strong_connect( Graph &graph, const Node& node )
 }
 
 
-std::vector<std::string> Transformer::most_referenced_nodes( ComponentGroupList& sccs )
+std::vector<Node> Transformer::most_referenced_nodes( Graph &graph, ComponentGroupList& sccs )
 {
-	return std::vector<std::string>();
+    std::vector<Node> forward_declarations;
+
+    auto comp_func = [&]( const Node& a, const Node& b ) { return graph.at(a).usage_count < graph.at(b).usage_count; };
+
+    for( const ComponentGroup& cycle : sccs )
+        if( cycle.size() > 1 ) {
+            auto it = std::max_element( cycle.begin(), cycle.end(), comp_func );
+            forward_declarations.emplace_back( *it );
+        }
+
+    return forward_declarations;
 }
 
 std::vector<std::string> Transformer::ordered_class_list( ComponentGroupList& sccs )

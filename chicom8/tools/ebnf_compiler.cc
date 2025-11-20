@@ -43,8 +43,12 @@ int main()
     std::cout << graph_visitor.graph;
 
     Transformer transformer = Transformer( grammar );
-    transformer.transform_all();
+    GrammarIR ir = transformer.transform_all();
     transformer.print_all_cycles( std::cout );
+
+    std::cout << "forward decls:\n";
+    for( auto decl : ir.forward_decls )
+        std::cout << '\t' << decl << '\n';
 
     // std::cout << transformer;
 
