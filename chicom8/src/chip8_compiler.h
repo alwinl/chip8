@@ -24,5 +24,5 @@
 class Chip8Compiler
 {
 public:
-    void compile_file(const std::string& input_path, const std::string& output_path);
+    static void compile_file(const std::string& input_path, const std::string& output_path);
 };

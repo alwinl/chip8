@@ -76,7 +76,7 @@ std::vector<std::string> keywords =
 std::string escape_string( const std::string& input)
 {
     std::string escaped = "\"";
-    for( char c : input ) {
+    for( char const c : input ) {
         switch (c) {
         case '"': escaped += "\\\""; break;
         case '\\': escaped += "\\\\"; break;
@@ -117,7 +117,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 
 Tokeniser::Tokeniser( std::filesystem::path file_path )
 {
-    std::ifstream src(file_path);
+    std::ifstream const src(file_path);
     std::ostringstream dst;
 
     dst << src.rdbuf();
@@ -147,6 +147,7 @@ Token Tokeniser::next_token()
 
             if( match_entry.skip_token )
                 return next_token();
+
             if( type == Token::Type::IDENTIFIER ) {
 
                 if( std::find( type_keywords.begin(), type_keywords.end(), lexeme ) != type_keywords.end() )
@@ -157,11 +158,10 @@ Token Tokeniser::next_token()
             }
 
             return Token{ type, lexeme, tok_line, tok_column };
-            return Token{ match_entry.type, lexeme, tok_line, tok_column };
         }
     }
 
-    std::string lexeme( 1, *begin );
+    std::string const lexeme( 1, *begin );
     auto tok_line = line;
     auto tok_column = column;
 
@@ -186,7 +186,7 @@ Tokens Tokeniser::tokenise_all()
 
 void Tokeniser::update_position_tracking( std::string lexeme )
 {
-    for( char c : lexeme ) {
+    for( char const c : lexeme ) {
         if (c == '\n') {
             line++;
             column = 1;

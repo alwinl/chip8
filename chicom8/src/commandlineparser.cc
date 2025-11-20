@@ -1,5 +1,5 @@
 /*
- * filenameextractor.cc Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * commandlineparser.cc Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,17 @@
  * MA 02110-1301, USA.
  */
 
+
+#include <vector>
+#include <stdexcept>
+
 #include "commandlineparser.h"
 
 #include <iostream>
 
-CommandLineParser::CommandLineParser( int argc, char **argv ) : options("chicom8", "A C-like compiler for Chip-8" )
+CommandLineParser::CommandLineParser( int argc, char **argv ) : options( "chicom8", "A C-like compiler for Chip-8" )
 {
-	parse_args(argc, argv);
+	parse_args( argc, argv );
 }
 
 CommandLineParser::CommandLineParser( std::vector<std::string> arguments ) : options("chicom8", "A C-like compiler for Chip-8" )
@@ -40,7 +44,7 @@ CommandLineParser::CommandLineParser( std::vector<std::string> arguments ) : opt
     for (std::string& arg : arguments)
         argv_ptrs.push_back(arg.data());
 
-    int argc = static_cast<int>(argv_ptrs.size());
+    int const argc = static_cast<int>(argv_ptrs.size());
     char** argv = argv_ptrs.data();
 
 	parse_args(argc, argv);
@@ -62,19 +66,19 @@ void CommandLineParser::parse_args(int argc, char** argv)
         result = options.parse(argc, argv);
     }
     catch (const cxxopts::exceptions::exception& e) {
-        std::cerr << "Error parsing command line options: " << e.what() << std::endl;
+        std::cerr << "Error parsing command line options: " << e.what() << '\n';
         std::cerr << options.help() << std::endl;
         std::exit(1);
     }
 
-    if (result.count("help")) {
-        std::cout << options.help() << std::endl;
+    if (result.count("help") != 0U) {
+        std::cout << options.help() << '\n';
         std::exit(0);
     }
 
-    if (!result.count("source")) {
-        std::cerr << "Error: Source file is required." << std::endl;
-        std::cerr << options.help() << std::endl;
+    if (result.count("source") == 0U) {
+        std::cerr << "Error: Source file is required.\n";
+        std::cerr << options.help() << '\n';
         std::exit(1);
     }
 }
@@ -89,8 +93,8 @@ std::string CommandLineParser::get_output_name() const
 	if( result.count("o") != 0 )
         return result["o"].as<std::string>();
 
-	std::string source = result["source"].as<std::string>();
-    std::filesystem::path path(source);
+	std::string const source = result["source"].as<std::string>();
+    std::filesystem::path const path(source);
     return path.stem().string() + ".ch8";
 }
 

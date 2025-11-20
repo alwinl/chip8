@@ -21,7 +21,7 @@
 
 #include "unordered_map"
 
-static std::unordered_map<std::string, VarDecl::eTypes> string_to_type = {
+std::unordered_map<std::string, VarDecl::eTypes> string_to_type = {
     { "nibble", VarDecl::eTypes::NIBBLE  },
     { "byte"  , VarDecl::eTypes::BYTE    },
     { "snack" , VarDecl::eTypes::SNACK   },
@@ -120,9 +120,9 @@ std::unique_ptr<Decl> Parser::parse_func_decl()
         // Token name = consume( Token::Type::IDENTIFIER, "Expected variable name" );
         consume( Token::Type::PUNCTUATION, ":", "Unexpected token" );
 
-        Token tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
+        Token const tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
 
-        VarDecl::eTypes type = string_to_type.at( tok.lexeme );
+        VarDecl::eTypes const type = string_to_type.at( tok.lexeme );
         std::unique_ptr<Expr> byte_size = ( tok.lexeme == "sprite" ) ? parse_expr() : nullptr;
 
         params.push_back( std::make_unique<VarDecl>( std::move(name), type, std::move(byte_size) ) );
@@ -154,9 +154,9 @@ std::unique_ptr<VarDecl> Parser::parse_var_decl()
     std::unique_ptr<Identifier> name = parse_identifier( "Expected variable name" );
     consume( Token::Type::PUNCTUATION, ":", "Unexpected token" );
 
-    Token tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
+    Token const tok = consume( Token::Type::TYPE_KEYWORD, "Expected type keyword name" );
 
-    VarDecl::eTypes type = string_to_type.at( tok.lexeme );
+    VarDecl::eTypes const type = string_to_type.at( tok.lexeme );
     std::unique_ptr<Expr> byte_size = ( tok.lexeme == "sprite" ) ? parse_expr() : nullptr;
     // int byte_size = 0;
 
@@ -294,11 +294,11 @@ std::unique_ptr<Expr> Parser::parse_expr()
 {
     std::unique_ptr<Expr> lhs = parse_logic_or();
 
-    if( auto id = dynamic_cast<Identifier*>(lhs.get()) ) {
+    if( auto *id = dynamic_cast<Identifier*>(lhs.get()) ) {
 
         if( match(Token::Type::OPERATOR, "=") ) {
 
-            Token eq = consume( Token::Type::OPERATOR, "=", "Expected '=' in assignment" );
+            Token const eq = consume( Token::Type::OPERATOR, "=", "Expected '=' in assignment" );
             std::unique_ptr<Expr> rhs = parse_expr();
 
             return std::make_unique<BinaryExpr>(
@@ -318,7 +318,7 @@ std::unique_ptr<Expr> Parser::parse_logic_or()
 
     while( match( Token::Type::OPERATOR, "||") ) {
 
-        Token tok = consume( Token::Type::OPERATOR, "||", "Expected '||' operator" );
+        Token const tok = consume( Token::Type::OPERATOR, "||", "Expected '||' operator" );
         std::unique_ptr<Expr> rhs = parse_logic_and();
         lhs = std::make_unique<BinaryExpr>( std::move(lhs), BinaryExpr::Operator::LOGIC_OR, std::move( rhs) );
     }
@@ -332,7 +332,7 @@ std::unique_ptr<Expr> Parser::parse_logic_and()
 
     while( match( Token::Type::OPERATOR, "&&") ) {
 
-        Token tok = consume( Token::Type::OPERATOR,  "&&", "Expected '&&' operator" );
+        Token const tok = consume( Token::Type::OPERATOR,  "&&", "Expected '&&' operator" );
         std::unique_ptr<Expr> rhs = parse_equality();
         lhs = std::make_unique<BinaryExpr>( std::move(lhs), BinaryExpr::Operator::LOGIC_AND, std::move( rhs) );
     }
@@ -346,7 +346,7 @@ std::unique_ptr<Expr> Parser::parse_equality()
 
     while( match( Token::Type::OPERATOR, "==") || match( Token::Type::OPERATOR, "!=") ) {
 
-        Token tok = consume( Token::Type::OPERATOR, "" );
+        Token const tok = consume( Token::Type::OPERATOR, "" );
         std::unique_ptr<Expr> rhs = parse_comparison();
         lhs = std::make_unique<BinaryExpr>(
             std::move(lhs),
@@ -366,7 +366,7 @@ std::unique_ptr<Expr> Parser::parse_comparison()
     while( match( Token::Type::OPERATOR, ">") || match( Token::Type::OPERATOR, ">=")
         || match( Token::Type::OPERATOR, "<") || match( Token::Type::OPERATOR, "<=") ) {
 
-        Token tok = consume( Token::Type::OPERATOR, "" );
+        Token const tok = consume( Token::Type::OPERATOR, "" );
         std::unique_ptr<Expr> rhs = parse_term();
         lhs = std::make_unique<BinaryExpr>(
             std::move(lhs),
@@ -387,7 +387,7 @@ std::unique_ptr<Expr> Parser::parse_term()
 
     while( match( Token::Type::OPERATOR, "+") || match( Token::Type::OPERATOR, "-") ) {
 
-        Token tok = consume( Token::Type::OPERATOR, "" );
+        Token const tok = consume( Token::Type::OPERATOR, "" );
         std::unique_ptr<Expr> rhs = parse_factor();
         lhs = std::make_unique<BinaryExpr>(
             std::move(lhs),
@@ -405,7 +405,7 @@ std::unique_ptr<Expr> Parser::parse_factor()
 
     while( match( Token::Type::OPERATOR, "*") || match( Token::Type::OPERATOR, "/") ) {
 
-        Token tok = consume( Token::Type::OPERATOR, "" );
+        Token const tok = consume( Token::Type::OPERATOR, "" );
         std::unique_ptr<Expr> rhs = parse_unary();
         lhs = std::make_unique<BinaryExpr>(
             std::move(lhs),
@@ -432,8 +432,8 @@ std::unique_ptr<Expr> Parser::parse_primary()
 {
     if( match( Token::Type::NUMBER) ) {
 
-        Token number = consume( Token::Type::NUMBER, "Expected number" );
-        int value = std::stoi( number.lexeme );
+        Token const number = consume( Token::Type::NUMBER, "Expected number" );
+        int const value = std::stoi( number.lexeme );
         return std::make_unique<Number>( value );
     }
 
@@ -452,7 +452,7 @@ std::unique_ptr<Expr> Parser::parse_primary()
     if( match( Token::Type::KEYWORD, "bcd" ) ) {
 
         consume( Token::Type::KEYWORD, "bcd", "Expected 'bcd'" );
-        Token id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'bcd'" );
+        Token const id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'bcd'" );
         return std::make_unique<BcdExpr>( std::make_unique<Identifier>(id.lexeme));
     }
 
@@ -467,7 +467,7 @@ std::unique_ptr<Expr> Parser::parse_primary()
     if( match( Token::Type::KEYWORD, "keydown" ) ) {
 
         consume( Token::Type::KEYWORD, "keydown", "Expected 'keydown'" );
-        Token id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'keydown'" );
+        Token const id = consume( Token::Type::IDENTIFIER, "Expected identifier after 'keydown'" );
         return std::make_unique<KeyDownExpr>( std::make_unique<Identifier>(id.lexeme));
     }
 
@@ -519,16 +519,16 @@ std::unique_ptr<Expr> Parser::parse_primary()
 
 std::unique_ptr<Identifier> Parser::parse_identifier( std::string error_message )
 {
-    Token name = consume( Token::Type::IDENTIFIER, error_message );
+    Token const name = consume( Token::Type::IDENTIFIER, error_message );
 
     return std::make_unique<Identifier>(name.lexeme);
 }
 
 std::unique_ptr<Number> Parser::parse_number( std::string error_message )
 {
-    Token tok = consume(Token::Type::NUMBER, error_message);
+    Token const tok = consume(Token::Type::NUMBER, error_message);
 
-    int value = 42; //parse_int_literal(tok.lexeme); // handle hex, decimal, etc.
+    int const value = 42; //parse_int_literal(tok.lexeme); // handle hex, decimal, etc.
 
     return std::make_unique<Number>(value);
 }

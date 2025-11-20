@@ -66,35 +66,35 @@ bool equals(const Expr& a, const Expr& b)
     if( typeid(a) != typeid(b) )
         return false;
 
-    if( auto na = dynamic_cast<const Number*>(&a) )
+    if( const auto *na = dynamic_cast<const Number*>(&a) )
         return na->value == dynamic_cast<const Number*>(&b)->value;
 
-    if( auto ba = dynamic_cast<const Bool*>(&a) )
+    if( const auto *ba = dynamic_cast<const Bool*>(&a) )
         return ba->value == dynamic_cast<const Bool*>(&b)->value;
 
-    if( auto ia = dynamic_cast<const Identifier*>(&a) )
+    if( const auto *ia = dynamic_cast<const Identifier*>(&a) )
         return ia->value == dynamic_cast<const Identifier*>(&b)->value;
 
-    if( auto ba = dynamic_cast<const BcdExpr*>(&a) ) {
-        auto bb = dynamic_cast<const BcdExpr*>(&b);
+    if( const auto *ba = dynamic_cast<const BcdExpr*>(&a) ) {
+        const auto *bb = dynamic_cast<const BcdExpr*>(&b);
         return equals( ba->identifier, bb->identifier );
     }
 
-    if( auto ra = dynamic_cast<const RndExpr*>(&a) ) {
-        auto rb = dynamic_cast<const RndExpr*>(&b);
+    if( const auto *ra = dynamic_cast<const RndExpr*>(&a) ) {
+        const auto *rb = dynamic_cast<const RndExpr*>(&b);
         return equals( ra->number_type, rb->number_type );
     }
 
-    if( auto ka = dynamic_cast<const KeyDownExpr*>(&a) ) {
-        auto kb = dynamic_cast<const KeyDownExpr*>(&b);
+    if( const auto *ka = dynamic_cast<const KeyDownExpr*>(&a) ) {
+        const auto *kb = dynamic_cast<const KeyDownExpr*>(&b);
         return equals( ka->identifier, kb->identifier );
     }
 
-    if( dynamic_cast<const GetKeyExpr*>(&a) )
+    if( dynamic_cast<const GetKeyExpr*>(&a) != nullptr )
         return true; // stateless
 
-    if( auto fa = dynamic_cast<const FuncCallExpr*>(&a) ) {
-        auto fb = dynamic_cast<const FuncCallExpr*>(&b);
+    if( const auto *fa = dynamic_cast<const FuncCallExpr*>(&a) ) {
+        const auto *fb = dynamic_cast<const FuncCallExpr*>(&b);
 
         if( !equals( fa->name, fb->name) )
             return false;
@@ -102,23 +102,23 @@ bool equals(const Expr& a, const Expr& b)
         return equals_vector(fa->args, fb->args);
     }
 
-    if( auto ua = dynamic_cast<const UnaryExpr*>(&a) )
+    if( const auto *ua = dynamic_cast<const UnaryExpr*>(&a) )
     {
-        auto ub = dynamic_cast<const UnaryExpr*>(&b);
+        const auto *ub = dynamic_cast<const UnaryExpr*>(&b);
         return ua->op == ub->op && equals( ua->expr, ub->expr );
     }
 
-    if( auto ba = dynamic_cast<const BinaryExpr*>(&a) )
+    if( const auto *ba = dynamic_cast<const BinaryExpr*>(&a) )
     {
-        auto bb = dynamic_cast<const BinaryExpr*>(&b);
+        const auto *bb = dynamic_cast<const BinaryExpr*>(&b);
         return ba->op == bb->op &&
             equals(ba->lhs, bb->lhs) &&
             equals(ba->rhs, bb->rhs);
     }
 
-    if( auto br = dynamic_cast<const BracedExpr*>(&a) )
+    if( const auto *br = dynamic_cast<const BracedExpr*>(&a) )
     {
-        auto brb = dynamic_cast<const BracedExpr*>(&b);
+        const auto *brb = dynamic_cast<const BracedExpr*>(&b);
         return equals(br->expr, brb->expr);
     }
 
@@ -130,37 +130,37 @@ bool equals(const Stmt& a, const Stmt& b)
     if( typeid(a) != typeid(b) )
         return false;
 
-    if( auto sa = dynamic_cast<const ExprStmt*>(&a) )
+    if( const auto *sa = dynamic_cast<const ExprStmt*>(&a) )
     {
-        auto sb = dynamic_cast<const ExprStmt*>(&b);
+        const auto *sb = dynamic_cast<const ExprStmt*>(&b);
 
         return equals(sa->expr, sb->expr);
     }
 
-    if( auto ia = dynamic_cast<const IfStmt*>(&a) )
+    if( const auto *ia = dynamic_cast<const IfStmt*>(&a) )
     {
-        auto ib = dynamic_cast<const IfStmt*>(&b);
+        const auto *ib = dynamic_cast<const IfStmt*>(&b);
 
-        bool cond = equals( ia->condition, ib->condition );
-        bool then_eq = equals( ia->then_branch, ib->then_branch );
-        bool else_eq = equals( ia->else_branch, ib->else_branch );
+        bool const cond = equals( ia->condition, ib->condition );
+        bool const then_eq = equals( ia->then_branch, ib->then_branch );
+        bool const else_eq = equals( ia->else_branch, ib->else_branch );
             
         return cond && then_eq && else_eq;
     }
 
-    if( auto wa = dynamic_cast<const WhileStmt*>(&a) )
+    if( const auto *wa = dynamic_cast<const WhileStmt*>(&a) )
     {
-        auto wb = dynamic_cast<const WhileStmt*>(&b);
+        const auto *wb = dynamic_cast<const WhileStmt*>(&b);
 
-        bool cond = equals(wa->condition, wb->condition);
-        bool body_eq = equals( wa->body, wb->body );
+        bool const cond = equals(wa->condition, wb->condition);
+        bool const body_eq = equals( wa->body, wb->body );
 
         return cond && body_eq;
     }
 
-    if( auto da = dynamic_cast<const DrawStmt*>(&a) )
+    if( const auto *da = dynamic_cast<const DrawStmt*>(&a) )
     {
-        auto db = dynamic_cast<const DrawStmt*>(&b);
+        const auto *db = dynamic_cast<const DrawStmt*>(&b);
 
         if( ! equals(da->sprite_id, db->sprite_id) ) return false;
         if( ! equals(da->x, db->x) ) return false;
@@ -169,21 +169,18 @@ bool equals(const Stmt& a, const Stmt& b)
         return equals(da->height, db->height);
     }
 
-    if( auto ra = dynamic_cast<const ReturnStmt*>(&a) )
+    if( const auto *ra = dynamic_cast<const ReturnStmt*>(&a) )
     {
-        auto rb = dynamic_cast<const ReturnStmt*>(&b);
+        const auto *rb = dynamic_cast<const ReturnStmt*>(&b);
 
         return equals(ra->value, rb->value);
     }
 
-    if( auto ba = dynamic_cast<const BlockStmt*>(&a) )
+    if( const auto *ba = dynamic_cast<const BlockStmt*>(&a) )
     {
-        auto bb = dynamic_cast<const BlockStmt*>(&b);
+        const auto *bb = dynamic_cast<const BlockStmt*>(&b);
 
-        if( !equals_vector(ba->statements, bb->statements) )
-            return false;
-
-        return true;
+        return equals_vector(ba->statements, bb->statements);
     }
 
     return false;
@@ -194,9 +191,9 @@ bool equals(const Decl& a, const Decl& b)
     if( typeid(a) != typeid(b) )
         return false;
 
-    if( auto va = dynamic_cast<const VarDecl*>(&a) )
+    if( const auto *va = dynamic_cast<const VarDecl*>(&a) )
     {
-        auto vb = dynamic_cast<const VarDecl*>(&b);
+        const auto *vb = dynamic_cast<const VarDecl*>(&b);
         if( !equals( va->identifier, vb->identifier ) )
             return false;
         if( va->type != vb->type )
@@ -205,9 +202,9 @@ bool equals(const Decl& a, const Decl& b)
         return equals(va->byte_size, vb->byte_size);
     }
 
-    if( auto fa = dynamic_cast<const FuncDecl*>(&a) )
+    if( const auto *fa = dynamic_cast<const FuncDecl*>(&a) )
     {
-        auto fb = dynamic_cast<const FuncDecl*>(&b);
+        const auto *fb = dynamic_cast<const FuncDecl*>(&b);
         if( !equals( fa->identifier, fb->identifier) )
             return false;
 

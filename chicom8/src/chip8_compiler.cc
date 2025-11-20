@@ -29,11 +29,11 @@ void Chip8Compiler::compile_file(const std::string& input_path, const std::strin
 {
     Tokeniser tokeniser( input_path );
 
-    Tokens tokens = tokeniser.tokenise_all();
+    Tokens const tokens = tokeniser.tokenise_all();
 
     Parser parser( tokens );
 
-    Program program = parser.AST();
+    Program const program = parser.AST();
 
     // std::ifstream infile(input_path);
     // if (!infile) throw std::runtime_error("Failed to open input file");
@@ -50,8 +50,8 @@ void checkEntryPoint( const std::vector<Decl*>& decls )
 {
     bool foundMain = false;
 
-    for (auto decl : decls) {
-        if (auto func = dynamic_cast<FuncDecl*>(decl)) {
+    for (auto *decl : decls) {
+        if (auto *func = dynamic_cast<FuncDecl*>(decl)) {
             if( *func->identifier == Identifier("main") ) {
                 if (foundMain)
                     throw std::runtime_error("Multiple definitions of 'main'");
