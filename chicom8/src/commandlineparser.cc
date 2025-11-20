@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-CommandLineParser::CommandLineParser( int argc, char **argv ) : options("chasm8", "A C-like compiler for Chip-8" )
+CommandLineParser::CommandLineParser( int argc, char **argv ) : options("chicom8", "A C-like compiler for Chip-8" )
 {
 	parse_args(argc, argv);
 }
@@ -37,9 +37,8 @@ CommandLineParser::CommandLineParser( std::vector<std::string> arguments ) : opt
     std::string fake_prog_name = "chicom8";
     argv_ptrs.push_back(fake_prog_name.data());
 
-    for (std::string& arg : arguments) {
+    for (std::string& arg : arguments)
         argv_ptrs.push_back(arg.data());
-    }
 
     int argc = static_cast<int>(argv_ptrs.size());
     char** argv = argv_ptrs.data();
@@ -61,7 +60,8 @@ void CommandLineParser::parse_args(int argc, char** argv)
 
     try {
         result = options.parse(argc, argv);
-    } catch (const cxxopts::exceptions::exception& e) {
+    }
+    catch (const cxxopts::exceptions::exception& e) {
         std::cerr << "Error parsing command line options: " << e.what() << std::endl;
         std::cerr << options.help() << std::endl;
         std::exit(1);
