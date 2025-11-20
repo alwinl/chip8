@@ -49,7 +49,7 @@ private:
     void strong_connect( Graph &graph, const Node& node );
 
     std::vector<Node> most_referenced_nodes( Graph &graph, ComponentGroupList& sccs );
-    std::vector<std::string> ordered_class_list( ComponentGroupList& sccs );
+    std::vector<Node> ordered_class_list( Graph &graph, ComponentGroupList& sccs, const std::vector<std::string>& forward_decls );
 };
 
 std::ostream& operator<<( std::ostream& os, const Transformer& transformer );

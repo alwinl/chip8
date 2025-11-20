@@ -50,7 +50,7 @@ int main()
     for( auto decl : ir.forward_decls )
         std::cout << '\t' << decl << '\n';
 
-    // std::cout << transformer;
+    std::cout << transformer;
 
     return 0;
 }
