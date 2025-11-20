@@ -98,12 +98,12 @@ TEST(EBNFTokeniserIntegrationTest, TokenisesSimpleRule)
 TEST(EBNFTokeniserIntegrationTest, TokenisesChiComGrammar)
 {
     std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
-
     Tokeniser tokenizer(file_name);
 
-    Tokens tokens = tokenizer.tokenise_all();
-
-    Tokens expected;
-
-    // EXPECT_EQ(tokens, expected);
+    try {
+        Tokens tokens = tokenizer.tokenise_all();
+    }
+    catch(...) {
+        FAIL() << "Did not expect to throw an exception tokenising 'chicom8.bnf'";
+    }
 }

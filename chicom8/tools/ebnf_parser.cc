@@ -68,12 +68,12 @@ Grammar Parser::parse_all()
 
 Rule Parser::next_rule()
 {
-    Token name = consume(Token::Type::NONTERMINAL, "Expected rule name" );
-    consume( Token::Type::COLON_EQ, "Expected '::='");
+    Token name = consume(Token::Type::NONTERMINAL, "", "not a valid rule name" );
+    consume( Token::Type::COLON_EQ, "::=", "missing operator");
 
     std::unique_ptr<Production> production = parse_production();
 
-    consume( Token::Type::END_OF_PRODUCTION, "Expected ';'");
+    consume( Token::Type::END_OF_PRODUCTION, ";", "missing operator");
 
     return Rule { name.lexeme, std::move( production) };
 }
@@ -90,7 +90,7 @@ std::unique_ptr<Production> Parser::parse_production()
     subparts.push_back( std::move(part) );
 
     while( match(Token::Type::PIPE) ) {
-        consume( Token::Type::PIPE, "" );
+        consume( Token::Type::PIPE, "|", "missing symbol" );
         subparts.push_back( parse_part() );
     }
 
@@ -118,17 +118,17 @@ Element::Pointer Parser::parse_element()
     Element::Pointer element;
 
     if( match( Token::Type::OPENBRACKET ) ) {
-        consume( Token::Type::OPENBRACKET, "(" );
+        consume( Token::Type::OPENBRACKET, "(", "missing symbol" );
         element = std::move( std::make_unique<Group>( parse_production(), Element::Cardinality::ONCE ) );
-        consume( Token::Type::CLOSEBRACKET, ")", "Expected closing brace" );
+        consume( Token::Type::CLOSEBRACKET, ")", "missing symbol" );
     } else if( match( Token::Type::NONTERMINAL ) ) {
-        Token tok = consume( Token::Type::NONTERMINAL, "" );
+        Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
         element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
     } else if( match( Token::Type::TOKEN_PRODUCTION ) ) {
-        Token tok = consume( Token::Type::TOKEN_PRODUCTION, "" );
+        Token tok = consume( Token::Type::TOKEN_PRODUCTION, "", "missing production" );
         element = std::move( std::make_unique<Symbol>( tok, Element::Cardinality::ONCE ) );
     } else {
-        throw std::runtime_error("Unknown Token: " + peek().lexeme);
+        throw std::runtime_error("Unknown token: " + peek().lexeme);
     }
 
     element->card = parse_cardinal();
@@ -141,13 +141,13 @@ Element::Cardinality Parser::parse_cardinal()
     if( !match( Token::Type::MODIFIER ) )
         return Element::Cardinality::ONCE;
 
-    Token mod = consume( Token::Type::MODIFIER, "Expected modifier" );
+    Token mod = consume( Token::Type::MODIFIER, "", "expected modifier" );
     switch( mod.lexeme[0] ) {
     case '*': return Element::Cardinality::ZERO_OR_MORE;
     case '+': return Element::Cardinality::ONE_OR_MORE;
     case '?': return Element::Cardinality::OPTIONAL;
     }
 
-    throw std::runtime_error("Unknown cardinality modifier: " + mod.lexeme);
+    throw std::runtime_error("Unknown modifier: " + mod.lexeme);
 }
 
