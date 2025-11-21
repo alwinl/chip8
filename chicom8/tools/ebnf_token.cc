@@ -34,7 +34,7 @@ std::ostream& operator<<( std::ostream& os, const Token& token )
         { Token::Type::MODIFIER, "MODIFIER" },
         { Token::Type::PIPE, "PIPE" },
         { Token::Type::END_OF_PRODUCTION, "END_OF_PRODUCTION" },
-        { Token::Type::TOKEN_PRODUCTION, "TOKEN_PRODUCTION" },
+        { Token::Type::TERMINAL, "TERMINAL" },
         { Token::Type::END_OF_INPUT, "END_OF_INPUT" },
         { Token::Type::INVALID, "INVALID" },
     };

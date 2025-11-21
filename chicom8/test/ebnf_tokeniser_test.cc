@@ -64,7 +64,7 @@ TEST(EBNFTokeniserUnitTest, RecognisesEndOfProduction)
 TEST(EBNFTokeniserUnitTest, RecognisesTokenProduction)
 {
     Tokeniser lexer(std::string( "KEYWORD(\"if\")") );
-    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TOKEN_PRODUCTION, "KEYWORD(\"if\")", 1, 1));
+    EXPECT_EQ( lexer.next_token(), Token( Token::Type::TERMINAL, "KEYWORD(\"if\")", 1, 1));
 }
 
 TEST(EBNFTokeniserUnitTest, RecognisesModifiers)

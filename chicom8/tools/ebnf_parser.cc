@@ -124,8 +124,8 @@ ElementNode::Pointer Parser::parse_element()
     } else if( match( Token::Type::NONTERMINAL ) ) {
         Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
         element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
-    } else if( match( Token::Type::TOKEN_PRODUCTION ) ) {
-        Token tok = consume( Token::Type::TOKEN_PRODUCTION, "", "missing production" );
+    } else if( match( Token::Type::TERMINAL ) ) {
+        Token tok = consume( Token::Type::TERMINAL, "", "missing terminal" );
         element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else {
         throw std::runtime_error("Unknown token: " + peek().lexeme);

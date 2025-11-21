@@ -35,7 +35,7 @@ void PrintVisitor::visit( const SymbolNode& symbol )
 
 void PrintVisitor::pre_symbol( const SymbolNode& symbol )
 {
-    os << std::string(indent, ' ')  << "Symbol "<< ": ";
+    os << std::string(indent, ' ')  << "SymbolNode "<< ": ";
     indent += 4;
 }
 
@@ -47,7 +47,7 @@ void PrintVisitor::post_symbol( const SymbolNode& symbol )
 
 void PrintVisitor::pre_group( const GroupNode& group )
 {
-    os << std::string(indent, ' ')  << "Group "<< ": {\n";
+    os << std::string(indent, ' ')  << "GroupNode "<< ": {\n";
     indent += 4;
 }
 
@@ -61,7 +61,7 @@ void PrintVisitor::post_group( const GroupNode& group )
 
 void PrintVisitor::pre_elements( const SubPartNode& subpart )
 {
-    os << std::string(indent, ' ')  << "Subpart "<< ": {\n";
+    os << std::string(indent, ' ')  << "SubpartNode "<< ": {\n";
     indent += 4;
 }
 
@@ -73,7 +73,7 @@ void PrintVisitor::post_elements( const SubPartNode& subpart )
 
 void PrintVisitor::pre_alternates( const AlternatePartsNode& alternates )
 {
-    os << std::string(indent, ' ')  << "Alternates "<< ": {\n";
+    os << std::string(indent, ' ')  << "AlternatePartsNode "<< ": {\n";
     indent += 4;
 }
 
@@ -85,7 +85,7 @@ void PrintVisitor::post_alternates( const AlternatePartsNode& alternates )
 
 void PrintVisitor::pre_production( const RuleNode& rule )
 {
-    os << std::string(indent, ' ')  << "Rule " << rule.name << ": {\n";
+    os << std::string(indent, ' ')  << "RuleNode " << rule.name << ": {\n";
     indent += 4;
 }
 
@@ -97,7 +97,7 @@ void PrintVisitor::post_production( const RuleNode& rule )
 
 void PrintVisitor::pre_rules( const SyntaxTree& grammar )
 {
-    os << "Grammar: {\n";
+    os << "SyntaxTree: {\n";
     indent += 4;
 }
 
