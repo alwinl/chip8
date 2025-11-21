@@ -28,7 +28,6 @@ add_library(
     ebnf_graph.cc
     ebnf_transformer.cc
     # ebnf_generator.cc
-    # ebnf_tarjan.cc
 )
 
 target_include_directories(ebnf_compiler_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

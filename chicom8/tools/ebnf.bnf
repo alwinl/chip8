@@ -1,23 +1,15 @@
-<grammar>        ::= { <rule> } ;
+<syntaxtree>     ::= <rule>+ ;
 
-<rule>           ::= <non_terminal> <colon_eq> <production> <end_of_production> ;
+<rule>           ::= NONTERMINAL COLON_EQ <production> END_OF_PRODUCTION ;
 
-<production>     ::= <part> { <pipe> <part> } ;
+<production>     ::= <part> (PIPE <part>)* ;
 
-<part>           ::= { <element> [<cardinality>] } ;
+<part>           ::= <element> <cardinality>? ;
 
-<element>        ::= <symbol> | <group>
+<element>        ::= <symbol> | <group> ;
 
-<symbol>         ::= <non_terminal> | <token_production> ;
+<symbol>         ::= NONTERMINAL | TERMINAL ;
 
-<group>          ::= <open_bracket> <production> <close_bracket> ;
+<group>          ::= OPENBRACKET <production> CLOSEBRACKET ;
 
-<cardinality>       ::= MODIFIER("+") | MODIFIER("?") | MODIFIER("*")
-
-<non_terminal>      ::= NONTERMINAL ;
-<colon_eq>          ::= COLON_EQ ;
-<open_bracket>      ::= OPENBRACKET ;
-<close_bracket>     ::= CLOSEBRACKET ;
-<pipe>              ::= PIPE ;
-<end_of_production> ::= END_OF_PRODUCTION ;
-<token_production>  ::= TOKEN_PRODUCTION ;
+<cardinality>       ::= MODIFIER("+") | MODIFIER("?") | MODIFIER("*") ;

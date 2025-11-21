@@ -29,8 +29,8 @@
 
 int main()
 {
-    std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
-    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.grammar");
+    std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.bnf");
+    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
     SyntaxTree grammar = Parser( tokens ).parse_all();

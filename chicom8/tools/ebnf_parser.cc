@@ -128,6 +128,7 @@ ElementNode::Pointer Parser::parse_element()
         Token tok = consume( Token::Type::TERMINAL, "", "missing terminal" );
         element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else {
+        // need to pick up if the previous line had a missing semi-colon
         throw std::runtime_error("Unknown token: " + peek().lexeme);
     }
 

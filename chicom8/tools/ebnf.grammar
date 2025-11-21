@@ -1,0 +1,72 @@
+SyntaxTree: {
+    RuleNode syntaxtree: {
+        SubpartNode : {
+            SymbolNode : { type: NONTERMINAL, lexeme: rule, line: 1, column: 22}+
+        }
+    }
+    RuleNode rule: {
+        SubpartNode : {
+            SymbolNode : { type: TERMINAL, lexeme: NONTERMINAL, line: 3, column: 22}
+            SymbolNode : { type: TERMINAL, lexeme: COLON_EQ, line: 3, column: 34}
+            SymbolNode : { type: NONTERMINAL, lexeme: production, line: 3, column: 43}
+            SymbolNode : { type: TERMINAL, lexeme: END_OF_PRODUCTION, line: 3, column: 56}
+        }
+    }
+    RuleNode production: {
+        SubpartNode : {
+            SymbolNode : { type: NONTERMINAL, lexeme: part, line: 5, column: 22}
+            GroupNode : {
+                SubpartNode : {
+                    SymbolNode : { type: TERMINAL, lexeme: PIPE, line: 5, column: 30}
+                    SymbolNode : { type: NONTERMINAL, lexeme: part, line: 5, column: 35}
+                }
+            }*
+        }
+    }
+    RuleNode part: {
+        SubpartNode : {
+            SymbolNode : { type: NONTERMINAL, lexeme: element, line: 7, column: 22}
+            SymbolNode : { type: NONTERMINAL, lexeme: cardinality, line: 7, column: 32}?
+        }
+    }
+    RuleNode element: {
+        AlternatePartsNode : {
+            SubpartNode : {
+                SymbolNode : { type: NONTERMINAL, lexeme: symbol, line: 9, column: 22}
+            }
+            SubpartNode : {
+                SymbolNode : { type: NONTERMINAL, lexeme: group, line: 9, column: 33}
+            }
+        }
+    }
+    RuleNode symbol: {
+        AlternatePartsNode : {
+            SubpartNode : {
+                SymbolNode : { type: TERMINAL, lexeme: NONTERMINAL, line: 11, column: 22}
+            }
+            SubpartNode : {
+                SymbolNode : { type: TERMINAL, lexeme: TERMINAL, line: 11, column: 36}
+            }
+        }
+    }
+    RuleNode group: {
+        SubpartNode : {
+            SymbolNode : { type: TERMINAL, lexeme: OPENBRACKET, line: 13, column: 22}
+            SymbolNode : { type: NONTERMINAL, lexeme: production, line: 13, column: 34}
+            SymbolNode : { type: TERMINAL, lexeme: CLOSEBRACKET, line: 13, column: 47}
+        }
+    }
+    RuleNode cardinality: {
+        AlternatePartsNode : {
+            SubpartNode : {
+                SymbolNode : { type: TERMINAL, lexeme: MODIFIER("+"), line: 15, column: 25}
+            }
+            SubpartNode : {
+                SymbolNode : { type: TERMINAL, lexeme: MODIFIER("?"), line: 15, column: 41}
+            }
+            SubpartNode : {
+                SymbolNode : { type: TERMINAL, lexeme: MODIFIER("*"), line: 15, column: 57}
+            }
+        }
+    }
+}
