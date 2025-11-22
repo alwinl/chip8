@@ -43,11 +43,11 @@ int main()
     grammar.accept( graph_visitor );
     std::cout << graph_visitor.graph;
 
-    create_dot_source( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf", grammar );
 
     Transformer transformer = Transformer( grammar );
     GrammarIR ir = transformer.transform_all();
     transformer.print_all_cycles( std::cout );
+    transformer.create_svg_image( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf", grammar );
 
     std::cout << "forward decls:\n";
     for( auto decl : ir.forward_decls )

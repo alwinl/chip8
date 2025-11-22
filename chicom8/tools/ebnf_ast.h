@@ -190,9 +190,11 @@ struct ASTVisitor
     virtual void post_elements( const SubPartNode& subpart ) {};
     virtual void pre_alternates( const AlternatePartsNode& alternates ) {};
     virtual void post_alternates( const AlternatePartsNode& alternates ) {};
-    virtual void pre_production( const RuleNode& rule ) {};
-    virtual void post_production( const RuleNode& rule ) {};
-    virtual void pre_rules( const SyntaxTree& grammar ) {};
-    virtual void post_rules( const SyntaxTree& grammar ) {};
+    virtual void pre_production( const ProductionNode& production ) {};
+    virtual void post_production( const ProductionNode& production ) {};
+    virtual void pre_rules( const RuleNode& rule ) {};
+    virtual void post_rules( const RuleNode& rule ) {};
+    virtual void pre_syntax( const SyntaxTree& grammar ) {};
+    virtual void post_syntax( const SyntaxTree& grammar ) {};
 };
 

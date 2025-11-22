@@ -62,26 +62,30 @@ void AlternatePartsNode::accept( ASTVisitor& visitor )
 
 void ProductionNode::accept( ASTVisitor& visitor )
 {
-    content->accept( visitor );
-}
-
-void RuleNode::accept( ASTVisitor& visitor ) const
-{
     visitor.pre_production( *this );
 
-    production->accept( visitor );
+    content->accept( visitor );
 
     visitor.post_production( *this );
 }
 
-void SyntaxTree::accept( ASTVisitor& visitor ) const
+void RuleNode::accept( ASTVisitor& visitor ) const
 {
     visitor.pre_rules( *this );
+
+    production->accept( visitor );
+
+    visitor.post_rules( *this );
+}
+
+void SyntaxTree::accept( ASTVisitor& visitor ) const
+{
+    visitor.pre_syntax( *this );
 
     for( auto& rule : rules )
         rule.accept( visitor );
 
-    visitor.post_rules( *this );
+    visitor.post_syntax( *this );
 }
 
 
@@ -163,7 +167,7 @@ bool equals( const RuleNode& a, const RuleNode& b )
     return( a.name == b.name && equals( a.production, b.production) );
 }
 
-bool operator==( const SyntaxTree& a, const SyntaxTree& b )
+bool equals( const SyntaxTree& a, const SyntaxTree& b )
 {
     if (a.rules.size() != b.rules.size())
         return false;
@@ -173,4 +177,9 @@ bool operator==( const SyntaxTree& a, const SyntaxTree& b )
             return false;
 
     return true;
+}
+
+bool operator==( const SyntaxTree& a, const SyntaxTree& b )
+{
+    return equals( a, b );
 }

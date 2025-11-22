@@ -37,6 +37,10 @@ public:
     void print_all_cycles( std::ostream& os ) const;
     void print( std::ostream& os ) const;
 
+    void create_dot_source( std::ostream& os, const SyntaxTree& grammar );
+    void create_svg_image( std::string filename, const SyntaxTree& grammar );
+
+
 private:
     SyntaxTree grammar;
     GrammarIR grammar_ir;

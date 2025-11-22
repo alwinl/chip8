@@ -50,6 +50,7 @@ struct GraphBuilderVisitor : ASTVisitor
 
     void visit( const SymbolNode& symbol ) override
     {
+        // the graph only holds non-terminals
         if( !rule_stack.empty() && (symbol.token.type == Token::Type::NONTERMINAL) )
         {
             auto& lhs = rule_stack.top();
@@ -58,13 +59,14 @@ struct GraphBuilderVisitor : ASTVisitor
         }
     }
 
-    void pre_production( const RuleNode& rule ) override
+    void pre_rules( const RuleNode& rule ) override
     {
+        // The name of a rule by definition is non terminal
         rule_stack.push(rule.name);
         graph.try_emplace( rule.name );
     }
 
-    void post_production( const RuleNode& rule ) override
+    void post_rules( const RuleNode& rule ) override
     {
         rule_stack.pop();
     }
