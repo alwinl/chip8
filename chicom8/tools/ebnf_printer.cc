@@ -19,6 +19,8 @@
 
 #include "ebnf_printer.h"
 
+#include <fstream>
+
 std::ostream& operator<<( std::ostream& os, const ElementNode::Cardinality& card )
 {
     if( card == ElementNode::Cardinality::ONE_OR_MORE ) os << "+";
@@ -113,4 +115,91 @@ std::ostream& operator<<( std::ostream& os, const SyntaxTree& grammar )
     PrintVisitor printer( os );
     grammar.accept( printer );
     return os;
+}
+
+void generate_svg(const std::string& dotFile, const std::string& svgFile)
+{
+    std::string cmd = "dot -Tsvg " + dotFile + " -o " + svgFile;
+    int result = std::system(cmd.c_str());
+    if (result != 0) {
+        throw std::runtime_error("Graphviz 'dot' command failed.");
+    }
+}
+
+void create_dot_source( std::string filename, const SyntaxTree& grammar )
+{
+    std::ofstream os( filename + ".dot" );
+
+    if (!os)
+        throw std::runtime_error("Cannot open: " + filename);
+
+
+    DotVisitor printer( os );
+    grammar.accept( printer );
+
+    os.flush();
+    os.close();
+
+    generate_svg( filename + ".dot",  filename + ".svg");
+}
+
+void DotVisitor::pre_rules( const SyntaxTree &grammar )
+{
+    os << "digraph SyntaxTree\n{";
+    indent += 4;
+
+    std::string header =
+R"(
+    // Global layout tuning
+    rankdir=TB;            // Top-to-bottom layout
+    nodesep=0.3;           // Horizontal spacing between nodes
+    ranksep=0.4;           // Vertical spacing between levels
+    splines=true;          // Smooth edges
+
+    // Node appearance
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor=lightgray,
+        fontname="Consolas",
+        fontsize=10
+    ];
+
+    // Edge appearance
+    edge [
+        arrowsize=0.7
+    ];
+
+    // AST edges
+)";
+    os << header;
+}
+
+void DotVisitor::post_rules( const SyntaxTree &grammar )
+{
+    indent -= 4;
+    os << "}\n";
+}
+
+void DotVisitor::visit( const SymbolNode& symbol )
+{
+    if( !rule_stack.empty() && (symbol.token.type == Token::Type::NONTERMINAL) )
+    {
+        auto& lhs = rule_stack.top();
+        // graph[lhs].add_edge( symbol.token.lexeme );
+        // graph.try_emplace(symbol.token.lexeme);
+        os << std::string(indent, ' ') << lhs << " -> " << symbol.token.lexeme << ";\n";
+    }
+}
+
+void DotVisitor::pre_production( const RuleNode& rule )
+{
+    rule_stack.push(rule.name);
+    // graph.try_emplace( rule.name );
+    // os << rule.name << ";\n";
+}
+
+void DotVisitor::post_production( const RuleNode& rule )
+{
+    rule_stack.pop();
 }

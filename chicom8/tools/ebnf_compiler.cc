@@ -29,6 +29,7 @@
 
 int main()
 {
+    // std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
     std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.bnf");
     std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar");
 
@@ -41,6 +42,8 @@ int main()
     GraphBuilderVisitor graph_visitor;
     grammar.accept( graph_visitor );
     std::cout << graph_visitor.graph;
+
+    create_dot_source( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf", grammar );
 
     Transformer transformer = Transformer( grammar );
     GrammarIR ir = transformer.transform_all();
