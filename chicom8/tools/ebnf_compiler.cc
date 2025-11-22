@@ -26,6 +26,7 @@
 #include "ebnf_parser.h"
 #include "ebnf_printer.h"
 #include "ebnf_transformer.h"
+#include "ebnf_generator.h"
 
 int main()
 {
@@ -34,26 +35,27 @@ int main()
     std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
+
     SyntaxTree grammar = Parser( tokens ).parse_all();
 
-    std::ofstream output( grammar_file );
-    output << grammar;
+    // Transformer transformer = Transformer( grammar );
+    // GrammarIR ir = transformer.transform_all();
 
-    GraphBuilderVisitor graph_visitor;
-    grammar.accept( graph_visitor );
-    std::cout << graph_visitor.graph;
+    // std::cout << "Printing the sccs's:\n--------------------\n";
+    // transformer.print_all_cycles( std::cout );
+    // std::cout << "\n";
 
+    // std::cout << "\nTransformer output:\n--------------------\n";
+    // std::cout << transformer;
+    // std::cout << "\n";
 
-    Transformer transformer = Transformer( grammar );
-    GrammarIR ir = transformer.transform_all();
-    transformer.print_all_cycles( std::cout );
-    transformer.create_svg_image( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf", grammar );
+    Generator generator( grammar );
+    generator.create_svg_image( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf" );
+    generator.create_grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar" );
 
-    std::cout << "forward decls:\n";
-    for( auto decl : ir.forward_decls )
-        std::cout << '\t' << decl << '\n';
-
-    std::cout << transformer;
+    std::cout << "\nGraph output:\n--------------------\n";
+    generator.stream_graph( std::cout );
+    std::cout << "\n";
 
     return 0;
 }

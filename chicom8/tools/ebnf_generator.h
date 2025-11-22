@@ -19,35 +19,19 @@
 
 #pragma once
 
-#include <ostream>
-#include <unordered_map>
-#include <string>
-#include <unordered_set>
-
-#include "ebnf_parser.h"
-#include "ebnf_tarjan.h"
-
-using RuleMap = std::unordered_map<std::string,RuleNode>;
+#include "ebnf_ast.h"
 
 class Generator
 {
 public:
-    Generator( ) {};
+    Generator( SyntaxTree& syntax_tree ) : syntax_tree( syntax_tree ) {}
+    ~Generator() {}
 
-    void generateAstFiles( std::ostream& os, const SyntaxTree& rules);
-
-	void generateHeader( std::ostream &os );
-    void generateGroupStructures( std::ostream & os, std::string base_name, const PartNode& part );
-
-	void generateAstClass( std::ostream &os, const RuleNode &rule );
-	void generateVariant( std::ostream &os, const ProductionNode &production );
-	void generateMultiProduction( std::ostream &os, std::string &className, const RuleNode &rule );
-	void generateSingleProduction( std::ostream &os, std::string &className, const RuleNode &rule );
+    void create_dot_source( std::ostream& os );
+    void create_svg_image( std::string filename );
+    void create_grammar_file( std::string filename );
+    void stream_graph( std::ostream& os );
 
 private:
-    Graph build_graph( const SyntaxTree& rules );
-
-
-    void debugPrintDependencies( const Graph& graph ) const;
+    SyntaxTree& syntax_tree;
 };
-
