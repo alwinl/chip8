@@ -1,0 +1,11 @@
+COMMENT              ::= ^//[^\n]*
+COMMENT              ::= ^/\*([^*]|\*[^/])*\*/
+WHITESPACE           ::= ^\s+
+NONTERMINAL          ::= ^<[^>]*>
+COLON_EQ             ::= ^::=
+OPENBRACKET          ::= ^\(
+CLOSBRACKER          ::= ^\)
+MODIFIER             ::= ^[?+*]
+PIPE                 ::= ^\|
+END_OF_PRODUCTION    ::= ^;
+TERMINAL             ::= ^[A-Z_]+(\("([^"\\]|\\.)*"\))?

@@ -1,15 +1,15 @@
-<syntaxtree>     ::= <rule>+ ;
+<syntax_tree>    ::= <rule>+ ;
 
 <rule>           ::= NONTERMINAL COLON_EQ <production> END_OF_PRODUCTION ;
 
 <production>     ::= <part> (PIPE <part>)* ;
 
-<part>           ::= <element> <cardinality>? ;
+<part>           ::= <element>* ;
 
-<element>        ::= <symbol> | <group> ;
+<element>        ::= <group> MODIFIER? | <symbol> | <literal>  ;
 
-<symbol>         ::= NONTERMINAL | TERMINAL ;
+<symbol>         ::= NONTERMINAL MODIFIER? ;
+
+<literal>        ::= LITERAL MODIFIER? ;
 
 <group>          ::= OPENBRACKET <production> CLOSEBRACKET ;
-
-<cardinality>       ::= MODIFIER("+") | MODIFIER("?") | MODIFIER("*") ;

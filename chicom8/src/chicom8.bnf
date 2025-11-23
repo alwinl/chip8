@@ -2,9 +2,7 @@
 
 <decl>            ::= <func_decl> | <var_decl> ;
 
-<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_body> PUNCTUATION("}") ;
-
-<func_body>       ::= <func_imp>*  ;
+<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_imp>* PUNCTUATION("}") ;
 
 <func_imp>        ::= <var_decl> | <stmt> ;
 
@@ -28,7 +26,7 @@
                    | <while_stmt>
                    | <draw_stmt>
                    | <return_stmt>
-                   | <block>
+                   | <block_stmt>
                    ;
 
 <expr_stmt>       ::= <expr> PUNCTUATION(";") ;
@@ -41,7 +39,7 @@
 
 <return_stmt>     ::= KEYWORD("return") <expr>? PUNCTUATION(";") ;
 
-<block>           ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
+<block_stmt>           ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
 
 
 <expr>            ::= IDENTIFIER OPERATOR("=") <expr> | <logic_or> ;
