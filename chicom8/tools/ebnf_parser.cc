@@ -124,9 +124,9 @@ ElementNode::Pointer Parser::parse_element()
     } else if( match( Token::Type::NONTERMINAL ) ) {
         Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
         element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
-    } else if( match( Token::Type::TERMINAL ) ) {
-        Token tok = consume( Token::Type::TERMINAL, "", "missing terminal" );
-        element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
+    } else if( match( Token::Type::LITERAL ) ) {
+        Token tok = consume( Token::Type::LITERAL, "", "missing a string" );
+        element = std::move( std::make_unique<LiteralNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else {
         // need to pick up if the previous line had a missing semi-colon
         throw std::runtime_error("Unknown token: " + peek().lexeme);

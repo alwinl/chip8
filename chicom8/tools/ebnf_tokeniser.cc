@@ -43,7 +43,7 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^[?+*])"), Token::Type::MODIFIER, false },
     TokenMatcher{ std::regex(R"(^\|)"), Token::Type::PIPE, false },
     TokenMatcher{ std::regex(R"(^;)"), Token::Type::END_OF_PRODUCTION, false },
-    TokenMatcher{ std::regex(R"(^[A-Z_]+(\("([^"\\]|\\.)*"\))?)"), Token::Type::TERMINAL, false },
+    TokenMatcher{ std::regex(R"(^[A-Z_]+(\("([^"\\]|\\.)*"\))?)"), Token::Type::LITERAL, false },
 };
 
 Tokeniser::Tokeniser( std::filesystem::path file_path )

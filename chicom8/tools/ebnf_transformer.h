@@ -34,26 +34,28 @@ public:
 
     GrammarIR transform_all();
 
+    std::vector<std::string> get_forward_decls() { return most_referenced_nodes(); }
+    std::vector<std::string> get_class_list() { return ordered_class_list( most_referenced_nodes() ); }
+
     void print_all_cycles( std::ostream& os ) const;
     void print( std::ostream& os ) const;
-
-    void create_dot_source( std::ostream& os, const SyntaxTree& grammar );
-    void create_svg_image( std::string filename, const SyntaxTree& grammar );
-
 
 private:
     SyntaxTree grammar;
     GrammarIR grammar_ir;
+    Graph graph;
 
     ComponentGroupList sccs;
     int index = 0;
     std::stack<Node> node_stack;
 
-    void build_connected_component_list( Graph& graph );
-    void strong_connect( Graph &graph, const Node& node );
+    void build_connected_component_list( );
+    void strong_connect( const Node& node );
 
-    std::vector<Node> most_referenced_nodes( Graph &graph, ComponentGroupList& sccs );
-    std::vector<Node> ordered_class_list( Graph &graph, ComponentGroupList& sccs, const std::vector<std::string>& forward_decls );
+    std::vector<Node> most_referenced_nodes( );
+    std::vector<Node> ordered_class_list( const std::vector<std::string>& forward_decls );
+
+    // std::vector<std::string> Transformer::priority_sort( );
 };
 
 std::ostream& operator<<( std::ostream& os, const Transformer& transformer );

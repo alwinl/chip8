@@ -30,20 +30,25 @@ std::ostream& operator<<( std::ostream& os, const ElementNode::Cardinality& card
     return os;
 }
 
-void PrintVisitor::visit( const SymbolNode& symbol )
-{
-    os << symbol.token << symbol.card;
-}
-
-void PrintVisitor::pre_symbol( const SymbolNode& symbol )
+void PrintVisitor::visit_symbol( const SymbolNode& symbol )
 {
     os << std::string(indent, ' ')  << "SymbolNode: ";
+
     indent += 4;
+    os << symbol.token << symbol.card;
+    indent -= 4;
+
+    os << "\n";
 }
 
-void PrintVisitor::post_symbol( const SymbolNode& symbol )
+void PrintVisitor::visit_literal( const LiteralNode &literal )
 {
-    indent -= 4;
+    os << std::string(indent, ' ')  << "LiteralNode: ";
+
+    // indent += 4;
+    // os << symbol.token << symbol.card;
+    // indent -= 4;
+
     os << "\n";
 }
 

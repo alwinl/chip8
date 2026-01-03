@@ -1,2 +1,3 @@
 src/ast.h
+tools/ebnf_ast_test.h
 src/chicom8.grammar

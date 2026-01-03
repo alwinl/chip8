@@ -98,6 +98,17 @@ struct SymbolNode : ElementNode
    Token token;
 };
 
+struct LiteralNode : ElementNode
+{
+   explicit LiteralNode(Token token, ElementNode::Cardinality card = ElementNode::Cardinality::ONCE)
+        : ElementNode(card), token(std::move(token)) { }
+
+    Pointer clone() const override { return std::make_unique<LiteralNode>( token, card ); }
+    void accept( ASTVisitor& visitor ) override;
+
+   Token token;
+};
+
 struct PartNode
 {
     using Pointer = std::unique_ptr<PartNode>;
@@ -181,9 +192,11 @@ struct ASTVisitor
 {
     virtual ~ASTVisitor() = default;
 
-    virtual void visit( const SymbolNode& symbol ) {};
-    virtual void pre_symbol( const SymbolNode& symbol ) {};
-    virtual void post_symbol( const SymbolNode& symbol ) {};
+    // leaves
+    virtual void visit_symbol( const SymbolNode& symbol ) {};
+    virtual void visit_literal( const LiteralNode& symbol ) {};
+
+    // internal nodes
     virtual void pre_group( const GroupNode& group ) {};
     virtual void post_group( const GroupNode& group ) {};
     virtual void pre_elements( const SubPartNode& subpart ) {};

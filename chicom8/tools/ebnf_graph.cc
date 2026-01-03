@@ -30,6 +30,8 @@ std::ostream& operator<<( std::ostream& os, const Graph& graph )
         for( const Node& edge : entry.second.edges )
             os << "\t\t{ \"edge\": \"" + edge + "\" },\n";
 
+        os << "\t\tIsBaseClass: " << (entry.second.is_base_class ? "true" : "false") << "\n";
+        os << "\t\tParentClass: " << entry.second.parent_class << "\n";
         os << "\t],\n    },\n";
     }
 
@@ -37,4 +39,3 @@ std::ostream& operator<<( std::ostream& os, const Graph& graph )
 
     return os;
 }
-

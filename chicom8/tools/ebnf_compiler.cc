@@ -30,9 +30,12 @@
 
 int main()
 {
-    // std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8.bnf");
-    std::filesystem::path source_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.bnf");
-    std::filesystem::path grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar");
+    std::string base = "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf";
+    // std::string base = "/home/alwin/Documents/Programming/CHIP8/chicom8/src/chicom8";
+
+    std::filesystem::path source_file( base + ".bnf");
+    std::filesystem::path grammar_file( base +".grammar");
+    std::filesystem::path ast_header( base +"_ast_test.h");
 
     Tokens tokens = Tokeniser( source_file ).tokenise_all();
 
@@ -50,8 +53,10 @@ int main()
     // std::cout << "\n";
 
     Generator generator( grammar );
-    generator.create_svg_image( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf" );
-    generator.create_grammar_file( "/home/alwin/Documents/Programming/CHIP8/chicom8/tools/ebnf.grammar" );
+    generator.create_svg_image( base );
+    generator.create_grammar_file( grammar_file );
+
+    generator.create_ast_header( ast_header, "ebnf_tokeniser.h" );
 
     std::cout << "\nGraph output:\n--------------------\n";
     generator.stream_graph( std::cout );

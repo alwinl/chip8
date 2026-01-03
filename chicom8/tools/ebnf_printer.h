@@ -26,9 +26,9 @@ struct PrintVisitor : ASTVisitor
 {
     PrintVisitor( std::ostream& os ) : os(os) {};
 
-    void visit( const SymbolNode& symbol ) override;
-    void pre_symbol( const SymbolNode& symbol ) override;
-    void post_symbol( const SymbolNode& symbol ) override;
+    void visit_symbol( const SymbolNode& symbol ) override;
+    void visit_literal( const LiteralNode& symbol ) override;
+
     void pre_group( const GroupNode& group ) override;
     void post_group( const GroupNode& group ) override;
     void pre_elements( const SubPartNode& subpart ) override;

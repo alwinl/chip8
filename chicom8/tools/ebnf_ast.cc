@@ -23,11 +23,12 @@
 
 void SymbolNode::accept( ASTVisitor& visitor )
 {
-    visitor.pre_symbol( *this );
+    visitor.visit_symbol( *this);
+}
 
-    visitor.visit( *this);
-
-    visitor.post_symbol( *this );
+void LiteralNode::accept( ASTVisitor& visitor )
+{
+    visitor.visit_literal( *this);
 }
 
 void GroupNode::accept( ASTVisitor& visitor )

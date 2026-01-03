@@ -39,6 +39,9 @@ struct NodeData
     int index = -1;
     int lowlink = -1;
     int usage_count = 0;
+
+    bool is_base_class = false;
+    std::string parent_class;
 };
 
 using Graph = std::unordered_map<Node, NodeData>;
@@ -46,18 +49,28 @@ using Graph = std::unordered_map<Node, NodeData>;
 
 struct GraphBuilderVisitor : ASTVisitor
 {
-    GraphBuilderVisitor( ) = default;
+    GraphBuilderVisitor( Graph & graph ) : graph(graph) {};
 
-    void visit( const SymbolNode& symbol ) override
+    void visit_symbol( const SymbolNode& symbol ) override
     {
         // the graph only holds non-terminals
         if( !rule_stack.empty() && (symbol.token.type == Token::Type::NONTERMINAL) )
         {
             auto& lhs = rule_stack.top();
-            graph[lhs].add_edge( symbol.token.lexeme );
+            // graph[lhs].add_edge( symbol.token.lexeme );
+            // graph.try_emplace(symbol.token.lexeme);
             graph.try_emplace(symbol.token.lexeme);
+            graph[symbol.token.lexeme].add_edge( lhs );
+            if( graph[lhs].is_base_class )
+                graph[symbol.token.lexeme].parent_class = lhs;
         }
     }
+
+    void pre_alternates( const AlternatePartsNode& alternates )
+    {
+        auto& lhs = rule_stack.top();
+        graph[lhs].is_base_class = true;
+    };
 
     void pre_rules( const RuleNode& rule ) override
     {
@@ -71,7 +84,7 @@ struct GraphBuilderVisitor : ASTVisitor
         rule_stack.pop();
     }
 
-    Graph graph;
+    Graph & graph;
     std::stack<std::string> rule_stack;
 };
 

@@ -32,6 +32,8 @@ public:
     void create_grammar_file( std::string filename );
     void stream_graph( std::ostream& os );
 
+    void create_ast_header( std::string filename, std::string tokeniser_header_name );
+
 private:
     SyntaxTree& syntax_tree;
 };
