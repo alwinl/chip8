@@ -25,7 +25,6 @@ add_executable(
 	commandlineparsertest.cc
 	assemblertest.cc
 	symboltabletest.cc
-	linepreprocessortest.cc
 	instructiontest.cc
 	numberparsertest.cc
 )

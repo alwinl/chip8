@@ -43,9 +43,16 @@ public:
 	void write_listing( std::ostream &target );
 
 protected:
-	void extract_label( std::vector<std::string> &tokens, uint16_t current_address );
+    bool remove_slash_r( std::string& input );
+    bool remove_comments( std::string& input );
+    bool parse_tokens( std::string &input, std::vector<std::string> &tokens );
+	bool extract_label( std::vector<std::string> &tokens, uint16_t current_address );
+	void to_upper( std::string& token );
 	void extract_variable( std::vector<std::string> &tokens );
 	uint16_t extract_instruction( std::vector<std::string> &tokens );
+
+	bool is_label( std::string token ) { return token.back() == ':'; }
+	bool is_variable_indicator( std::string token ) { return (token == "=") || (token == "EQU"); }
 
 	uint16_t get_instruction_count() const { return instructions.size(); }
 	uint16_t get_symbol( const std::string &label ) const { return symbol_table.get_address( label ); }

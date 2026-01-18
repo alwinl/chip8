@@ -24,7 +24,6 @@ add_library(
 	assembler.cc
 	symboltable.cc
 	instruction.cc
-	linepreprocessor.cc
 	numberparser.cc
 )
 

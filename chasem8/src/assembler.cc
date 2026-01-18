@@ -19,7 +19,6 @@
 
 #include "assembler.h"
 
-#include "linepreprocessor.h"
 #include "numberparser.h"
 
 #include <algorithm>
@@ -68,18 +67,27 @@ void Assembler::read_source( std::istream &source )
 	uint16_t current_address = 0x200;
 	int line_number = 0;
 	std::string line;
+	std::vector<std::string> tokens;
 
 	while( std::getline( source, line ) ) {
 
 		line_number++;
 
-		std::vector<std::string> tokens = LinePreprocessor::tokenise( line );
+		if(
+			line.empty() ||
+			remove_slash_r( line ) ||
+			remove_comments( line ) ||
+			parse_tokens( line, tokens ) ||
+			extract_label( tokens, current_address )
+		)
+			continue;
 
-		extract_label( tokens, current_address );
+		to_upper( tokens[0] );
 
-		extract_variable( tokens );
-
-		current_address += extract_instruction( tokens );
+		if( (tokens.size() >= 3) && is_variable_indicator( tokens[1] ) )
+			extract_variable( tokens );
+		else
+			current_address += extract_instruction( tokens );
 
 		if( current_address > 0xFFF ) {
 			std::cerr << "Program counter overflow at line " << line_number << "\n";
@@ -88,9 +96,80 @@ void Assembler::read_source( std::istream &source )
 	}
 }
 
+bool Assembler::remove_slash_r( std::string &input )
+{
+    if( input.back() == '\r' )
+        input.pop_back();
+
+	return input.empty();
+}
+
+bool Assembler::remove_comments( std::string &input )
+{
+    const size_t comment_start = input.find_first_of(';');
+
+    if( comment_start != std::string::npos )
+        input = input.substr(0, comment_start);
+
+	return input.empty();
+}
+
+bool Assembler::parse_tokens( std::string &input, std::vector<std::string> &tokens )
+{
+    std::stringstream stream(input);
+    std::string token;
+
+	tokens.clear();
+
+    while (stream >> token)
+        tokens.push_back(token);
+
+	return tokens.empty();
+}
+
+bool Assembler::extract_label( std::vector<std::string> &tokens, uint16_t current_address )
+{
+	if( !is_label(tokens[0]) )
+		return false;
+
+	symbol_table.add_label( tokens[0], current_address );
+	tokens.erase( tokens.begin() );
+
+	return tokens.empty();
+}
+
+void Assembler::to_upper( std::string& token )
+{
+	std::transform( token.begin(), token.end(), token.begin(), [](unsigned char c) { return std::toupper(c); } );
+}
+
+void Assembler::extract_variable( std::vector<std::string> &tokens )
+{
+	uint16_t value = NumberParser(tokens[2]).to_word();
+
+	symbol_table.add_variable(tokens[0], value);
+}
+
+uint16_t Assembler::extract_instruction( std::vector<std::string> &tokens )
+{
+	auto entry = keyword_dispatcher.find( tokens[0] );
+
+	if( entry == keyword_dispatcher.end() ) {
+		std::cerr << "Unknown mnemonic: " << tokens[0] << "\n";
+		return 0;
+	}
+
+	auto [_,dispatcher] = *entry;
+	auto arguments = std::vector<std::string>(tokens.begin() + 1, tokens.end());
+
+	instructions.push_back( dispatcher( arguments, symbol_table ) );
+
+	return instructions.back()->length();
+}
+
 void Assembler::write_binary( std::ostream &target )
 {
-	std::for_each( instructions.begin(), instructions.end(), 
+	std::for_each( instructions.begin(), instructions.end(),
 		[&target]( const std::unique_ptr<Instruction>& instruction )
 		{
 			instruction->emit_binary( target );
@@ -100,56 +179,10 @@ void Assembler::write_binary( std::ostream &target )
 
 void Assembler::write_listing( std::ostream &target )
 {
-	std::for_each( instructions.begin(), instructions.end(), 
+	std::for_each( instructions.begin(), instructions.end(),
 		[&target]( const std::unique_ptr<Instruction>& instruction )
 		{
 			instruction->emit_listing( target );
 		}
 	);
-}
-
-void Assembler::extract_label( std::vector<std::string> &tokens, uint16_t current_address )
-{
-	if( tokens.empty() )
-		return;
-
-	if( tokens[0].back() == ':' ) {
-		symbol_table.add_label( tokens[0], current_address );
-		tokens.erase( tokens.begin() );
-	}
-}
-
-uint16_t Assembler::extract_instruction( std::vector<std::string> &tokens )
-{
-	if( tokens.empty() )
-		return 0;
-
-	std::transform( tokens[0].begin(), tokens[0].end(), tokens[0].begin(), [](unsigned char c) { return std::toupper(c); } );
-
-	auto entry = keyword_dispatcher.find( tokens[0] );
-
-	if( entry == keyword_dispatcher.end() ) {
-		std::cerr << "Unknown mnemonic: " << tokens[0] << "\n";
-		return 0;
-	}
-
-	instructions.push_back( entry->second( std::vector<std::string>(tokens.begin() + 1, tokens.end()), symbol_table ) );
-
-	return instructions.back()->length();
-}
-
-void Assembler::extract_variable( std::vector<std::string> &tokens )
-{
-	if( tokens.size() < 3 )
-		return;
-
-	std::transform( tokens[0].begin(), tokens[0].end(), tokens[0].begin(), [](unsigned char c) { return std::toupper(c); } );
-
-	if( tokens[1] != "=" && tokens[1] != "EQU" ) 
-		return;
-
-	uint16_t value = NumberParser(tokens[2]).to_word();
-	symbol_table.add_variable(tokens[0], value);
-
-	tokens.erase( tokens.begin(), tokens.begin() + 3 );
 }
