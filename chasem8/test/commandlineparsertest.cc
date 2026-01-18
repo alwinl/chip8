@@ -43,11 +43,11 @@ TEST(Chasem8_CommandLineParserTest, ValidCreation)
 {
 	std::string basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { basename + ".src" };
+	std::vector<std::string> argument_list = { basename + ".8a" };
 	CommandLineParser filenames( argument_list );
-	
-	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
-	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
+
+	EXPECT_EQ( basename + ".8a", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".ch8", filenames.get_binary_name() );
 	EXPECT_EQ( "", filenames.get_listing_name() );
 }
 
@@ -101,10 +101,10 @@ TEST(Chasem8_CommandLineParserTest, GetSourceTest)
 {
 	std::string basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { basename + ".src" };
+	std::vector<std::string> argument_list = { basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
-	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".8a", filenames.get_source_name() );
 }
 
 TEST(Chasem8_CommandLineParserTest, GetBinaryFromArgTest)
@@ -112,20 +112,20 @@ TEST(Chasem8_CommandLineParserTest, GetBinaryFromArgTest)
 	std::string source_basename = random_string( 8 );
 	std::string binary_basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { "-o", binary_basename + ".bin", source_basename + ".src" };
+	std::vector<std::string> argument_list = { "-o", binary_basename + ".ch8", source_basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
-	EXPECT_EQ( binary_basename + ".bin", filenames.get_binary_name() );
+	EXPECT_EQ( binary_basename + ".ch8", filenames.get_binary_name() );
 }
 
 TEST(Chasem8_CommandLineParserTest, GetBinaryFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { basename + ".src" };
+	std::vector<std::string> argument_list = { basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
-	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
+	EXPECT_EQ( basename + ".ch8", filenames.get_binary_name() );
 }
 
 TEST(Chasem8_CommandLineParserTest, GetListingFromArgTest)
@@ -134,17 +134,17 @@ TEST(Chasem8_CommandLineParserTest, GetListingFromArgTest)
 	std::string binary_basename = random_string( 8 );
 	std::string listing_basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { "-o", binary_basename + ".bin", "--listing=" + listing_basename + ".lst", source_basename + ".src" };
+	std::vector<std::string> argument_list = { "-o", binary_basename + ".ch8", "--listing=" + listing_basename + ".ch8.lst", source_basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
-	EXPECT_EQ( listing_basename + ".lst", filenames.get_listing_name() );
+	EXPECT_EQ( listing_basename + ".ch8.lst", filenames.get_listing_name() );
 }
 
 TEST(Chasem8_CommandLineParserTest, GetBlankListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { basename + ".src" };
+	std::vector<std::string> argument_list = { basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
 	EXPECT_EQ( "", filenames.get_listing_name() );
@@ -155,12 +155,12 @@ TEST(Chasem8_CommandLineParserTest, GetDefaultListingFromSourceTest)
 {
 	std::string basename = random_string( 8 );
 
-	std::vector<std::string> argument_list = { "-l", basename + ".src" };
+	std::vector<std::string> argument_list = { "-l", basename + ".8a" };
 	CommandLineParser filenames( argument_list );
 
-	EXPECT_EQ( basename + ".src", filenames.get_source_name() );
-	EXPECT_EQ( basename + ".bin", filenames.get_binary_name() );
-	EXPECT_EQ( basename + ".lst", filenames.get_listing_name() );
+	EXPECT_EQ( basename + ".8a", filenames.get_source_name() );
+	EXPECT_EQ( basename + ".ch8", filenames.get_binary_name() );
+	EXPECT_EQ( basename + ".ch8.lst", filenames.get_listing_name() );
 }
 
 TEST(Chasem8_CommandLineParserTest, GetAllFromOneArgument)
@@ -168,8 +168,7 @@ TEST(Chasem8_CommandLineParserTest, GetAllFromOneArgument)
 	std::string basename = random_string( 8 );
 
 	std::string source_name = basename + "." + random_string( 3 );
-	std::string binary_name = basename + ".bin";
-	// std::string listing_name = basename + ".lst";
+	std::string binary_name = basename + ".ch8";
 
 	std::vector<std::string> argument_list = { source_name };
 
@@ -186,7 +185,6 @@ TEST(Chasem8_CommandLineParserTest, GetAllFromTwoArguments)
 
 	std::string source_name = basename + "." + random_string( 3 );
 	std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
-	// std::string listing_name = basename + ".lst";
 
 	std::vector<std::string> argument_list = { "-o", binary_name, source_name };
 
@@ -196,10 +194,6 @@ TEST(Chasem8_CommandLineParserTest, GetAllFromTwoArguments)
 	EXPECT_EQ( binary_name, filenames.get_binary_name() );
 	EXPECT_EQ( "", filenames.get_listing_name() );
 }
-
-	// std::string source_name = random_string( 8 ) + "." + random_string( 3 );
-	// std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
-	// std::string listing_name = random_string( 8 ) + "." + random_string( 3 );
 
 TEST(Chasem8_CommandLineParserTest, GetAllFromThreeArguments)
 {
@@ -222,7 +216,7 @@ TEST(Chasem8_CommandLineParserTest, GetDefaultListName)
 
 	std::string source_name = basename + "." + random_string( 3 );
 	std::string binary_name = random_string( 8 ) + "." + random_string( 3 );
-	std::string listing_name = basename + ".lst";
+	std::string listing_name = basename + ".ch8.lst";
 
 	std::vector<std::string> argument_list = { "-lo", binary_name, source_name };
 

@@ -89,7 +89,7 @@ std::string CommandLineParser::get_source_name()
 
 std::string CommandLineParser::get_binary_name()
 {
-	return ( result.count("o") == 0 ) ? get_output_prefix() + ".bin" : result["o"].as<std::string>();
+	return ( result.count("o") == 0 ) ? get_output_prefix() + ".ch8" : result["o"].as<std::string>();
 }
 
 std::string CommandLineParser::get_listing_name()
@@ -98,7 +98,7 @@ std::string CommandLineParser::get_listing_name()
 		return "";
 
 	if( result["listing"].as<std::string>() == "__absent__" )
-		return get_output_prefix() + ".lst";
+		return get_output_prefix() + ".ch8.lst";
 
 	return result["listing"].as<std::string>();
 }
