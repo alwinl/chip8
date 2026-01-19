@@ -32,7 +32,7 @@ struct TestCaseData
 template<typename InstructionType>
 class InstructionEmitTest : public ::testing::TestWithParam<TestCaseData>
 {
-public:    
+public:
     uint16_t read_uint16_from_stream(std::ostringstream& output)
     {
         const std::string& result = output.str();
@@ -62,6 +62,8 @@ public:
     }
 };
 
+// class DBTest   : public InstructionEmitTest<DBInstruction> {};
+// class DWTest   : public InstructionEmitTest<DWInstruction> {};
 class CLSTest  : public InstructionEmitTest<CLSInstruction> {};
 class RETTest  : public InstructionEmitTest<RETInstruction> {};
 class SYSTest  : public InstructionEmitTest<SYSInstruction> {};
@@ -83,6 +85,8 @@ class DRWTest  : public InstructionEmitTest<DRWInstruction> {};
 class SKPTest  : public InstructionEmitTest<SKPInstruction> {};
 class SKNPTest : public InstructionEmitTest<SKNPInstruction> {};
 
+// TEST_P( DBTest,   EmitBinary ) { run_test(); }
+// TEST_P( DWTest,   EmitBinary ) { run_test(); }
 TEST_P( CLSTest,  EmitBinary ) { run_test(); }
 TEST_P( RETTest,  EmitBinary ) { run_test(); }
 TEST_P( SYSTest,  EmitBinary ) { run_test(); }
@@ -104,6 +108,34 @@ TEST_P( DRWTest,  EmitBinary ) { run_test(); }
 TEST_P( SKPTest,  EmitBinary ) { run_test(); }
 TEST_P( SKNPTest, EmitBinary ) { run_test(); }
 
+// INSTANTIATE_TEST_SUITE_P( Chasem8, DBTest,
+//     ::testing::Values(
+//         // success cases
+//         TestCaseData{ "DataBytes", {}, true, 0x00E0 },
+
+//         // failure cases
+//         TestCaseData{ "UnexpectedArgument", { "V1" }, false, 0 },
+//         TestCaseData{ "UnexpectedArguments", { "V1", ",", "0x200" }, false, 0 }
+//     ),
+//     [](const ::testing::TestParamInfo<TestCaseData>& info) {
+//         return info.param.test_name;
+//     }
+// );
+
+// INSTANTIATE_TEST_SUITE_P( Chasem8, DWTest,
+//     ::testing::Values(
+//         // success cases
+//         TestCaseData{ "DataWords", {}, true, 0x00E0 },
+
+//         // failure cases
+//         TestCaseData{ "UnexpectedArgument", { "V1" }, false, 0 },
+//         TestCaseData{ "UnexpectedArguments", { "V1", ",", "0x200" }, false, 0 }
+//     ),
+//     [](const ::testing::TestParamInfo<TestCaseData>& info) {
+//         return info.param.test_name;
+//     }
+// );
+
 INSTANTIATE_TEST_SUITE_P( Chasem8, CLSTest,
     ::testing::Values(
         // success cases
@@ -111,7 +143,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, CLSTest,
 
         // failure cases
         TestCaseData{ "UnexpectedArgument", { "V1" }, false, 0 },
-        TestCaseData{ "UnexpectedArguments", { "V1", ",", "0x200" }, false, 0 }        
+        TestCaseData{ "UnexpectedArguments", { "V1", ",", "0x200" }, false, 0 }
     ),
     [](const ::testing::TestParamInfo<TestCaseData>& info) {
         return info.param.test_name;
@@ -189,7 +221,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SETest,
         TestCaseData{ "RegisterToRegisterComparison2", {"VB, VC"}, true,  0x5BC0 }, // SE VB, VC -> 5xy0 format
         TestCaseData{ "RegisterToImmediateComparison", {"V3", ",", "0xAB"}, true, 0x33AB }, // SE V3, 0xAB -> 3xkk format
         TestCaseData{ "RegisterToImmediateComparison2", {"VA, 0xFF"}, true, 0x3AFF }, // SE VA, 0xFF -> 3xkk format
-        
+
         // failure cases
         TestCaseData{ "MissingArgument", {"V1"}, false, 0 },             // Missing second argument
         TestCaseData{ "FirstArgNotRegister", {"A1", ",", "V2"}, false, 0 },   // First arg not a register
@@ -200,7 +232,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SETest,
     ),
     [](const ::testing::TestParamInfo<TestCaseData>& info) {
         return info.param.test_name;
-    }    
+    }
 );
 
 INSTANTIATE_TEST_SUITE_P( Chasem8, SNETest,
@@ -210,7 +242,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SNETest,
         TestCaseData{ "RegisterToRegisterComparison2", {"VB, VC"}, true,  0x9BC0 }, // SNE VB, VC -> 5xy0 format
         TestCaseData{ "RegisterToImmediateComparison", {"V3", ",", "0xAB"}, true, 0x43AB }, // SNE V3, 0xAB -> 3xkk format
         TestCaseData{ "RegisterToImmediateComparison2", {"VA, 0xFF"}, true, 0x4AFF }, // SNE VA, 0xFF -> 3xkk format
-        
+
         // failure cases
         TestCaseData{ "MissingArgument", {"V1"}, false, 0 },             // Missing second argument
         TestCaseData{ "FirstArgNotRegister", {"A1", ",", "V2"}, false, 0 },   // First arg not a register
@@ -487,7 +519,7 @@ TEST(Chasem8_DBInstructionTest, ExplodedArguments)
     EXPECT_EQ(static_cast<uint8_t>(result[0]), 0x01);
     EXPECT_EQ(static_cast<uint8_t>(result[1]), 0x02);
     EXPECT_EQ(static_cast<uint8_t>(result[2]), 0x03);
-    EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);    
+    EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);
 }
 
 TEST(Chasem8_DBInstructionTest, CombinedArguments)
@@ -505,7 +537,7 @@ TEST(Chasem8_DBInstructionTest, CombinedArguments)
     EXPECT_EQ(static_cast<uint8_t>(result[0]), 0x01);
     EXPECT_EQ(static_cast<uint8_t>(result[1]), 0x02);
     EXPECT_EQ(static_cast<uint8_t>(result[2]), 0x03);
-    EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);    
+    EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);
 }
 
 TEST(Chasem8_DBInstructionTest, ThrowsOnInvalidByteValue)
