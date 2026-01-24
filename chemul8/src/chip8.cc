@@ -49,27 +49,13 @@ void Chip8::set_memory( uint8_t *mem )
 		/* E */ 0xF0, 0x80, 0xF0, 0x80, 0xF0,
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
-	
-	memory = mem;
 
-	std::fill( std::begin( Stack ), std::end( Stack ), 0 );
-	std::fill( std::begin( V ), std::end( V ), 0 );
-	I = 0;
-	SP = 0;
+	memory = mem;
 
 	std::copy_n( &font[0], sizeof( font ), &memory[font_sprite_base] );
 
-	set_word( PC_index, 0x0200 );
-}
-
-uint16_t Chip8::get_PC() const
-{
-	return get_word( PC_index );
-}
-
-void Chip8::set_PC( uint16_t value )
-{
-	set_word( PC_index, value );
+	set_word( PC_index, program_start );
+	set_word( SP_index, stack_start );
 }
 
 uint16_t Chip8::get_word( uint16_t base ) const
@@ -83,6 +69,57 @@ void Chip8::set_word( uint16_t base, uint16_t value )
 	memory[base + 1] = value & 0xFF;
 }
 
+uint16_t Chip8::get_PC() const
+{
+	return get_word( PC_index );
+}
+
+void Chip8::set_PC( uint16_t value )
+{
+	set_word( PC_index, value );
+}
+
+uint8_t Chip8::get_register( uint8_t index ) const
+{
+	return memory[V_index + index ];
+}
+
+void Chip8::set_register( uint8_t index, uint8_t value )
+{
+	memory[V_index + index] = value;
+}
+
+void Chip8::set_I( uint16_t value )
+{
+	set_word( I_index, value );
+}
+
+uint16_t Chip8::get_I(  )
+{
+	return get_word( I_index );
+}
+
+void Chip8::stack_push( uint16_t value )
+{
+	uint16_t address = get_word( SP_index );
+
+	address -= 2;
+	set_word( address, value );
+
+	set_word( SP_index, address );
+}
+
+uint16_t Chip8::stack_pop()
+{
+	uint16_t address = get_word( SP_index );
+
+	uint16_t value = get_word( address );
+	address += 2;
+
+	set_word( SP_index, address );
+
+	return value;
+}
 
 void Chip8::clear_screen()
 {
@@ -125,9 +162,20 @@ bool Chip8::key_captured( uint8_t &key_no )
 	return false;
 }
 
-void Chip8::set_delay_timer( uint8_t value ) { memory[DT_index] = value; }
-void Chip8::set_sound_timer( uint8_t value ) { memory[ST_index] = value; }
-uint8_t Chip8::get_delay_timer() const { return memory[DT_index]; }
+void Chip8::set_delay_timer( uint8_t value )
+{
+	memory[DT_index] = value;
+}
+
+void Chip8::set_sound_timer( uint8_t value )
+{
+	memory[ST_index] = value;
+}
+
+uint8_t Chip8::get_delay_timer() const
+{
+	return memory[DT_index];
+}
 
 uint8_t Chip8::get_random_value()
 {
@@ -137,11 +185,11 @@ uint8_t Chip8::get_random_value()
 	return dist( mt );
 }
 
-void Chip8::execute_instruction( bool tick )
+void Chip8::execute_instruction( )
 {
-	interrupt = tick;
+	// interrupt = tick;
 
-	if( tick ) {
+	if( memory[int_index] ) {
 		if( memory[DT_index] > 0 )
 		--memory[DT_index];
 
@@ -149,7 +197,7 @@ void Chip8::execute_instruction( bool tick )
 			--memory[ST_index];
 	}
 
-	const uint16_t opcode = ( memory[get_PC()] << 8 ) | memory[get_PC() + 1];
+	const uint16_t opcode = get_word( get_PC() );
 
 	set_PC( get_PC() + 2 );
 
@@ -159,44 +207,56 @@ void Chip8::execute_instruction( bool tick )
 
 void Chip8::SYS( uint16_t opcode ) // 0nnn - SYS addr : Jump to a machine code routine at nnn.
 {
-	switch( opcode & 0xFFF ) {
+	const uint16_t address = opcode & 0xFFF;
+
+	switch( address ) {
 	case 0x0E0: // CLS : clear screen
 		clear_screen();
 		break;
 
 	case 0x0EE: // RET : return from subroutine
-		set_PC( Stack[SP--] );
+		set_PC( stack_pop() );
+		// set_PC( Stack[SP--] );
 		break;
 
-	default: set_PC( opcode & 0xFFF ); break;
+	default:
+		set_PC( address );
+		break;
 	}
 }
 
 void Chip8::JP( uint16_t opcode ) // 1nnn - JP addr : Jump to location nnn.
 {
-	set_PC( opcode & 0xFFF );
+	const uint16_t address = opcode & 0xFFF;
+
+	set_PC( address );
 }
 
 void Chip8::CALL( uint16_t opcode ) // 2nnn - CALL addr : Call subroutine at nnn.
 {
-	++SP;
-	Stack[SP] = get_PC();
-	set_PC( opcode & 0xFFF );
+	const uint16_t address = opcode & 0xFFF;
+
+	stack_push( get_PC() );
+	// ++SP;
+	// Stack[SP] = get_PC();
+	set_PC( address );
 }
 
 void Chip8::SEI( uint16_t opcode ) // 3xkk - SE Vx, byte : Skip next instruction if Vx = kk.
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
+	const uint8_t immediate = opcode & 0xFF;
 
-	if( V[reg_x] == ( opcode & 0xFF ) )
+	if( get_register( reg_x ) == immediate )
 		set_PC( get_PC() + 2 );
 }
 
 void Chip8::SNI( uint16_t opcode ) // 4xkk - SNE Vx, byte : Skip next instruction if Vx != kk.
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
+	const uint8_t immediate = opcode & 0xFF;
 
-	if( V[reg_x] != ( opcode & 0xFF ) )
+	if( get_register( reg_x ) != immediate )
 		set_PC( get_PC() + 2 );
 }
 
@@ -207,26 +267,30 @@ void Chip8::SER( uint16_t opcode ) // 5xy0 - SE Vx, Vy : Skip next instruction i
 
 	switch( opcode & 0xF ) {
 	case 0x0:
-		if( V[reg_x] == V[reg_y] )
+		if( get_register(reg_x) == get_register(reg_y) )
 			set_PC( get_PC() + 2 );
 		break;
-		// 0x1 .. 0xF not defined
-	default: break;
+
+	// 0x1 .. 0xF not defined
+
+	default:
+		break;
 	}
 }
 
 void Chip8::LD( uint16_t opcode ) // 6xkk - LD Vx, byte : Set Vx = kk.
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
+	const uint8_t immediate = opcode & 0xFF;
 
-	V[reg_x] = opcode & 0xFF;
+	set_register( reg_x, immediate );
 }
 
 void Chip8::ADD( uint16_t opcode ) // 7xkk - ADD Vx, byte : Set Vx = Vx + kk
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
-	V[reg_x] += opcode & 0xFF;
+	set_register( reg_x, get_register(reg_x) + (opcode & 0xFF) );
 }
 
 void Chip8::MathOp( uint16_t opcode ) // 8xyn - Various mathematical and logical operations
@@ -236,69 +300,83 @@ void Chip8::MathOp( uint16_t opcode ) // 8xyn - Various mathematical and logical
 
 	switch( opcode & 0xF ) {
 	case 0x0: // LD Vx, Vy : Set Vx = Vy.
-		V[reg_x] = V[reg_y];
+		set_register( reg_x, get_register(reg_y) );
 		break;
 
 	case 0x1: // OR Vx, Vy : Set Vx = Vx OR Vy
-		V[reg_x] |= V[reg_y];
+		set_register( reg_x, get_register(reg_x) | get_register(reg_y) );
 		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
-			V[0x0F] = 0;
+			set_register( 0x0F, 0 );
 		break;
 
 	case 0x2: // AND Vx, Vy : Set Vx = Vx AND Vy
-		V[reg_x] &= V[reg_y];
+		set_register( reg_x, get_register(reg_x) & get_register(reg_y) );
 		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
-			V[0x0F] = 0;
+			set_register( 0x0F, 0 );
 		break;
 
 	case 0x3: // XOR Vx, Vy : Set Vx = Vx XOR Vy
-		V[reg_x] ^= V[reg_y];
+		set_register( reg_x, get_register(reg_x) ^ get_register(reg_y) );
 		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
-			V[0x0F] = 0;
+			set_register( 0x0F, 0 );
 		break;
 
 	case 0x4: // ADD Vx, Vy : Set Vx = Vx + Vy, set VF = carry
-	{
-		const uint16_t result = V[reg_x] + V[reg_y];
-		V[reg_x] = result & 0xFF;
-		V[0xF] = ( result > 255 ) ? 1 : 0;
-	} break;
+		{
+			const uint16_t result = get_register(reg_x) + get_register(reg_y);
+			set_register( reg_x, result & 0xFF );
+			set_register( 0x0F, ( result > 255 ) ? 1 : 0 );
+
+		}
+		break;
 
 	case 0x5: // SUB Vx, Vy : Set Vx = Vx - Vy, set VF = NOT borrow.
-	{
-		const uint16_t result = ( V[reg_x] >= V[reg_y] ) ? 1 : 0;
-		V[reg_x] -= V[reg_y];
-		V[0xF] = result;
-	} break;
+		{
+			const uint16_t result = ( get_register(reg_x) >= get_register(reg_y) ) ? 1 : 0;
+			set_register( reg_x, get_register(reg_x) - get_register(reg_y) );
+			set_register( 0x0F, result );
+
+		}
+		break;
 
 	case 0x6: // SHR Vx {, Vy} : Set Vx = Vx SHR 1 or Vx = Vy SHR 1
-	{
-		const uint16_t result = V[reg_x] & 0x01;
-		if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
-			V[reg_x] = V[reg_x] >> 1;
-		else
-			V[reg_x] = V[reg_y] >> 1;
-		V[0xF] = result;
-	} break;
+		{
+			const uint16_t result = ( get_register(reg_x) & 0x01 );
+
+			if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
+				set_register( reg_x, get_register(reg_x) >> 1);
+			else
+				set_register( reg_x, get_register(reg_y) >> 1);
+
+			set_register( 0x0F, result );
+		}
+		break;
 
 	case 0x7: // SUBN Vx, Vy : Set Vx = Vy - Vx, set VF = NOT borrow.
-	{
-		const uint16_t result = ( V[reg_y] > V[reg_x] ) ? 1 : 0;
-		V[reg_x] = V[reg_y] - V[reg_x];
-		V[0xF] = result;
-	} break;
-		// opcodes 0x8 .. 0xD not defined
+		{
+			const uint16_t result = ( get_register(reg_y) > get_register(reg_x) ) ? 1 : 0;
+			set_register( reg_x, get_register(reg_y) - get_register(reg_x) );
+			set_register( 0x0F, result );
+		}
+		break;
+
+	// opcodes 0x8 .. 0xD not defined
+
 	case 0xE: // SHL Vx {, Vy} : Set Vx = Vx SHL 1 or Vx = Vy SHL 1
-	{
-		const uint16_t result = ( V[reg_x] & 0x80 ) ? 1 : 0;
-		if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
-			V[reg_x] = V[reg_x] << 1;
-		else
-			V[reg_x] = V[reg_y] << 1;
-		V[0xF] = result;
-	} break;
-		// opcodes 0xF not defined
-	default: break;
+		{
+			const uint16_t result = ( get_register(reg_x) & 0x80 ) ? 1 : 0;
+			if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
+				set_register( reg_x, get_register(reg_x) << 1 );
+			else
+				set_register( reg_x, get_register(reg_y) << 1 );
+			set_register( 0x0F, result );
+		}
+		break;
+
+	// opcodes 0xF not defined
+
+	default:
+		break;
 	}
 }
 
@@ -309,7 +387,7 @@ void Chip8::SNE( uint16_t opcode ) // 9xy0 - SNE Vx, Vy : Skip next instruction 
 
 	switch( opcode & 0xF ) {
 	case 0x0:
-		if( V[reg_x] != V[reg_y] )
+		if( get_register(reg_x) != get_register(reg_y) )
 			set_PC( get_PC() + 2 );
 		break;
 
@@ -320,23 +398,26 @@ void Chip8::SNE( uint16_t opcode ) // 9xy0 - SNE Vx, Vy : Skip next instruction 
 
 void Chip8::LDI( uint16_t opcode ) // Annn - LD I, addr : Set I = nnn
 {
-	I = opcode & 0xFFF;
+	const u_int16_t address = opcode & 0xFFF;
+
+	set_word( I_index, address );
 }
 
-void Chip8::JMP(
-	uint16_t opcode ) // Bnnn - JP V0, addr : Jump to location nnn + V0 or Bxnn : Jump to location nn + V[x]
+void Chip8::JMP( uint16_t opcode )	// Bnnn - JP V0, addr : Jump to location nnn + V0
+									// or Bxnn : Jump to location nn + V[x]
 {
 	if( quirks.has_quirk( Quirks::eQuirks::JUMPING ) )
-		set_PC( ( opcode & 0xFFF ) + V[( opcode >> 8 ) & 0x0F] );
+		set_PC( ( opcode & 0xFFF ) + get_register( opcode >> 8 ) & 0x0F );	// ???
 	else
-		set_PC( ( opcode & 0xFFF ) + V[0] );
+		set_PC( ( opcode & 0xFFF ) + get_register(0) );
 }
 
 void Chip8::RND( uint16_t opcode ) // Cxkk - RND Vx, byte : Set Vx = random byte AND kk
 {
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
+	const uint8_t immediate = ( opcode & 0xFF );
 
-	V[reg_x] = get_random_value() & ( opcode & 0xFF );
+	set_register( reg_x, get_random_value() & immediate );
 }
 
 void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte sprite starting at memory location I at
@@ -345,23 +426,29 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 	const uint8_t reg_y = ( opcode >> 4 ) & 0xF;
 
-	V[0xF] = 0;
-	uint8_t ypos = V[reg_y] % 32;
+	set_register( 0x0F, 0 );
+	uint8_t ypos = get_register( reg_y ) % 32;
 
-	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !interrupt ) { // rate limit the DRW calls to 60fps
+	// if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !interrupt ) { // rate limit the DRW calls to 60fps
+	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !memory[int_index] ) { // rate limit the DRW calls to 60fps
 		set_PC( get_PC() - 2 );
 		return;
 	}
 
+	uint8_t collision = 0;
 	const uint8_t end_row = opcode & 0xF;
 	for( uint8_t row = 0; row < end_row; ++row ) {
 
-		const uint8_t sprite_byte = memory[I + row];
-		uint8_t xpos = V[reg_x] % 64;
+		// const uint8_t sprite_byte = memory[get_word(I_index) + row];
+		const uint8_t sprite_byte = memory[ get_I() + row ];
+		uint8_t xpos = get_register(reg_x) % 64;
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 			if( sprite_byte & ( 1 << ( 7 - bit_offset ) ) )
-				V[0x0F] |= toggle_a_pixel( xpos % 64, ypos % 32 );
+				set_register( 0x0F, get_register(0x0F) | toggle_a_pixel( xpos % 64, ypos % 32 ) );
+				// if( toggle_a_pixel( xpos % 64, ypos % 32 ) )
+				// 	collision = 1;
+				// V[0x0F] |= toggle_a_pixel( xpos % 64, ypos % 32 );
 
 			++xpos;
 
@@ -374,6 +461,8 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 		if( quirks.has_quirk( Quirks::eQuirks::CLIPPING ) && ( ypos == 32 ) )
 			break;
 	}
+
+	// set_register( 0x0F, collision );
 }
 
 void Chip8::Key( uint16_t opcode ) // 0xExkk
@@ -381,18 +470,25 @@ void Chip8::Key( uint16_t opcode ) // 0xExkk
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
 	switch( opcode & 0xFF ) {
-		// opcodes 0x00 .. 0x9D not defined
+
+	// opcodes 0x00 .. 0x9D not defined
+
 	case 0x9E: // Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		if( is_key_pressed( V[reg_x] ) )
+		if( is_key_pressed( get_register(reg_x) ) )
 			set_PC( get_PC() + 2 );
 		break;
-		// opcodes 0x9F .. 0xA0 not defined
+
+	// opcodes 0x9F .. 0xA0 not defined
+
 	case 0xA1: // ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		if( !is_key_pressed( V[reg_x] ) )
+		if( !is_key_pressed( get_register(reg_x) ) )
 			set_PC( get_PC() + 2 );
 		break;
-		// opcodes 0xA2 .. 0xFF not defined
-	default: break;
+
+	// opcodes 0xA2 .. 0xFF not defined
+
+	default:
+		break;
 	}
 }
 
@@ -401,58 +497,92 @@ void Chip8::Misc( uint16_t opcode ) // 0xFxkk
 	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 
 	switch( opcode & 0xFF ) {
-		// opcodes 0x00 .. 0x06 not defined
+
+	// opcodes 0x00 .. 0x06 not defined
+
 	case 0x07: // Fx07 - LD Vx, DT : Set Vx = delay timer value.
-		V[reg_x] = get_delay_timer();
+		set_register( reg_x, get_delay_timer() );
 		break;
-		// opcodes 0x08 .. 0x09 not defined
+
+	// opcodes 0x08 .. 0x09 not defined
+
 	case 0x0A: // Fx0A - LD Vx, K : Wait for a key press, store the value of the key in Vx. Stops execution
-	{
-		uint8_t key_no = 0;
-		if( key_captured( key_no ) )
-			V[reg_x] = key_no;
-		else
-		set_PC( get_PC() - 2 );
-	} break;
-		// opcodes 0x0B .. 0x1 not defined
+		{
+			uint8_t key_no = 0;
+			if( key_captured( key_no ) )
+				set_register( reg_x, key_no );
+			else
+				set_PC( get_PC() - 2 );
+		}
+		break;
+
+	// opcodes 0x0B .. 0x1 not defined
+
 	case 0x15: // Fx15 - LD DT, Vx : Set delay timer = Vx.
-		set_delay_timer( V[reg_x] );
+		set_delay_timer( get_register(reg_x) );
 		break;
-		// opcodes 0x16 and 0x17 not defined
+
+	// opcodes 0x16 and 0x17 not defined
+
 	case 0x18: // Fx18 - LD ST, Vx : Set sound timer = Vx.
-		set_sound_timer( V[reg_x] );
+		set_sound_timer( get_register(reg_x) );
 		break;
-		// opcodes 0x19 .. 0x1D not defined
+
+	// opcodes 0x19 .. 0x1D not defined
+
 	case 0x1E: // Fx1E - ADD I, Vx : Set I = I + Vx
-		I += V[reg_x];
+		set_I( get_I() + get_register(reg_x) );
 		break;
-		// opcodes 0x1F .. 0x28 not defined
+
+	// opcodes 0x1F .. 0x28 not defined
+
 	case 0x29: // Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
-		I = font_sprite_base + 5 * V[reg_x];
+		set_I( font_sprite_base + 5 * get_register(reg_x) );
 		break;
-		// opcodes 0x2A .. 0x32 not defined
+
+	// opcodes 0x2A .. 0x32 not defined
+
 	case 0x33: // Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
-		memory[I] = V[reg_x] / 100;
-		memory[I + 1] = ( V[reg_x] / 10 ) % 10;
-		memory[I + 2] = V[reg_x] % 10;
+		memory[get_I()] = get_register(reg_x) / 100;
+		memory[get_I() + 1] = ( get_register(reg_x) / 10 ) % 10;
+		memory[get_I() + 2] = get_register(reg_x) % 10;
 		break;
-		// opcodes 0x34 .. 0x54 not defined
+
+	// opcodes 0x34 .. 0x54 not defined
+
 	case 0x55: // Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
-	{
-		int idx = 0;
-		for( ; idx <= reg_x; ++idx ) memory[I + idx] = V[idx];
-		if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
-			I += idx;
-	} break;
-		// opcodes 0x56 .. 0x64 not defined
+		{
+			int idx = 0;
+			uint16_t I_base = get_I();
+
+			for( ; idx <= reg_x; ++idx )
+				memory[I_base + idx] = get_register(idx);
+
+			if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
+				set_I( get_I() + idx );
+
+		}
+		break;
+
+	// opcodes 0x56 .. 0x64 not defined
+
 	case 0x65: // Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
-	{
-		int idx = 0;
-		for( ; idx <= reg_x; ++idx ) V[idx] = memory[I + idx];
-		if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
-			I += idx;
-	} break;
-		// opcodes 0x66 .. 0xFF not defined
-	default: break;
+		{
+			int idx = 0;
+			uint16_t I_base = get_I();
+
+			for( ; idx <= reg_x; ++idx )
+				set_register( idx,  memory[I_base + idx] );
+
+			if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
+				set_I( get_I() + idx );
+
+		}
+		break;
+
+	// opcodes 0x66 .. 0xFF not defined
+
+	default:
+		break;
 	}
 }

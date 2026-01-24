@@ -28,6 +28,12 @@
 #include "cmdline_processor.h"
 #include <cstring>
 
+static constexpr uint16_t display_size = 64 * 32 / 8;
+static constexpr uint16_t display_base = 0x0F00;
+static constexpr uint8_t ST_index = 0x17;			// 1 byte
+static constexpr uint8_t keys_index = 0x18;		// 2 bytes
+static constexpr uint8_t int_index = 0x1C;			// 1 byte
+
 int run( std::string program, Quirks::eChipType chip_type )
 {
 	uint8_t buffer[4096];
@@ -59,7 +65,8 @@ int run( std::string program, Quirks::eChipType chip_type )
 			device.set_memory( buffer );
 		}
 
-		if( device.make_sound() )
+		// if( device.make_sound() )
+		if( buffer[ST_index] > 0 )
 			SDLRef.make_sound();
 
 		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
@@ -69,15 +76,19 @@ int run( std::string program, Quirks::eChipType chip_type )
 		if( interrupt )
 			last_time = std::chrono::system_clock::now();
 
-		SDLRef.draw_buffer( device.get_display_buffer(), device.get_display_size() );
+		buffer[int_index] = interrupt ? 1 : 0;
 
-		uint16_t keys = device.get_keys();
+		SDLRef.draw_buffer( &buffer[display_base], display_size );
+
+		uint16_t keys = (buffer[keys_index] << 8 ) | buffer[keys_index + 1];
 
 		SDLRef.check_events( keys );
 
-		device.set_keys( keys );
+		buffer[keys_index] = keys >> 8;
+		buffer[keys_index + 1] = keys & 0xFF;
 
-		device.execute_instruction( interrupt);
+
+		device.execute_instruction();
 	}
 
 	return 0;
