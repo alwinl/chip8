@@ -404,25 +404,25 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 	/* opcodes Fx1F .. Fx28 not defined */
 	case 0x29: // Fx29 - LD F, Vx : Set I = location of sprite for digit Vx.
 		mnemonic = "LD";
-		argument = std::string( "I, CHR[" ) + format_register( reg_x ) + "]";
+		argument = std::string( "I, &CHR[" ) + format_register( reg_x ) + "]";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx2A .. Fx32 not defined */
 	case 0x33: // Fx33 - LD B, Vx : Store BCD representation of Vx in memory locations I, I+1, and I+2
 		mnemonic = "LD";
-		argument = std::string( "I, BCD[" ) + format_register( reg_x ) + "]";
+		argument = std::string( "[I], BCD[" ) + format_register( reg_x ) + "]";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx34 .. Fx54 not defined */
 	case 0x55: // Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
 		mnemonic = "LD";
-		argument = std::string( "[I], " ) + format_register( reg_x );
+		argument = std::string( "[I], V0 - " ) + format_register( reg_x );
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx56 .. Fx64 not defined */
 	case 0x65: // Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
 		mnemonic = "LD";
-		argument = format_register( reg_x ) + ", [I]";
+		argument = std::string( "V0 - ") + format_register( reg_x ) + ", [I]";
 		address_stack.push( address + 2 );
 		break;
 	/* opcodes Fx66 .. FxFF not defined */
