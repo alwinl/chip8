@@ -38,12 +38,17 @@ public:
 
 	bool should_quit() const { return last_event == Events::QUIT_EVENT; }
 	bool should_restart() const { return last_event == Events::RESTART_EVENT; }
+	bool set_new_type() const { return last_event == Events::SET_NEW_TYPE_EVENT; }
+
+	int get_new_type() const { return new_type; }
+
 private:
-	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT };
+	enum class Events { NO_EVENT, QUIT_EVENT, RESTART_EVENT, SET_NEW_TYPE_EVENT };
 
 	SDL_Window *m_window;
 	SDL_Renderer *m_renderer;
 	Events last_event = Events::RESTART_EVENT;
+	int new_type;
 
 	bool switch_event( SDL_Event &event, uint16_t &keys, ResourceLayer::Events &the_event );
 	void draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white );

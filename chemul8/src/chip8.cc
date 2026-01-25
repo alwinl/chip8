@@ -24,12 +24,34 @@
 #include <cstring>
 #include <random>
 
-Chip8::Chip8( Quirks::eChipType type, uint8_t * mem ) : quirks( type )
+/*
+	memory layout:
+
+	0x000–0x01F   CPU state (registers, I, PC, SP, timers, keys, quirks)  [32 bytes]
+	0x020–0x06F   Font sprites (80 bytes)
+	0x070–0x09F   Spare / interpreter scratch (48 bytes)
+	0x0A0–0x0FF   Stack (96 bytes, grows downward)
+	0x100–0x1FF   Display buffer (256 bytes)
+	0x200–0xFFF   Program + data
+
+*/
+constexpr uint8_t QUIRK_RESET 		= 1 << 0;
+constexpr uint8_t QUIRK_MEMORY		= 1 << 1;
+constexpr uint8_t QUIRK_DISP_WAIT	= 1 << 2;
+constexpr uint8_t QUIRK_CLIPPING	= 1 << 3;
+constexpr uint8_t QUIRK_SHIFTING	= 1 << 4;
+constexpr uint8_t QUIRK_JUMPING		= 1 << 5;
+
+void Chip8::set_quirk_type( eQuirkType type )
 {
-	set_memory( mem );
+	switch( type ) {
+	case eQuirkType::CHIP8: memory[Quirk_index] = QUIRK_RESET | QUIRK_MEMORY | QUIRK_DISP_WAIT| QUIRK_CLIPPING; break;
+	case eQuirkType::XOCHIP : memory[Quirk_index] = QUIRK_MEMORY; break;
+	case eQuirkType::SCHIP : memory[Quirk_index] = QUIRK_CLIPPING | QUIRK_SHIFTING | QUIRK_JUMPING; break;
+	}
 }
 
-void Chip8::set_memory( uint8_t *mem )
+void Chip8::set_program( uint8_t *mem, size_t size )
 {
 	static uint8_t font[] = {
 		/* 0 */ 0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -50,8 +72,9 @@ void Chip8::set_memory( uint8_t *mem )
 		/* F */ 0xF0, 0x80, 0xF0, 0x80, 0x80,
 	};
 
-	memory = mem;
+	memset( memory, 0, sizeof( memory ) );
 
+	std::copy_n( mem, size, &memory[program_start] );
 	std::copy_n( &font[0], sizeof( font ), &memory[font_sprite_base] );
 
 	set_word( PC_index, program_start );
@@ -162,6 +185,16 @@ bool Chip8::key_captured( uint8_t &key_no )
 	return false;
 }
 
+void Chip8::set_interrupt( bool on )
+{
+	memory[int_index] = on ? 1 : 0;
+}
+
+void Chip8::set_keys_state( uint16_t new_state )
+{
+	set_word( keys_index, new_state);
+}
+
 void Chip8::set_delay_timer( uint8_t value )
 {
 	memory[DT_index] = value;
@@ -177,6 +210,16 @@ uint8_t Chip8::get_delay_timer() const
 	return memory[DT_index];
 }
 
+void Chip8::decrease_timers()
+{
+	if( memory[DT_index] > 0 )
+		--memory[DT_index];
+
+	if( memory[ST_index] > 0 )
+		--memory[ST_index];
+}
+
+
 uint8_t Chip8::get_random_value()
 {
 	static std::mt19937 mt{ std::random_device{}() };
@@ -185,18 +228,8 @@ uint8_t Chip8::get_random_value()
 	return dist( mt );
 }
 
-void Chip8::execute_instruction( )
+void Chip8::clock_tick( )
 {
-	// interrupt = tick;
-
-	if( memory[int_index] ) {
-		if( memory[DT_index] > 0 )
-		--memory[DT_index];
-
-		if( memory[ST_index] > 0 )
-			--memory[ST_index];
-	}
-
 	const uint16_t opcode = get_word( get_PC() );
 
 	set_PC( get_PC() + 2 );
@@ -305,19 +338,19 @@ void Chip8::MathOp( uint16_t opcode ) // 8xyn - Various mathematical and logical
 
 	case 0x1: // OR Vx, Vy : Set Vx = Vx OR Vy
 		set_register( reg_x, get_register(reg_x) | get_register(reg_y) );
-		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
+		if( memory[Quirk_index] & QUIRK_RESET )
 			set_register( 0x0F, 0 );
 		break;
 
 	case 0x2: // AND Vx, Vy : Set Vx = Vx AND Vy
 		set_register( reg_x, get_register(reg_x) & get_register(reg_y) );
-		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
+		if( memory[Quirk_index] & QUIRK_RESET )
 			set_register( 0x0F, 0 );
 		break;
 
 	case 0x3: // XOR Vx, Vy : Set Vx = Vx XOR Vy
 		set_register( reg_x, get_register(reg_x) ^ get_register(reg_y) );
-		if( quirks.has_quirk( Quirks::eQuirks::RESET ) )
+		if( memory[Quirk_index] & QUIRK_RESET )
 			set_register( 0x0F, 0 );
 		break;
 
@@ -343,7 +376,7 @@ void Chip8::MathOp( uint16_t opcode ) // 8xyn - Various mathematical and logical
 		{
 			const uint16_t result = ( get_register(reg_x) & 0x01 );
 
-			if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
+			if( memory[Quirk_index] & QUIRK_SHIFTING )
 				set_register( reg_x, get_register(reg_x) >> 1);
 			else
 				set_register( reg_x, get_register(reg_y) >> 1);
@@ -365,10 +398,12 @@ void Chip8::MathOp( uint16_t opcode ) // 8xyn - Various mathematical and logical
 	case 0xE: // SHL Vx {, Vy} : Set Vx = Vx SHL 1 or Vx = Vy SHL 1
 		{
 			const uint16_t result = ( get_register(reg_x) & 0x80 ) ? 1 : 0;
-			if( quirks.has_quirk( Quirks::eQuirks::SHIFTING ) )
+
+			if( memory[Quirk_index] & QUIRK_SHIFTING )
 				set_register( reg_x, get_register(reg_x) << 1 );
 			else
 				set_register( reg_x, get_register(reg_y) << 1 );
+
 			set_register( 0x0F, result );
 		}
 		break;
@@ -406,8 +441,10 @@ void Chip8::LDI( uint16_t opcode ) // Annn - LD I, addr : Set I = nnn
 void Chip8::JMP( uint16_t opcode )	// Bnnn - JP V0, addr : Jump to location nnn + V0
 									// or Bxnn : Jump to location nn + V[x]
 {
-	if( quirks.has_quirk( Quirks::eQuirks::JUMPING ) )
-		set_PC( ( opcode & 0xFFF ) + get_register( opcode >> 8 ) & 0x0F );	// ???
+	const uint8_t reg_x = ( opcode >> 8 ) & 0xF;
+
+	if( memory[Quirk_index] & QUIRK_JUMPING )
+		set_PC( ( opcode & 0xFF ) + get_register( reg_x ) );	// ???
 	else
 		set_PC( ( opcode & 0xFFF ) + get_register(0) );
 }
@@ -429,40 +466,36 @@ void Chip8::DRW( uint16_t opcode ) // Dxyn - DRW Vx, Vy, nibble : Display n-byte
 	set_register( 0x0F, 0 );
 	uint8_t ypos = get_register( reg_y ) % 32;
 
-	// if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !interrupt ) { // rate limit the DRW calls to 60fps
-	if( quirks.has_quirk( Quirks::eQuirks::DISP_WAIT ) && !memory[int_index] ) { // rate limit the DRW calls to 60fps
+	if( (memory[Quirk_index] & QUIRK_DISP_WAIT ) && !memory[int_index] ) { // rate limit the DRW calls to 60fps
 		set_PC( get_PC() - 2 );
 		return;
 	}
 
-	uint8_t collision = 0;
+	uint8_t collision = get_register( 0x0F );
 	const uint8_t end_row = opcode & 0xF;
 	for( uint8_t row = 0; row < end_row; ++row ) {
 
-		// const uint8_t sprite_byte = memory[get_word(I_index) + row];
 		const uint8_t sprite_byte = memory[ get_I() + row ];
 		uint8_t xpos = get_register(reg_x) % 64;
 
 		for( uint8_t bit_offset = 0; bit_offset < 8; ++bit_offset ) {
 			if( sprite_byte & ( 1 << ( 7 - bit_offset ) ) )
-				set_register( 0x0F, get_register(0x0F) | toggle_a_pixel( xpos % 64, ypos % 32 ) );
-				// if( toggle_a_pixel( xpos % 64, ypos % 32 ) )
-				// 	collision = 1;
-				// V[0x0F] |= toggle_a_pixel( xpos % 64, ypos % 32 );
+				if( toggle_a_pixel( xpos % 64, ypos % 32 ) )
+					collision |= 0x01;
 
 			++xpos;
 
-			if( quirks.has_quirk( Quirks::eQuirks::CLIPPING ) && ( xpos == 64 ) )
+			if( (memory[Quirk_index] & QUIRK_CLIPPING ) && ( xpos == 64 ) )
 				break;
 		}
 
 		++ypos;
 
-		if( quirks.has_quirk( Quirks::eQuirks::CLIPPING ) && ( ypos == 32 ) )
+		if( (memory[Quirk_index] & QUIRK_CLIPPING ) && ( ypos == 32 ) )
 			break;
 	}
 
-	// set_register( 0x0F, collision );
+	set_register( 0x0F, collision );
 }
 
 void Chip8::Key( uint16_t opcode ) // 0xExkk
@@ -558,7 +591,7 @@ void Chip8::Misc( uint16_t opcode ) // 0xFxkk
 			for( ; idx <= reg_x; ++idx )
 				memory[I_base + idx] = get_register(idx);
 
-			if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
+			if( memory[Quirk_index] & QUIRK_MEMORY )
 				set_I( get_I() + idx );
 
 		}
@@ -574,7 +607,7 @@ void Chip8::Misc( uint16_t opcode ) // 0xFxkk
 			for( ; idx <= reg_x; ++idx )
 				set_register( idx,  memory[I_base + idx] );
 
-			if( quirks.has_quirk( Quirks::eQuirks::MEMORY ) )
+			if( memory[Quirk_index] & QUIRK_MEMORY )
 				set_I( get_I() + idx );
 
 		}

@@ -80,8 +80,9 @@ void ResourceLayer::check_events( uint16_t &keys )
 	Events the_event = Events::NO_EVENT;
 
 	while( SDL_PollEvent( &event ) ) {
-		if( switch_event( event, keys, the_event ) )
-			break;
+		if( (event.type == SDL_EVENT_KEY_UP) || (event.type == SDL_EVENT_KEY_DOWN))
+			if( switch_event( event, keys, the_event ) )
+				break;
 	}
 
 	last_event = the_event;
@@ -91,20 +92,22 @@ bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLaye
 {
 	switch( event.type ) {
 	case SDL_EVENT_KEY_UP:
-		try {
-			uint16_t mask = ( 1 << mapping.at( event.key.key ) );
+		{
+			auto it = mapping.find( event.key.key );
+			if( it == mapping.end() )
+				break;
+
+			uint16_t mask = ( 1 << it->second );
 
 			if( ( keys & mask ) != 0 ) {
 				keys &= ~mask;
 				return true;
 			}
-		} catch( std::out_of_range &e ) {
-			// ignore keys we are not interested in
 		}
 		break;
 
 	case SDL_EVENT_KEY_DOWN:
-		try {
+		{
 			if( event.key.key == SDLK_ESCAPE ) {
 				the_event = Events::QUIT_EVENT;
 				return true;
@@ -114,14 +117,33 @@ bool ResourceLayer::switch_event( SDL_Event &event, uint16_t &keys, ResourceLaye
 				return true;
 			}
 
-			uint16_t mask = ( 1 << mapping.at( event.key.key ) );
-
-			if( ( keys & mask ) == 0 ) {
-				keys |= mask;
+			if( event.key.key == SDLK_F10 ) {
+				new_type = 0;								// 0 = CHIP8
+				the_event = Events::SET_NEW_TYPE_EVENT;
 				return true;
 			}
-		} catch( std::out_of_range &e ) {
-			// ignore keys we are not interested in
+
+			if( event.key.key == SDLK_F11 ) {
+				new_type = 1;								// 1 = SCHIP
+				the_event = Events::SET_NEW_TYPE_EVENT;
+				return true;
+			}
+
+			if( event.key.key == SDLK_F12 ) {
+				new_type = 2;								// 2 = XOCHIP
+				the_event = Events::SET_NEW_TYPE_EVENT;
+				return true;
+			}
+
+			auto it = mapping.find( event.key.key );
+			if( it != mapping.end() ) {
+				uint16_t mask = ( 1 << it->second );
+
+				if( ( keys & mask ) == 0 ) {
+					keys |= mask;
+					return true;
+				}
+			}
 		}
 		break;
 

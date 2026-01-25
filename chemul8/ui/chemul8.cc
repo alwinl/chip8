@@ -21,74 +21,75 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <string>
 
 #include "resourcelayer.h"
-#include "quirks.h"
 #include "chip8.h"
 #include "cmdline_processor.h"
-#include <cstring>
 
-static constexpr uint16_t display_size = 64 * 32 / 8;
-static constexpr uint16_t display_base = 0x0F00;
-static constexpr uint8_t ST_index = 0x17;			// 1 byte
-static constexpr uint8_t keys_index = 0x18;		// 2 bytes
-static constexpr uint8_t int_index = 0x1C;			// 1 byte
+size_t load_program( std::string &program, uint8_t* buffer )
+{
+	size_t bytes_read = 0;
+	std::ifstream is = std::ifstream( program );
 
-int run( std::string program, Quirks::eChipType chip_type )
+	while( is.good() )
+		buffer[bytes_read++] = is.get();
+
+	return bytes_read;
+}
+
+int run( std::string program )
 {
 	uint8_t buffer[4096];
 	ResourceLayer SDLRef;
 	auto last_time = std::chrono::system_clock::now();
-
-	std::memset( buffer, 0, sizeof( buffer ) );
-	Chip8 device( chip_type, buffer );
+	Chip8 device;
+	uint16_t keys_state = 0;
 
 	while( ! SDLRef.should_quit() ) {
 
 		if( SDLRef.should_restart() ) {
-			std::ifstream is = std::ifstream( program );
-			if( !is.good() ) {
+
+			std::memset( buffer, 0, sizeof( buffer ) );
+
+			size_t read = load_program( program, buffer );
+			if( ! read ) {
 				std::cout << "Cannot read program" << std::endl;
 				return 1;
 			}
 
-			std::memset( buffer, 0, sizeof( buffer ) );
-
-			uint16_t address;
-
-			uint8_t ch = is.get();
-
-			for( address = 0x200; is.good(); ++address ) {
-				buffer[address] = ch;
-				ch = is.get();
-			}
-			device.set_memory( buffer );
+			device.set_program( buffer, read );
+			device.set_quirk_type( Chip8::eQuirkType::CHIP8 );
 		}
 
-		// if( device.make_sound() )
-		if( buffer[ST_index] > 0 )
-			SDLRef.make_sound();
+		if( SDLRef.set_new_type( ) ) {
+			switch( SDLRef.get_new_type() ) {
+			case 1: device.set_quirk_type( Chip8::eQuirkType::SCHIP ); break;
+			case 2: device.set_quirk_type( Chip8::eQuirkType::XOCHIP ); break;
+			default: device.set_quirk_type( Chip8::eQuirkType::CHIP8 ); break;
+			}
+		}
 
 		/* this bit is to rate limit the DRW call to 60fps and do proper timing */
 		bool interrupt =
 			( std::chrono::duration<double, std::milli>( std::chrono::system_clock::now() - last_time ).count() > 16 );
 
-		if( interrupt )
+		if( interrupt ) {
 			last_time = std::chrono::system_clock::now();
+			device.decrease_timers();
+		}
 
-		buffer[int_index] = interrupt ? 1 : 0;
+		device.set_interrupt( interrupt );
 
-		SDLRef.draw_buffer( &buffer[display_base], display_size );
+		SDLRef.check_events( keys_state );
+		device.set_keys_state( keys_state );
 
-		uint16_t keys = (buffer[keys_index] << 8 ) | buffer[keys_index + 1];
+		if( device.get_sound_active() )
+			SDLRef.make_sound();
 
-		SDLRef.check_events( keys );
+		SDLRef.draw_buffer( device.get_display_buffer(), device.get_display_size() );
 
-		buffer[keys_index] = keys >> 8;
-		buffer[keys_index + 1] = keys & 0xFF;
-
-
-		device.execute_instruction();
+		device.clock_tick();
 	}
 
 	return 0;
@@ -101,5 +102,5 @@ int main( int argc, char *argv[] )
 	if( cmd_line.get_program().empty() )
 		return -1;
 
-	return run( cmd_line.get_program(), cmd_line.get_chip_type() );
+	return run( cmd_line.get_program() );
 }

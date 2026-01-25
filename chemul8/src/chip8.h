@@ -25,40 +25,59 @@
 #include <cstdint>
 #include <map>
 
-#include "quirks.h"
 
 class Chip8
 {
 public:
-	Chip8( Quirks::eChipType type, uint8_t * mem );
+	enum class eQuirkType { CHIP8, XOCHIP, SCHIP };
 
-	void set_memory( uint8_t * mem );
+	Chip8() = default;
 
-	void execute_instruction();
+	void set_quirk_type( eQuirkType type );
+	void set_program( uint8_t * mem, size_t size );
+	void set_interrupt( bool on );
+	void set_keys_state( uint16_t new_state );
+	void decrease_timers();
+	void clock_tick();
+
+	bool get_sound_active() { return memory[ST_index] != 0; }
+	uint8_t * get_display_buffer() { return &memory[display_base]; }
+	uint16_t get_display_size() { return display_size; }
 
 private:
-	uint8_t * memory;
+	uint8_t memory[4096];
+
+/*
+	memory layout:
+
+	0x000–0x01F   CPU state (registers, I, PC, SP, timers, keys, quirks)  [32 bytes]
+	0x020–0x06F   Font sprites (80 bytes)
+	0x070–0x09F   Spare / interpreter scratch (48 bytes)
+	0x0A0–0x0FF   Stack (96 bytes, grows downward)
+	0x100–0x1FF   Display buffer (256 bytes)
+	0x200–0xFFF   Program + data
+
+	NOTE: CHIP-8 memory layout; SCHIP/XO-CHIP require a different display model
+*/
+	static constexpr uint16_t V_index          = 0x0000;	// 16 bytes
+	static constexpr uint16_t I_index          = 0x0010;	// 2 bytes
+	static constexpr uint16_t PC_index         = 0x0012;	// 2 bytes
+	static constexpr uint16_t SP_index         = 0x0014;	// 2 bytes
+	static constexpr uint16_t DT_index         = 0x0016;	// 1 byte
+	static constexpr uint16_t ST_index         = 0x0017;	// 1 byte
+	static constexpr uint16_t keys_index       = 0x0018;	// 2 bytes
+	static constexpr uint16_t last_keys_index  = 0x001A;	// 2 bytes
+	static constexpr uint16_t int_index        = 0x001C;	// 1 byte
+	static constexpr uint16_t Quirk_index      = 0x001D;	// 1 byte
+	static constexpr uint16_t font_sprite_base = 0x0020;	// 80 bytes
+	static constexpr uint16_t stack_end        = 0x00A0;
+	static constexpr uint16_t stack_start      = 0x00FF;	// 96 bytes (growing downwards)
+	static constexpr uint16_t display_base     = 0x0100;	// 256 bytes
+	static constexpr uint16_t program_start    = 0x0200;	// 3584 bytes
 
 	static constexpr uint16_t display_width = 64;
 	static constexpr uint16_t display_height = 32;
 	static constexpr uint16_t display_size = 64 * 32 / 8;
-	static constexpr uint16_t display_base = 0x0F00;
-
-	static constexpr uint16_t font_sprite_base = 0x0100;
-	static constexpr uint16_t program_start = 0x0200;		// 512 bytes
-	static constexpr uint16_t stack_start = 0x0EFF;			// 96 bytes (growing downwards)
-
-	static constexpr uint8_t V_index = 0x00;			// 16 bytes
-	static constexpr uint8_t I_index = 0x10;			// 2 bytes
-	static constexpr uint8_t PC_index = 0x12;			// 2 bytes
-	static constexpr uint8_t SP_index = 0x14;			// 2 bytes
-	static constexpr uint8_t DT_index = 0x16;			// 1 byte
-	static constexpr uint8_t ST_index = 0x17;			// 1 byte
-	static constexpr uint8_t keys_index = 0x18;		// 2 bytes
-	static constexpr uint8_t last_keys_index = 0x1A;	// 2 bytes
-	static constexpr uint8_t int_index = 0x1C;			// 1 byte
-
-	Quirks quirks;
 
 	using Dispatcher = void ( Chip8::* )( uint16_t );
 	using DispatcherMap = std::map<uint8_t, Dispatcher>;
@@ -68,7 +87,6 @@ private:
 		{ 0x04, &Chip8::SNI },	  { 0x05, &Chip8::SER }, { 0x06, &Chip8::LD },	 { 0x07, &Chip8::ADD },
 		{ 0x08, &Chip8::MathOp }, { 0x09, &Chip8::SNE }, { 0x0A, &Chip8::LDI },	 { 0x0B, &Chip8::JMP },
 		{ 0x0C, &Chip8::RND },	  { 0x0D, &Chip8::DRW }, { 0x0E, &Chip8::Key },	 { 0x0F, &Chip8::Misc },
-
 	};
 
 	void SYS( uint16_t opcode );	// 0x0nnn
