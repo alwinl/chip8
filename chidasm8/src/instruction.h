@@ -21,8 +21,9 @@
 
 #include <cstdint>
 #include <string>
+#include <ostream>
 
-#include "target.h"
+#include "utils.h"
 
 class Instruction
 {
@@ -36,8 +37,16 @@ public:
 	bool operator==( const Instruction &rhs ) const { return address == rhs.address; };
 
 	uint16_t get_address() const { return address; };
+	uint16_t get_target_address() const { return target_address; }
 
-	void print( std::ostream &os, Targets& targets ) const;
+	void print( std::ostream &os, std::string label ) const
+	{
+		uint8_t low_byte = opcode & 0xFF;
+		uint8_t high_byte = (opcode >> 8) & 0xFF;
+
+		os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
+			<< mnemonic << " " << argument << label << "\n";
+	};
 
 private:
 	uint16_t address;
@@ -46,6 +55,3 @@ private:
 	std::string argument;
 	uint16_t target_address;
 };
-
-// std::ostream& operator<<( std::ostream& os, const Instruction& inst );
-

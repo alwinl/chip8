@@ -33,32 +33,12 @@
 #include "target.h"
 #include "memory.h"
 
-struct InputData
-{
-	InputData( std::string bin_name, uint16_t origin ) : bin_name(bin_name), origin(origin ), memory(origin) {};
-
-	std::string bin_name;
-	uint16_t origin;
-	Memory memory;
-};
-
-std::istream& operator>>( std::istream& is, InputData& input );
-
-// struct OutputData
-// {
-// 	std::string bin_name;
-// 	uint16_t origin;
-// 	std::set<Instruction> instructions;
-// 	std::set<DataBytes> databytes;
-// 	Targets targets;
-// 	// std::set<Target> jmp_targets;
-// };
-
-// std::ostream& operator<<( std::ostream& os, const OutputData& data );
 class Disassembler
 {
 public:
-	Disassembler( InputData& input ) : memory(input.memory), bin_name(input.bin_name), origin(input.origin) {}
+	Disassembler( std::string bin_name, uint16_t origin ) :  bin_name(bin_name), origin(origin), memory( origin ) {}
+
+	void read_input( std::istream& is );
 
     void disassemble();
 
@@ -67,23 +47,13 @@ public:
 private:
 	uint16_t origin;
 	std::string bin_name;
-	Memory& memory;
+	Memory memory;
 	std::set<Instruction> instructions;
 	std::set<DataBytes> databytes;
 	Targets targets;
 
 	std::stack<uint16_t> address_stack;
 	// uint8_t V0_content; // need to keep a record of all registers, so we can push the correct address on JMP instruction
-
-	/* Don't like this whole block
-	 * maybe it should be encapsulated in a new object
-	 */
-	// std::set<Target> jmp_targets;
-	// unsigned int label_sequence = 0;
-	// unsigned int funct_sequence = 0;
-	// unsigned int data_sequence = 0;
-	// unsigned int table_sequence = 0;
-	// std::string add_target( uint16_t target_address, Target::eTargetKind type );
 
 	Instruction decode_SYS( uint16_t address, uint16_t opcode );
 	Instruction decode_JP( uint16_t address, uint16_t opcode );

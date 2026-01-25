@@ -54,11 +54,13 @@ int main( int argc, char *argv[] )
 		return 1;
 	}
 
-	InputData input( args.get_program_name(), start_address );
+	// InputData input( args.get_program_name(), start_address );
 
-	source_file >> input;
+	// source_file >> input;
 
-	Disassembler worker(input);
+	Disassembler worker( args.get_program_name(), start_address );
+
+	worker.read_input( source_file );
 
 	worker.disassemble();
 
