@@ -23,18 +23,23 @@
 
 #include "utils.h"
 
-void Instruction::print( std::ostream &os ) const
+void Instruction::print( std::ostream &os, Targets& targets ) const
 {
 	uint8_t low_byte = opcode & 0xFF;
 	uint8_t high_byte = (opcode >> 8) & 0xFF;
 
 	os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
-	   << mnemonic << " " << argument << "\n";
+		<< mnemonic << " " << argument ;
+
+	if( target_address )
+		os << targets.get_label( target_address );
+
+	os << "\n";
 }
 
-std::ostream& operator<<( std::ostream& os, const Instruction& inst )
-{
-	inst.print( os );
+// std::ostream& operator<<( std::ostream& os, const Instruction& inst )
+// {
+// 	inst.print( os );
 
-	return os;
-}
+// 	return os;
+// }

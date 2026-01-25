@@ -29,7 +29,7 @@
 #include "utils.h"
 
 
-OutputData Disassembler::disassemble()
+void Disassembler::disassemble()
 {
 	address_stack.push( origin );	// Push the start address
 
@@ -43,13 +43,7 @@ OutputData Disassembler::disassemble()
 
 	collect_data_bytes( );
 
-	return OutputData {
-				bin_name,
-				origin,
-				instructions,
-				databytes,
-				jmp_targets
-			};
+	targets.sort_vectors();
 }
 
 /*
@@ -60,28 +54,28 @@ OutputData Disassembler::disassemble()
  * It has two side effects: It formats a label for a target and adds an item to the jump target set.
  * Also this function is not at the same semantic level as the other functions of this class
  */
-std::string Disassembler::add_target( uint16_t target_address, Target::eTargetKind type )
-{
-	std::set<Target>::iterator it = jmp_targets.find( Target( target_address ) );
+// std::string Disassembler::add_target( uint16_t target_address, Target::eTargetKind type )
+// {
+// 	std::set<Target>::iterator it = jmp_targets.find( Target( target_address ) );
 
-	if( it != jmp_targets.end() )
-		return ( *it ).get_label();
+// 	if( it != jmp_targets.end() )
+// 		return ( *it ).get_label();
 
-	// not in target list, create a new entry
-	std::string label;
+// 	// not in target list, create a new entry
+// 	std::string label;
 
-	switch( type ) {
-	case Target::eTargetKind::I_TARGET: label = "DATA" + std::to_string( data_sequence++ ); break;
-	case Target::eTargetKind::SUBROUTINE: label = "FUNC" + std::to_string( funct_sequence++ ); break;
-	case Target::eTargetKind::JUMP: label = "LABEL" + std::to_string( label_sequence++ ); break;
-	case Target::eTargetKind::INDEXED: label = "TABLE" + std::to_string( table_sequence++ ); break;
-	default: label = "Target Error"; break;
-	}
+// 	switch( type ) {
+// 	case Target::eTargetKind::I_TARGET: label = "DATA" + std::to_string( data_sequence++ ); break;
+// 	case Target::eTargetKind::SUBROUTINE: label = "FUNC" + std::to_string( funct_sequence++ ); break;
+// 	case Target::eTargetKind::JUMP: label = "LABEL" + std::to_string( label_sequence++ ); break;
+// 	case Target::eTargetKind::INDEXED: label = "TABLE" + std::to_string( table_sequence++ ); break;
+// 	default: label = "Target Error"; break;
+// 	}
 
-	jmp_targets.insert( Target( target_address, type, label ) );
+// 	jmp_targets.insert( Target( target_address, type, label ) );
 
-	return label;
-}
+// 	return label;
+// }
 
 Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 {
@@ -115,23 +109,26 @@ Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
 {
 	uint16_t jmp_target = opcode & 0xFFF;
 
-	std::string label = add_target( jmp_target, Target::eTargetKind::JUMP );
+	targets.add( jmp_target, Targets::eKind::JUMP );
+
+	// std::string label = add_target( jmp_target, Target::eTargetKind::JUMP );
 
 	address_stack.push( jmp_target );
 
-	return Instruction( address, opcode, "JP", label );
+	return Instruction( address, opcode, "JP", "", jmp_target );
 }
 
 Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 {
 	uint16_t jmp_target = opcode & 0xFFF;
 
-	std::string label = add_target( jmp_target, Target::eTargetKind::SUBROUTINE );
+	targets.add( jmp_target, Targets::eKind::SUBROUTINE );
+	// std::string label = add_target( jmp_target, Target::eTargetKind::SUBROUTINE );
 
 	address_stack.push( jmp_target );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "CALL", label );
+	return Instruction( address, opcode, "CALL", "", jmp_target );
 }
 
 Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )
@@ -294,21 +291,23 @@ Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
 {
 	unsigned int load_address = opcode & 0xFFF;
 
-	std::string label = add_target( load_address, Target::eTargetKind::I_TARGET );
+	targets.add( load_address, Targets::eKind::I_TARGET );
+	// std::string label = add_target( load_address, Target::eTargetKind::I_TARGET );
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "LD", "I, " + label );
+	return Instruction( address, opcode, "LD", "I, ", load_address );
 }
 
 Instruction Disassembler::decode_JMP( uint16_t address, uint16_t opcode )
 {
 	unsigned int target = ( opcode >> 0 ) & 0xFFF;
 
-	std::string label = add_target( target, Target::eTargetKind::INDEXED );
+	targets.add( target, Targets::eKind::INDEXED );
+	// std::string label = add_target( target, Target::eTargetKind::INDEXED );
 	// address_stack.push( target + V0 ); //this is a problem, we do not know the value of V0
 
-	return Instruction( address, opcode, "JMP", std::string( "V0, " ) + label );
+	return Instruction( address, opcode, "JMP", std::string( "V0, " ), target );
 }
 
 Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
@@ -490,7 +489,7 @@ void Disassembler::collect_data_bytes()
                 run_start = addr;
 
             // If this byte is a jump target → end previous run
-            if( !datarun.empty() && jmp_targets.find(Target(addr)) != jmp_targets.end()) {
+            if( !datarun.empty() && ! targets.get_label( addr ).empty()) {
 
                 databytes.insert( DataBytes(run_start, datarun) );
                 datarun.clear();
@@ -535,13 +534,16 @@ std::istream &operator>>( std::istream &is, InputData &input )
 	return is;
 }
 
-std::ostream &operator<<( std::ostream &os, const OutputData &data )
+// std::ostream &operator<<( std::ostream &os, const OutputData &data )
+void Disassembler::print_output( std::ostream &os )
 {
-	auto output_label = [data]( std::ostream &os, unsigned int address ){
-		std::set<Target>::iterator it = data.jmp_targets.find( Target( address ) );
+	auto output_label = [this]( std::ostream &os, unsigned int address )
+	{
+		std::string label = targets.get_label( address );
+		if( !label.empty() )
+			os << label << ":\n";
 
-		if( it != data.jmp_targets.end() )
-			os << (*it);
+		os << "\t\t";
 	};
 
 	// configure the stream
@@ -550,19 +552,19 @@ std::ostream &operator<<( std::ostream &os, const OutputData &data )
 	os << std::hex << std::uppercase;
 
 	// write the header
-	os << "; Disasembly of " << data.bin_name << "\n";
+	os << "; Disasembly of " << bin_name << "\n";
 	os << "; Generated by chidisas8\n";
 	os << ";\n\n";
-	os << "\t.ORG " << format_address( data.origin ) << "\n\n";
+	os << "\t.ORG " << format_address( origin ) << "\n\n";
 
-	std::set<Instruction>::iterator instruction_iter = data.instructions.begin();
-	std::set<DataBytes>::iterator datarun_iter = data.databytes.begin();
+	std::set<Instruction>::iterator instruction_iter = instructions.begin();
+	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
 
-	while( instruction_iter != data.instructions.end() && datarun_iter != data.databytes.end() ) {
+	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
 
 		if( ( *instruction_iter ).get_address() < ( *datarun_iter ).get_address() ) {
 			output_label( os, (*instruction_iter).get_address() );
-			os << *instruction_iter;
+			instruction_iter->print( os, targets );
 			++instruction_iter;
 		} else {
 			output_label( os, (*datarun_iter).get_address() );
@@ -572,17 +574,15 @@ std::ostream &operator<<( std::ostream &os, const OutputData &data )
 	}
 
 	// what have we remaining
-	while( instruction_iter != data.instructions.end() ) {
+	while( instruction_iter != instructions.end() ) {
 		output_label( os, (*instruction_iter).get_address() );
-		os << *instruction_iter;
+		instruction_iter->print( os, targets );
 		++instruction_iter;
 	}
 
-	while( datarun_iter != data.databytes.end() ) {
+	while( datarun_iter != databytes.end() ) {
 		output_label( os, (*datarun_iter).get_address() );
 		os << *datarun_iter;
 		++datarun_iter;
 	}
-
-	return os;
 }

@@ -22,12 +22,14 @@
 #include <cstdint>
 #include <string>
 
+#include "target.h"
+
 class Instruction
 {
 public:
 	/* Default arguments so we can make an Instruction object for comparison (find) */
-	Instruction( unsigned int address, unsigned int opcode = 0, std::string mnemonic = "", std::string argument = "" ) :
-		address(address), opcode(opcode), mnemonic(mnemonic), argument(argument)
+	Instruction( unsigned int address, unsigned int opcode = 0, std::string mnemonic = "", std::string argument = "", uint16_t target_address = 0 ) :
+		address(address), opcode(opcode), mnemonic(mnemonic), argument(argument), target_address(target_address)
 	{}
 
 	bool operator<( const Instruction &rhs ) const { return address < rhs.address; };
@@ -35,14 +37,15 @@ public:
 
 	uint16_t get_address() const { return address; };
 
-	void print( std::ostream &os ) const;
+	void print( std::ostream &os, Targets& targets ) const;
 
 private:
 	uint16_t address;
 	uint16_t opcode;
 	std::string mnemonic;
 	std::string argument;
+	uint16_t target_address;
 };
 
-std::ostream& operator<<( std::ostream& os, const Instruction& inst );
+// std::ostream& operator<<( std::ostream& os, const Instruction& inst );
 

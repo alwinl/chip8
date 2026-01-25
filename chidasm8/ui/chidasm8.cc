@@ -58,9 +58,11 @@ int main( int argc, char *argv[] )
 
 	source_file >> input;
 
-	OutputData data = Disassembler(input).disassemble();
+	Disassembler worker(input);
 
-	output_file << data;
+	worker.disassemble();
+
+	worker.print_output( output_file );
 
 	return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * target.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * newtarget.h Copyright 2026 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,36 +19,45 @@
 
 #pragma once
 
+#include <vector>
+#include <array>
 #include <cstdint>
+#include <algorithm>
 #include <string>
-#include <ostream>
+#include <iterator>
+#include <cassert>
 
-class Target
+class Targets
 {
 public:
-	enum class eTargetKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
+	enum eKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
 
-	/* Default arguments so we can make a Target object for comparison (find) */
-	Target( uint16_t address, eTargetKind type = eTargetKind::UNKNOWN, std::string label = "" ) :
-		address( address ), type( type ), label( label )
-	{}
+	void add( uint16_t address, eKind kind ) { target_lists[kind].push_back( address ); };
 
-	bool operator<( const Target &rhs ) const { return address < rhs.address; }
-	bool operator==( const Target &rhs ) const { return address == rhs.address; }
+	void sort_vectors()
+	{
+		for( auto& target_list : target_lists ) {
+			std::sort( target_list.begin(), target_list.end() );
+			target_list.erase( std::unique( target_list.begin(), target_list.end()), target_list.end() );
+		}
+	}
 
-	std::string get_label() const { return label; }
+	std::string get_label( uint16_t address ) const
+	{
+		static constexpr std::array<const char *,eKind::COUNT> prefixes{ "DATA", "FUNC", "LABEL", "TABLE" };
 
-	void print( std::ostream &os ) const;
+		for( size_t kind = 0; kind < eKind::COUNT; ++ kind ) {
+
+			auto it = std::lower_bound( target_lists[kind].begin(), target_lists[kind].end(), address );
+			if( (it != target_lists[kind].end()) && (*it == address) )
+				return std::string(prefixes[kind]) + std::to_string( std::distance( target_lists[kind].begin(), it) );
+		}
+
+		return {};
+	}
 
 private:
-	uint16_t address;
-	eTargetKind type;
-	std::string label;
+	using ListArray = std::array<std::vector<uint16_t>, eKind::COUNT>;
+
+	ListArray target_lists;
 };
-
-std::ostream& operator<<( std::ostream& os, const Target& target );
-
-// enum class eTargetTypes { I_TARGET, SUBROUTINE, JUMP, INDEXED, UNKNOWN };
-// using TargetMapKey = std::pair<eTargetTypes, uint16_t>;
-
-// using TargetMap = std::unordered_map<

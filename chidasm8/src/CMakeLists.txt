@@ -25,7 +25,7 @@ add_library(
 	disassembler.cc
 	data_bytes.cc
 	instruction.cc
-	target.cc
+	# target.cc
 	utils.cc
 	memory.cc
 	commandlineparser.cc
