@@ -20,25 +20,16 @@
 include( GoogleTest )
 
 add_executable(
-    ebnf_compiler_test
-
-    ebnf_tokeniser_test.cc
-    ebnf_parser_test.cc
-    ebnf_generator_test.cc
-	ebnf_cmdlineparser_test.cc
-)
-
-add_executable(
     chip8_compiler_test
 
     chip8_cmdline_test.cc
     chip8_tokeniser_test.cc
     chip8_parser_test.cc
     chip8_ostream_test.cc
+    chip8_generator_test.cc
+	chip8_irbuilder_test.cc
+	chip8_irbuilder2_test.cc
 )
 
-target_link_libraries( ebnf_compiler_test  ebnf_compiler_lib gtest gtest_main )
 target_link_libraries( chip8_compiler_test chip8_compiler gtest gtest_main )
 
-gtest_discover_tests( ebnf_compiler_test TEST_PREFIX "ebnfcom/")
-gtest_discover_tests( chip8_compiler_test TEST_PREFIX "chicom8/")

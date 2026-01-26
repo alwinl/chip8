@@ -84,6 +84,9 @@ bool CmdLineParser::parse_args(int argc, char** argv)
 
 std::string CmdLineParser::get_input_name() const
 {
+    if (result.count("source") == 0U)
+		return {};
+
 	return result["source"].as<std::string>();
 }
 
@@ -91,6 +94,9 @@ std::string CmdLineParser::get_output_name() const
 {
 	if( result.count("o") != 0 )
         return result["o"].as<std::string>();
+
+    if (result.count("source") == 0U)
+		return {};
 
 	std::string const source = result["source"].as<std::string>();
     std::filesystem::path const path(source);

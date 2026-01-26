@@ -24,6 +24,8 @@
 #include <memory>
 #include <unordered_map>
 
+class IRBuilder;
+
 
 template <typename T>
 std::unique_ptr<T> clone_unique( const std::unique_ptr<T>& src )
@@ -81,6 +83,7 @@ struct Expr
     virtual std::unique_ptr<Expr> clone() const = 0;
 
     virtual void print( std::ostream& os ) const = 0;
+    virtual bool emit( IRBuilder& ir ) const = 0;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const Expr& expr )
@@ -97,6 +100,7 @@ struct Number : Expr
         { return std::make_unique<Number>( value ); }
 
     void print( std::ostream& os ) const override { os << "Number(" << value << ")"; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     int value;
 };
@@ -115,8 +119,9 @@ struct Bool : Expr
         { return std::make_unique<Bool>( value ); }
 
     void print( std::ostream& os ) const override { os << "Bool(" << value << ")"; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
-    bool value;
+	bool value;
 };
 
 inline std::ostream& operator<<( std::ostream& os, const Bool& boolean )
@@ -133,6 +138,7 @@ struct Identifier : Expr
         { return std::make_unique<Identifier>( value ); }
 
     void print( std::ostream& os ) const override { os << "Identifier(" << value << ")"; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     bool operator==( Identifier& other )
         { return value == other.value; }
@@ -158,6 +164,7 @@ struct BcdExpr  : Expr
         { return std::make_unique<BcdExpr>( clone_unique(identifier) ); }
 
     void print( std::ostream& os ) const override { os << "bcd " << identifier->value; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Identifier> identifier;
 };
@@ -174,6 +181,7 @@ struct RndExpr : Expr
         { return std::make_unique<RndExpr>( clone_unique(number_type) ); }
 
     void print( std::ostream& os ) const override { os << "rnd " << number_type; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Expr> number_type;
 };
@@ -190,6 +198,7 @@ struct KeyDownExpr : Expr
         { return std::make_unique<KeyDownExpr>( clone_unique(identifier) ); }
 
     void print( std::ostream& os ) const override { os << "keydown " << identifier->value; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Identifier> identifier;
 };
@@ -202,6 +211,7 @@ struct GetKeyExpr : Expr
         { return std::make_unique<GetKeyExpr>(); }
 
     void print( std::ostream& os ) const override { os << "getkey"; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 };
 
 struct FuncCallExpr : Expr
@@ -232,6 +242,7 @@ struct FuncCallExpr : Expr
         stream_unique_ptr_vector( os, args );
         os << ")";
     };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Identifier> name;
     std::vector<std::unique_ptr<Expr>> args;
@@ -261,6 +272,7 @@ struct BracedExpr : Expr
         { return std::make_unique<BracedExpr>( clone_unique(expr) ); }
 
     void print( std::ostream& os ) const override { os << "( " << expr << " )"; };
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Expr> expr;
 };
@@ -289,6 +301,7 @@ struct UnaryExpr : Expr
 
         os << expr << ")";
     }
+    bool emit( IRBuilder& ir ) const override { return true; };
 
     std::unique_ptr<Expr> expr;
     Operator op;
@@ -329,6 +342,7 @@ struct BinaryExpr : Expr
 
         os << rhs << ")";
     }
+    bool emit( IRBuilder& ir ) const override;
 
     std::unique_ptr<Expr> lhs;
     Operator op;
@@ -343,6 +357,7 @@ struct Stmt
     virtual ~Stmt() noexcept = default;
     virtual std::unique_ptr<Stmt> clone() const = 0;
     virtual void print( std::ostream& os ) const = 0;
+    virtual bool emit( IRBuilder& ir ) const = 0;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Stmt& stmt)
@@ -374,6 +389,8 @@ struct ExprStmt : Stmt
         { return std::make_unique<ExprStmt>(clone_unique(expr) ); }
 
     void print( std::ostream& os ) const override { os << expr << ";\n"; };
+
+    bool emit( IRBuilder& ir ) const override;
 
     std::unique_ptr<Expr> expr;
 };
@@ -415,7 +432,9 @@ struct IfStmt : Stmt
         if( else_branch )
             os << "else\n\t" << *else_branch << "\n";
     };
-    
+
+    bool emit( IRBuilder& ir ) const override;
+
     std::unique_ptr<Expr> condition;
     std::unique_ptr<Stmt> then_branch;
     std::unique_ptr<Stmt> else_branch; // may be nullptr
@@ -452,7 +471,9 @@ struct WhileStmt : Stmt
     {
         os << "while( " << condition << ")\n\t" << body << "\n";
     };
-    
+
+    bool emit( IRBuilder& ir ) const override;
+
     std::unique_ptr<Expr> condition;
     std::unique_ptr<Stmt> body;
 };
@@ -488,7 +509,9 @@ struct ReturnStmt : Stmt
             os << " " << value;
         os << ";\n";
     };
-    
+
+    bool emit( IRBuilder& ir ) const override;
+
     std::unique_ptr<Expr> value; // may be nullptr
 };
 
@@ -532,6 +555,8 @@ struct DrawStmt : Stmt
         os << ";\n";
     };
 
+    bool emit( IRBuilder& ir ) const override;
+
     std::unique_ptr<Identifier> sprite_id;
     std::unique_ptr<Expr> x;
     std::unique_ptr<Expr> y;
@@ -573,7 +598,9 @@ struct BlockStmt : Stmt
         //     os << "\t" << statement;
         os << "}\n";
     };
-    
+
+    bool emit( IRBuilder& ir ) const override;
+
     std::vector<std::unique_ptr<Stmt>> statements;
 };
 
@@ -586,6 +613,8 @@ struct Decl
     virtual ~Decl() noexcept = default;
     virtual std::unique_ptr<Decl> clone() const = 0;
     virtual void print( std::ostream& os ) const = 0;
+    virtual bool emit( IRBuilder& ir ) const = 0;
+
 };
 
 inline std::ostream& operator<<( std::ostream& os, const Decl& decl )
@@ -612,7 +641,7 @@ struct VarDecl : Decl
     VarDecl( std::unique_ptr<Identifier> identifier, eTypes type, std::unique_ptr<Expr> byte_size = nullptr )
         : identifier( std::move(identifier)), type(type), byte_size( std::move(byte_size) ) {}
 
-    VarDecl(const VarDecl& other) : identifier( clone_unique( other.identifier ) ), 
+    VarDecl(const VarDecl& other) : identifier( clone_unique( other.identifier ) ),
         type( other.type ), byte_size( clone_unique(other.byte_size) )
     {}
 
@@ -639,6 +668,8 @@ struct VarDecl : Decl
             os << " " << byte_size;
     }
 
+    bool emit( IRBuilder& ir ) const override;
+
     std::unique_ptr<Identifier> identifier;
     eTypes type;
     std::unique_ptr<Expr> byte_size;
@@ -660,7 +691,7 @@ struct FuncDecl : Decl
         : identifier(std::move(identifier)), params(std::move(params)), vars(std::move(vars)), body(std::move(body))
     {}
 
-    FuncDecl(const FuncDecl& other) : identifier( clone_unique( other.identifier ) ), 
+    FuncDecl(const FuncDecl& other) : identifier( clone_unique( other.identifier ) ),
         params( clone_vector(other.params) ), vars( clone_vector(other.vars) ), body( clone_vector(other.body) )
     {}
 
@@ -688,7 +719,7 @@ struct FuncDecl : Decl
         os << "func " << identifier << "(";
         stream_unique_ptr_vector( os, params, ", " );
         os << ")\n";
-        
+
         os << "\t\t{\n";
         os << "\t\t\t";
         stream_unique_ptr_vector( os, vars, ", " );
@@ -697,6 +728,8 @@ struct FuncDecl : Decl
         stream_unique_ptr_vector( os, body, ", " );
         os << "\n\t\t}\n\t)";
     }
+
+    bool emit( IRBuilder& ir ) const override;
 
     std::unique_ptr<Identifier> identifier;
     std::vector<std::unique_ptr<VarDecl>> params;

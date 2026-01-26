@@ -19,37 +19,96 @@
 
 #include "generator.h"
 
-void Generator::setup()
+#include "ir_builder.h"
+
+// void Generator::setup()
+// {
+//     constexpr uint16_t CHIP8_START = 0x200;
+
+//     binary.reserve(4096 - CHIP8_START);
+// }
+
+// void Generator::getEntryPoint()
+// {
+// 	FuncDecl* entrypoint = nullptr;
+
+//     for (auto& decl : program.declarations) {
+
+//         if (auto& func = dynamic_cast<const FuncDecl*>(&decl)) {
+//             if( *func->identifier == Identifier("main") ) {
+//                 if (entrypoint)
+//                     throw std::runtime_error("Multiple definitions of 'main'");
+//                 entrypoint = ;
+//             }
+//         }
+//     }
+
+//     if (!foundMain)
+//         throw std::runtime_error("Program must define a function 'main'");
+// }
+
+// void Generator::emit_startup()
+// {
+//     uint16_t mainAddress = 0x202; //symbolTable["main"].address;
+
+//     // Encode CALL main (2-byte instruction)
+//     uint16_t callInstr = 0x2000 | (mainAddress & 0x0FFF);
+//     binary.push_back((callInstr >> 8) & 0xFF);
+//     binary.push_back(callInstr & 0xFF);
+// }
+
+// void Generator::emitFunction( FuncDecl *func ) {}
+
+std::string Generator::emit_assembly( std::string source )
 {
-    constexpr uint16_t CHIP8_START = 0x200;
-    
-    binary.reserve(4096 - CHIP8_START);    
+
+	Program program = Parser().make_AST( source );
+
+	IRBuilder ir;
+
+	for (const auto& decl : program.declarations)
+		decl->emit( ir );
+
+	std::ostringstream out;
+
+	out << ir;
+
+	return out.str();
 }
 
-void Generator::emit_startup()
+void Generator::emit_function( const FuncDecl& func, std::ostream& out )
 {
-    uint16_t mainAddress = 0x202; //symbolTable["main"].address;
+	IRBuilder builder;
 
-    // Encode CALL main (2-byte instruction)
-    uint16_t callInstr = 0x2000 | (mainAddress & 0x0FFF);
-    binary.push_back((callInstr >> 8) & 0xFF);
-    binary.push_back(callInstr & 0xFF);
+	for( const auto& stmt : func.body ) {
+		if( !stmt->emit( builder ) )
+			break;
+	}
 }
 
-void Generator::emitFunction( FuncDecl *func ) {}
-
-void Generator::evaluate()
+bool Generator::emit_stmt( const Stmt& stmt, std::ostream& out )
 {
-    for( auto decl : program.declarations ) {
-        if( auto func = dynamic_cast<FuncDecl*>(decl) )
-            emitFunction( func );
-    }
+	if (dynamic_cast<const ReturnStmt*>(&stmt)) {
+		// terminate function immediately
+		return false;
+	}
+
+	// everything else ignored for now
+	return true;
 }
 
-void Generator::write_to_file( std::string file_name )
-{
-    std::ofstream out( file_name, std::ios::binary );
+// void Generator::evaluate()
+// {
+//     for( auto decl : program.declarations ) {
+//         if( auto func = dynamic_cast<FuncDecl*>(decl) )
+//             emitFunction( func );
+//     }
+// }
 
-    out.write( reinterpret_cast<const char*>(binary.data()), binary.size() );    
-}
+// void Generator::write_to_file( std::string file_name )
+// {
+//     std::ofstream out( file_name, std::ios::binary );
+
+//     out.write( reinterpret_cast<const char*>(binary.data()), binary.size() );
+// }
 

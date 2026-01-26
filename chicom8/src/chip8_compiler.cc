@@ -27,20 +27,18 @@
 
 void Chip8Compiler::compile_file(const std::string& input_path, const std::string& output_path)
 {
+    std::ofstream outfile(output_path, std::ios::binary);
+    if (!outfile) throw std::runtime_error("Failed to open output file");
+
     Tokeniser tokeniser( input_path );
 
     Tokens const tokens = tokeniser.tokenise_all();
 
-    Parser parser( tokens );
+    Parser parser;
 
-    Program const program = parser.AST();
+    Program const program = parser.make_AST( tokens );
 
-    // std::ifstream infile(input_path);
-    // if (!infile) throw std::runtime_error("Failed to open input file");
-
-    std::ofstream outfile(output_path, std::ios::binary);
-    if (!outfile) throw std::runtime_error("Failed to open output file");
-
+	// Generator const generator( program );
     // Just a stub for now
     outfile.put(0x00); // e.g., CLS opcode
 }

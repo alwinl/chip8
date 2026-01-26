@@ -27,22 +27,31 @@
 #include "parser.h"
 
 
+
 class Generator
 {
 public:
-    Generator(Program& program) : program(program) {};
+    Generator() = default;
+    // Generator( const std::string& source ) : program  {}
+    // Generator( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ) {}
 
-    void evaluate();
+	std::string emit_assembly( std::string source );
+    // void evaluate();
 
-    void write_to_file( std::string file_name );
+    // void write_to_file( std::string file_name );
 
 private:
-    std::vector<uint8_t> binary;
-    
-    Program& program;
+	void emit_function( const FuncDecl& func, std::ostream& out );
+	bool emit_stmt( const Stmt& stmt, std::ostream& out );
+    // std::vector<uint8_t> binary;
 
-    void setup();
-    void emit_startup();
+    // const Program& program;
 
-    void emitFunction( FuncDecl* func );
+    // void setup();
+    // void emit_startup();
+
+    // void emitFunction( FuncDecl* func );
+
+	// void getEntryPoint();
+
 };

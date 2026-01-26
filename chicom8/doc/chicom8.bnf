@@ -2,24 +2,13 @@
 
 <decl>            ::= <func_decl> | <var_decl> ;
 
-<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <param_list>? PUNCTUATION(")") PUNCTUATION("{") <func_imp>* PUNCTUATION("}") ;
+<func_decl>       ::= KEYWORD("func") IDENTIFIER PUNCTUATION("(") <var_decl>* PUNCTUATION(")")
+						PUNCTUATION("{")
+							<var_decl>*
+							<stmt>*
+						PUNCTUATION("}") ;
 
-<func_imp>        ::= <var_decl> | <stmt> ;
-
-<param_list>      ::= <typed_identifier> ( PUNCTUATION(",") <typed_identifier> )* ;
-
-<var_decl>        ::= KEYWORD("var") <typed_identifier> PUNCTUATION(";") ;
-
-<typed_identifier> ::= IDENTIFIER PUNCTUATION(":") <type> ;
-
-<type> ::= TYPE_KEYWORD("nibble")
-         | TYPE_KEYWORD("byte")
-         | TYPE_KEYWORD("snack")
-         | TYPE_KEYWORD("number")
-         | TYPE_KEYWORD("bool")
-         | TYPE_KEYWORD("key")
-         | TYPE_KEYWORD("sprite")
-         ;
+<var_decl>        ::= KEYWORD("var") (IDENTIFIER PUNCTUATION(":") TYPE_KEYWORD) PUNCTUATION(";") ;
 
 <stmt>            ::= <expr_stmt>
                    | <if_stmt>
@@ -27,6 +16,7 @@
                    | <draw_stmt>
                    | <return_stmt>
                    | <block_stmt>
+				   | <assignment>
                    ;
 
 <expr_stmt>       ::= <expr> PUNCTUATION(";") ;
@@ -39,10 +29,12 @@
 
 <return_stmt>     ::= KEYWORD("return") <expr>? PUNCTUATION(";") ;
 
-<block_stmt>           ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
+<block_stmt>      ::= PUNCTUATION("{") <stmt>* PUNCTUATION("}") ;
+
+<assignment>      ::= IDENTIFIER OPERATOR("=") <expr> ;
 
 
-<expr>            ::= IDENTIFIER OPERATOR("=") <expr> | <logic_or> ;
+<expr>            ::= <logic_or> ;
 
 <logic_or>        ::= <logic_and> ( OPERATOR("||") <logic_and> )* ;
 

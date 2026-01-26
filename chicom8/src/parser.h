@@ -27,14 +27,14 @@
 
 class Parser {
 public:
-    Parser( const Tokens& tokens ) : tokens(tokens ) {}
-    Parser( const std::string& source ) : tokens( Tokeniser( source ).tokenise_all() )  {}
-    Parser( std::filesystem::path file_path ) : tokens( Tokeniser( file_path ).tokenise_all() ) {}
+	Parser() = default;
 
-    Program AST();
+    Program make_AST( const Tokens tokens );
+    Program make_AST( const std::string& source );
+    Program make_AST( std::filesystem::path file_path );
 
 protected:
-    const Tokens& tokens;
+	Tokens tokens;
     Tokens::const_iterator cursor;
 
     void forward_cursor();

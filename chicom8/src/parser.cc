@@ -76,9 +76,47 @@ Token Parser::consume( Token::Type type, const std::string &lexeme, const std::s
         " at line " + std::to_string(peek().line) );
 }
 
-Program Parser::AST()
+Program Parser::make_AST( const Tokens tokens )
 {
     Program program;
+
+	this->tokens = tokens;
+
+    cursor = tokens.begin();
+
+    while( match( Token::Type::COMMENT ) )
+        ++cursor;
+
+    while( ! match( Token::Type::END_OF_INPUT ) )
+        program.declarations.push_back(parse_decl());
+
+    return program;
+}
+
+Program Parser::make_AST( const std::string& source )
+{
+	Tokeniser tokeniser( source );
+    Program program;
+
+	this->tokens = tokeniser.tokenise_all();
+
+    cursor = tokens.begin();
+
+    while( match( Token::Type::COMMENT ) )
+        ++cursor;
+
+    while( ! match( Token::Type::END_OF_INPUT ) )
+        program.declarations.push_back(parse_decl());
+
+    return program;
+}
+
+Program Parser::make_AST( std::filesystem::path file_path )
+{
+	Tokeniser tokeniser( file_path );
+    Program program;
+
+	this->tokens = tokeniser.tokenise_all();
 
     cursor = tokens.begin();
 

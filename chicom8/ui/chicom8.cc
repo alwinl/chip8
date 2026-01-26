@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
 {
 	CmdLineParser args;
 
-	args.parse_args(argc, argv);
+	if( !args.parse_args(argc, argv) )
+		return 1;
 
     std::string input_file = args.get_input_name();
     std::string output_file = args.get_output_name();
