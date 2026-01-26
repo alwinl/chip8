@@ -21,24 +21,19 @@
 #include <vector>
 #include <stdexcept>
 
-#include "commandlineparser.h"
+#include "ebnf_cmdlineparser.h"
 
 #include <iostream>
 
-CommandLineParser::CommandLineParser( int argc, char **argv ) : options( "chicom8", "A C-like compiler for Chip-8" )
+bool CmdLineParser::parse_args( std::vector<std::string> arguments )
 {
-	parse_args( argc, argv );
-}
-
-CommandLineParser::CommandLineParser( std::vector<std::string> arguments ) : options("chicom8", "A C-like compiler for Chip-8" )
-{
-    if (arguments.empty())
-        throw std::invalid_argument("No arguments provided");
+    if( arguments.empty() )
+		return false;
 
     // Convert std::vector<std::string> to argc/argv
     std::vector<char*> argv_ptrs;
     argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
-    std::string fake_prog_name = "chicom8";
+    std::string fake_prog_name = "ebnf_compiler";
     argv_ptrs.push_back(fake_prog_name.data());
 
     for (std::string& arg : arguments)
@@ -47,15 +42,23 @@ CommandLineParser::CommandLineParser( std::vector<std::string> arguments ) : opt
     int const argc = static_cast<int>(argv_ptrs.size());
     char** argv = argv_ptrs.data();
 
-	parse_args(argc, argv);
+	return parse_args(argc, argv);
 }
 
-void CommandLineParser::parse_args(int argc, char** argv)
+bool CmdLineParser::parse_args(int argc, char** argv)
 {
+    cxxopts::Options options( "ebnf_compiler", "An AST generation utility" );
+
     options.add_options()
         ("h,help", "Show this help message")
         ("v,verbose", "Verbose output")
-        ("o", "Output file name", cxxopts::value<std::string>())
+		("t,token", "Produce a token list")
+		("g,graph", "Produce a graph")
+		("s,svg", "Produce a grammar represention as an SVG image")
+		("j,json", "Produce a grammar represention as a JSON object")
+		("ast", "Produce an AST header file", cxxopts::value<std::string>() )
+		("tarjan", "Produce output from Tarjan transformer" )
+        ("o,output", "Output file name", cxxopts::value<std::string>())
         ("source", "Input file name", cxxopts::value<std::string>());
 
     options.parse_positional({"source"});
@@ -68,42 +71,92 @@ void CommandLineParser::parse_args(int argc, char** argv)
     catch (const cxxopts::exceptions::exception& e) {
         std::cerr << "Error parsing command line options: " << e.what() << '\n';
         std::cerr << options.help() << std::endl;
-        std::exit(1);
+		return false;
     }
 
     if (result.count("help") != 0U) {
         std::cout << options.help() << '\n';
-        std::exit(0);
+		return false;
     }
 
     if (result.count("source") == 0U) {
         std::cerr << "Error: Source file is required.\n";
         std::cerr << options.help() << '\n';
-        std::exit(1);
+		return false;
     }
+
+	return true;
 }
 
-std::string CommandLineParser::get_input_name() const
+std::string CmdLineParser::get_input_name() const
 {
 	return result["source"].as<std::string>();
 }
 
-std::string CommandLineParser::get_output_name() const
+std::string CmdLineParser::get_output_name() const
 {
-	if( result.count("o") != 0 )
-        return result["o"].as<std::string>();
+	if( result.count("output") != 0 )
+        return result["output"].as<std::string>();
 
-	std::string const source = result["source"].as<std::string>();
-    std::filesystem::path const path(source);
-    return path.stem().string() + ".ch8";
+	// std::string const source = result["source"].as<std::string>();
+    // std::filesystem::path const path(source);
+	// if( produce_token_list() )
+    // 	return path.stem().string() + ".txt";
+
+	return "-";
 }
 
-bool CommandLineParser::is_verbose() const
+bool CmdLineParser::is_verbose() const
 {
     return result["verbose"].as<bool>();
 }
 
-bool CommandLineParser::show_help() const
+bool CmdLineParser::produce_token_list() const
+{
+    return result["token"].as<bool>();
+}
+
+bool CmdLineParser::produce_grammar_json() const
+{
+    return result["json"].as<bool>();
+}
+
+bool CmdLineParser::produce_svg() const
+{
+    return result["svg"].as<bool>();
+}
+
+bool CmdLineParser::produce_graph() const
+{
+    return result["graph"].as<bool>();
+}
+
+
+bool CmdLineParser::show_help() const
 {
     return result.count("help") > 0;
+}
+
+std::string CmdLineParser::get_ast_header_name() const
+{
+	if( result.count("ast") != 0 )
+        return result["ast"].as<std::string>();
+
+	return std::string();
+}
+
+std::string CmdLineParser::get_tarjan_name() const
+{
+	if( result.count("tarjan") == 0 )
+		return std::string();
+
+	if( result.count("output") != 0 )
+        return result["output"].as<std::string>();
+
+	return std::string("-");
+}
+
+std::string CmdLineParser::get_ast_source_name() const
+{
+	return std::string();
 }

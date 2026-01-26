@@ -26,4 +26,4 @@ add_executable(
 )
 
 target_link_libraries( chidasm8_tests PRIVATE gtest gtest_main chidasm8_logic)
-gtest_discover_tests( chidasm8_tests )
+gtest_discover_tests( chidasm8_tests TEST_PREFIX "chidasm8/")

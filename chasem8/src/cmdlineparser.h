@@ -24,20 +24,21 @@
 #include <string>
 #include <vector>
 
-class CommandLineParser
+class CmdLineParser
 {
 public:
-    CommandLineParser( std::vector<std::string> arguments );
-    CommandLineParser( int argc, char ** argv );
+	CmdLineParser() = default;
+
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
 
     std::string get_source_name();
-    std::string get_program_name();
-	std::string get_output_name();
+	std::string get_binary_name();
+	std::string get_listing_name();
     bool is_verbose() const;
     bool show_help() const;
 
 private:
-    cxxopts::Options options;
     cxxopts::ParseResult result;
 
 	const std::string get_output_prefix();

@@ -20,7 +20,7 @@
 add_library(
 	chasem8_logic
 
-	commandlineparser.cc
+	cmdlineparser.cc
 	assembler.cc
 	symboltable.cc
 	instruction.cc

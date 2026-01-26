@@ -15,8 +15,32 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
-#include "quirks.h"
+#pragma once
+
+#include "../vendor/cxxopts/cxxopts.hpp"
+
+#include <string>
+#include <vector>
+
+class CmdLineParser
+{
+public:
+	CmdLineParser() = default;
+
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
+
+    std::string get_source_name();
+    std::string get_program_name();
+	std::string get_output_name();
+    bool is_verbose() const;
+    bool is_clean() const;
+    bool show_help() const;
+
+private:
+    cxxopts::ParseResult result;
+
+	const std::string get_output_prefix();
+};

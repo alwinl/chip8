@@ -23,12 +23,12 @@ add_library(
 	chidasm8_logic
 
 	disassembler.cc
-	data_bytes.cc
+	# data_bytes.cc
 	# instruction.cc
 	# target.cc
 	utils.cc
 	memory.cc
-	commandlineparser.cc
+	cmdlineparser.cc
 	# filenameextractor.cc
 	# instruction.cc
 	# program.cc

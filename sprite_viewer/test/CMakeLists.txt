@@ -26,4 +26,4 @@ add_executable(
 )
 
 target_link_libraries( spriteviewer_test gtest gtest_main )
-gtest_discover_tests(spriteviewer_test)
+gtest_discover_tests(spriteviewer_test TEST_PREFIX "spriteview/")

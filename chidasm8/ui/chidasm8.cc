@@ -22,14 +22,16 @@
 #include <fstream>
 #include <iostream>
 
-#include "commandlineparser.h"
+#include "cmdlineparser.h"
 #include "disassembler.h"
 
 int main( int argc, char *argv[] )
 {
 	static const unsigned int start_address = 0x200;
 
-	CommandLineParser args( argc, argv );
+	CmdLineParser args;
+
+	args.parse_args( argc, argv );
 
 	std::ifstream source_file = std::ifstream( args.get_source_name(), std::ios::in | std::ios::binary );
 	if( source_file.fail() ) {

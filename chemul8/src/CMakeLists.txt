@@ -20,9 +20,9 @@
 add_library(
 	chemul8_logic
 
-	cmdline_processor.cc
+	cmdlineparser.cc
 	chip8.cc
-	quirks.cc
+	# quirks.cc
 )
 
 target_include_directories( chemul8_logic INTERFACE ./ )

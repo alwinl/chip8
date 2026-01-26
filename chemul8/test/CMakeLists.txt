@@ -26,7 +26,4 @@ add_executable(
 )
 
 target_link_libraries( chemul8_tests PRIVATE gtest gtest_main )
-gtest_discover_tests( chemul8_tests )
-
-
-# add_test( FilenameExtractorTest::ValidCreation chemul8_tests FilenameExtractorTest::ValidCreation )
+gtest_discover_tests( chemul8_tests TEST_PREFIX "chemul8/")

@@ -33,3 +33,7 @@
 //     EXPECT_NE(output.find("struct <Ident>"), std::string::npos);
 // }
 
+#include "ebnf_cmdlineparser.h"
+
+#include <gtest/gtest.h>
+

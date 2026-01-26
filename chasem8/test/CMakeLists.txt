@@ -22,7 +22,7 @@ include( GoogleTest )
 add_executable(
 	chasem8_tests
 
-	commandlineparsertest.cc
+	cmdlineparsertest.cc
 	assemblertest.cc
 	symboltabletest.cc
 	instructiontest.cc
@@ -30,4 +30,4 @@ add_executable(
 )
 
 target_link_libraries( chasem8_tests PRIVATE gtest gtest_main chasem8_logic )
-gtest_discover_tests( chasem8_tests )
+gtest_discover_tests( chasem8_tests TEST_PREFIX "chasem8/" )

@@ -17,24 +17,32 @@
  * MA 02110-1301, USA.
  */
 
-#include "cmdline_processor.h"
+#include "cmdlineparser.h"
 
 #include <iostream>
 
-CmdlineProcessor::CmdlineProcessor( int argc, char ** argv )
+bool CmdLineParser::parse_args( std::vector<std::string> arguments )
 {
-    cxxopts::Options options = build_options();
+    if( arguments.empty() )
+		return false;
 
-    auto result = options.parse(argc, argv);
+    // Convert std::vector<std::string> to argc/argv
+    std::vector<char*> argv_ptrs;
+    argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
+    std::string fake_prog_name = "chasem8";
+    argv_ptrs.push_back(fake_prog_name.data());
 
-    if( !validate( options, result ) )
-        return;
+    for (std::string& arg : arguments)
+        argv_ptrs.push_back(arg.data());
 
-    chip_type = decode_chip_type( result );
-    program = result["romfile"].as<std::string>();
+    int argc = static_cast<int>(argv_ptrs.size());
+    char** argv = argv_ptrs.data();
+
+	return parse_args(argc, argv);
 }
 
-cxxopts::Options CmdlineProcessor::build_options()
+
+bool CmdLineParser::parse_args( int argc, char ** argv )
 {
     cxxopts::Options options("chemul8", "My chip8 emulator");
 
@@ -45,14 +53,19 @@ cxxopts::Options CmdlineProcessor::build_options()
         ("h,help", "Print usage")
         ("romfile", "CHIP-8 ROM file to load", cxxopts::value<std::string>());
 
-    options.parse_positional({"romfile"});		
+    options.parse_positional({"romfile"});
     options.positional_help("romfile");
+	options.show_positional_help();
 
-    return options;
-}
+	try {
+		result = options.parse(argc, argv);
+	}
+	catch (const cxxopts::exceptions::exception& e) {
+		std::cerr << "Error parsing command line options: " << e.what() << std::endl;
+		std::cerr << options.help() << std::endl;
+		return false;
+	}
 
-bool CmdlineProcessor::validate( cxxopts::Options options, cxxopts::ParseResult result )
-{
     if( result.count("help") ) {
         std::cout << options.help() << std::endl;
         return false;
@@ -64,20 +77,26 @@ bool CmdlineProcessor::validate( cxxopts::Options options, cxxopts::ParseResult 
         return false;
     }
 
-    return true;
+	return true;
 }
 
-Quirks::eChipType CmdlineProcessor::decode_chip_type( cxxopts::ParseResult result )
+std::string CmdLineParser::get_program()
 {
-    if( result.count( "chip8" ) )
-        return Quirks::eChipType::CHIP8;
-
-    if( result.count( "xochip") )
-        return Quirks::eChipType::XOCHIP;
-
-    if( result.count( "schip") )
-        return Quirks::eChipType::SCHIP;
-
-    return Quirks::eChipType::CHIP8;
+	return result["romfile"].as<std::string>();
 }
+
+
+// Quirks::eChipType CmdlineProcessor::decode_chip_type( cxxopts::ParseResult result )
+// {
+//     if( result.count( "chip8" ) )
+//         return Quirks::eChipType::CHIP8;
+
+//     if( result.count( "xochip") )
+//         return Quirks::eChipType::XOCHIP;
+
+//     if( result.count( "schip") )
+//         return Quirks::eChipType::SCHIP;
+
+//     return Quirks::eChipType::CHIP8;
+// }
 

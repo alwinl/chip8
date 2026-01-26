@@ -25,7 +25,7 @@
 
 #include "resourcelayer.h"
 #include "chip8.h"
-#include "cmdline_processor.h"
+#include "cmdlineparser.h"
 
 size_t load_program( std::string &program, uint8_t* buffer )
 {
@@ -97,7 +97,9 @@ int run( std::string program )
 
 int main( int argc, char *argv[] )
 {
-	CmdlineProcessor cmd_line( argc, argv );
+	CmdLineParser cmd_line;
+
+	cmd_line.parse_args( argc, argv );
 
 	if( cmd_line.get_program().empty() )
 		return -1;

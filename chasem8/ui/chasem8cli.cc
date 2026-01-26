@@ -20,12 +20,15 @@
 #include <fstream>
 #include <iostream>
 
-#include "commandlineparser.h"
+#include "cmdlineparser.h"
 #include "assembler.h"
 
 int main( int argc, char **argv )
 {
-	CommandLineParser args( argc, argv );
+	CmdLineParser args;
+
+	if( ! args.parse_args( argc, argv ) )
+		return 1;
 
 	std::ifstream source = std::ifstream( args.get_source_name(), std::ios::in );
 	if( source.fail() ) {

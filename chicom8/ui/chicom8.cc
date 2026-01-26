@@ -18,13 +18,15 @@
  */
 
 #include "chip8_compiler.h"
-#include "commandlineparser.h"
+#include "cmdlineparser.h"
 
 #include <iostream>
 
 int main(int argc, char* argv[])
 {
-	CommandLineParser args(argc, argv);
+	CmdLineParser args;
+
+	args.parse_args(argc, argv);
 
     std::string input_file = args.get_input_name();
     std::string output_file = args.get_output_name();

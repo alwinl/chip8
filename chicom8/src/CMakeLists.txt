@@ -21,17 +21,9 @@ add_library(
     chip8_compiler STATIC
 
     chip8_compiler.cc
-    chip8_compiler.h
-
-    commandlineparser.cc
-    commandlineparser.h
-
+    cmdlineparser.cc
     tokeniser.cc
-    tokeniser.h
-
     chip8_ast.cc
-    chip8_ast.h
-
     parser.cc
     parser.h
 )

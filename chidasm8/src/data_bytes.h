@@ -40,12 +40,20 @@ public:
 
 	uint16_t get_address() const { return address; }
 
-	void print( std::ostream &os ) const;
+	void print( std::ostream &os, bool is_clean ) const
+	{
+		if( !is_clean )
+			os << address;
+
+		os << ".DB\t";
+
+		for( uint8_t byte : byte_run )
+			os << format_byte( byte ) << " ";
+
+		os << '\n';
+	};
 
 private:
 	uint16_t address;
 	std::vector<uint8_t> byte_run;
 };
-
-std::ostream& operator<<( std::ostream& os, const DataBytes& data_bytes );
-

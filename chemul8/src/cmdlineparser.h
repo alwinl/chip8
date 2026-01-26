@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Alwin Leerling <dna.leerling@gmail.com>
+ * cmdline_processor.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,33 @@
 
 #pragma once
 
+#include <string>
+
 #include "../vendor/cxxopts/cxxopts.hpp"
 
-#include <string>
-#include <vector>
+// #include "quirks.h"
 
-class CommandLineParser
+class CmdLineParser
 {
 public:
-    CommandLineParser( std::vector<std::string> arguments );
-    CommandLineParser( int argc, char ** argv );
+	CmdLineParser() = default;
 
-    std::string get_source_name();
-	std::string get_binary_name();
-	std::string get_listing_name();
-    bool is_verbose() const;
-    bool show_help() const;
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
+
+
+	// Quirks::eChipType get_chip_type() { return chip_type; };
+	std::string get_program();
 
 private:
-    cxxopts::Options options;
     cxxopts::ParseResult result;
 
-	const std::string get_output_prefix();
+
+	// Quirks::eChipType chip_type = Quirks::eChipType::CHIP8;
+	std::string program;
+
+	cxxopts::Options build_options();
+	bool validate( cxxopts::Options options, cxxopts::ParseResult result );
+	// Quirks::eChipType decode_chip_type( cxxopts::ParseResult result );
 };
+

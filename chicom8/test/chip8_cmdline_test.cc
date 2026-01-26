@@ -17,11 +17,11 @@
  * MA 02110-1301, USA.
  */
 
-#include "commandlineparser.h"
+#include "cmdlineparser.h"
 
 #include <gtest/gtest.h>
 
-TEST(Chicom8_CommandLineParserTest, ParsesBasicArguments)
+TEST(Chicom8_CmdLineParserTest, ParsesBasicArguments)
 {
     std::vector<std::string> args = {
         "--verbose",
@@ -29,7 +29,8 @@ TEST(Chicom8_CommandLineParserTest, ParsesBasicArguments)
         "program.c8c"
     };
 
-    CommandLineParser parser(args);
+    CmdLineParser parser;
+	parser.parse_args(args);
 
     EXPECT_EQ(parser.get_input_name(), "program.c8c");
     EXPECT_EQ(parser.get_output_name(), "out.ch8");
@@ -37,25 +38,27 @@ TEST(Chicom8_CommandLineParserTest, ParsesBasicArguments)
     EXPECT_FALSE(parser.show_help());
 }
 
-TEST(Chicom8_CommandLineParserTest, UsesDefaultOutputIfNotProvided)
+TEST(Chicom8_CmdLineParserTest, UsesDefaultOutputIfNotProvided)
 {
     std::vector<std::string> args = {
         "examples/main.c8c"
     };
 
-    CommandLineParser parser(args);
+    CmdLineParser parser;
+	parser.parse_args(args);
 
     EXPECT_EQ(parser.get_input_name(), "examples/main.c8c");
     EXPECT_EQ(parser.get_output_name(), "main.ch8");  // From stem of input file
 }
 
-TEST(Chicom8_CommandLineParserTest, HandlesHelpFlag)
+TEST(Chicom8_CmdLineParserTest, HandlesHelpFlag)
 {
     std::vector<std::string> args = {
         "--help"
     };
 
-    CommandLineParser parser(args);
+    CmdLineParser parser;
+	parser.parse_args(args);
 
     EXPECT_EQ(parser.get_input_name(), "");
     EXPECT_EQ(parser.get_output_name(), "");

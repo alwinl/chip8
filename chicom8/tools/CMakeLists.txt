@@ -20,11 +20,13 @@
 add_library(
     ebnf_compiler_lib STATIC
 
+	ebnf_cmdlineparser.cc
     ebnf_tokeniser.cc
     ebnf_token.cc
     ebnf_parser.cc
     ebnf_ast.cc
     ebnf_printer.cc
+    ebnf_jsonprinter.cc
     ebnf_graph.cc
     ebnf_transformer.cc
     ebnf_generator.cc
