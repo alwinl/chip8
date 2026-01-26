@@ -54,7 +54,7 @@ void Disassembler::disassemble()
 	collect_data_bytes( );
 }
 
-void Disassembler::print_output( std::ostream &os )
+void Disassembler::print_output( std::ostream &os, bool is_clean )
 {
 	auto output_label = [this]( std::ostream &os, unsigned int address )
 	{
@@ -84,11 +84,11 @@ void Disassembler::print_output( std::ostream &os )
 		if( ( *instruction_iter ).get_address() < ( *datarun_iter ).get_address() ) {
 			output_label( os, (*instruction_iter).get_address() );
 			std::string label = targets.get_label( instruction_iter->get_target_address() );
-			instruction_iter->print( os, label );
+			instruction_iter->print( os, label, is_clean );
 			++instruction_iter;
 		} else {
 			output_label( os, (*datarun_iter).get_address() );
-			os << *datarun_iter;
+			datarun_iter->print( os, is_clean );
 			++datarun_iter;
 		}
 	}
@@ -97,13 +97,13 @@ void Disassembler::print_output( std::ostream &os )
 	while( instruction_iter != instructions.end() ) {
 		output_label( os, (*instruction_iter).get_address() );
 		std::string label = targets.get_label( instruction_iter->get_target_address() );
-		instruction_iter->print( os, label );
+		instruction_iter->print( os, label, is_clean );
 		++instruction_iter;
 	}
 
 	while( datarun_iter != databytes.end() ) {
 		output_label( os, (*datarun_iter).get_address() );
-		os << *datarun_iter;
+		datarun_iter->print( os, is_clean );
 		++datarun_iter;
 	}
 }

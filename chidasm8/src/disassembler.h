@@ -42,7 +42,7 @@ public:
 
     void disassemble();
 
-	void print_output( std::ostream& os );
+	void print_output( std::ostream& os, bool is_clean );
 
 private:
 	uint16_t origin;

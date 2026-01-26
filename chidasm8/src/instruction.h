@@ -39,13 +39,18 @@ public:
 	uint16_t get_address() const { return address; };
 	uint16_t get_target_address() const { return target_address; }
 
-	void print( std::ostream &os, std::string label ) const
+	void print( std::ostream &os, std::string label, bool is_clean ) const
 	{
-		uint8_t low_byte = opcode & 0xFF;
-		uint8_t high_byte = (opcode >> 8) & 0xFF;
+		if( is_clean ) {
+			os << mnemonic << " " << argument << label << "\n";
 
-		os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
-			<< mnemonic << " " << argument << label << "\n";
+		} else {
+			uint8_t low_byte = opcode & 0xFF;
+			uint8_t high_byte = (opcode >> 8) & 0xFF;
+
+			os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
+				<< mnemonic << " " << argument << label << "\n";
+		}
 	};
 
 private:

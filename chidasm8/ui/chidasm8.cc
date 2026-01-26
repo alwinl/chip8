@@ -66,7 +66,7 @@ int main( int argc, char *argv[] )
 
 	worker.disassemble();
 
-	worker.print_output( output_file );
+	worker.print_output( output_file, args.is_clean() );
 
 	return 0;
 }
