@@ -26,4 +26,3 @@ add_executable(
 )
 
 target_link_libraries( chemul8_tests PRIVATE gtest gtest_main )
-gtest_discover_tests( chemul8_tests TEST_PREFIX "chemul8/")
