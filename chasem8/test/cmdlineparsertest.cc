@@ -62,15 +62,9 @@ TEST(CmdLineParser, Help)
 TEST(CmdLineParser, InvalidCreation)
 {
 	std::vector<std::string> argument_list = {};
-	try {
-		CmdLineParser filenames;
-		filenames.parse_args( argument_list );
 
-	} catch( std::invalid_argument const &ex ) {
-		return;
-	}
-
-	FAIL() << "Constructor should have thrown";
+	CmdLineParser filenames;
+	EXPECT_FALSE( filenames.parse_args( argument_list ) );
 }
 
 TEST(CmdLineParser, OldStyleArgsCreation)
