@@ -2,14 +2,18 @@
 
 <rule>           ::= NONTERMINAL COLON_EQ <production> END_OF_PRODUCTION ;
 
-<production>     ::= <part> (PIPE <part>)* ;
+<production>     ::= <part> ;
 
-<part>           ::= <element>* ;
+<part>           ::= <subpart> | <alternate_parts>  ;
+
+<subpart>		 ::= <element> ;
+
+<alternate_parts> ::= <part>* ;
 
 <element>        ::= <group> MODIFIER? | <symbol> | <literal>  ;
+
+<group>          ::= OPENBRACKET <production> CLOSEBRACKET ;
 
 <symbol>         ::= NONTERMINAL MODIFIER? ;
 
 <literal>        ::= LITERAL MODIFIER? ;
-
-<group>          ::= OPENBRACKET <production> CLOSEBRACKET ;

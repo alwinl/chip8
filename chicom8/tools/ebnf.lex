@@ -4,8 +4,8 @@ WHITESPACE           ::= ^\s+
 NONTERMINAL          ::= ^<[^>]*>
 COLON_EQ             ::= ^::=
 OPENBRACKET          ::= ^\(
-CLOSBRACKER          ::= ^\)
+CLOSEBRACKET         ::= ^\)
 MODIFIER             ::= ^[?+*]
 PIPE                 ::= ^\|
 END_OF_PRODUCTION    ::= ^;
-TERMINAL             ::= ^[A-Z_]+(\("([^"\\]|\\.)*"\))?
+LITERAL              ::= ^[A-Z_]+(\("([^"\\]|\\.)*"\))?
