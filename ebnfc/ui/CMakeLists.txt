@@ -17,27 +17,10 @@
 # MA 02110-1301, USA.
 #
 
-add_library(
-    ebnf_compiler_lib STATIC
-
-	ebnf_cmdlineparser.cc
-    ebnf_tokeniser.cc
-    ebnf_token.cc
-    ebnf_parser.cc
-    ebnf_ast.cc
-    ebnf_printer.cc
-    ebnf_jsonprinter.cc
-    ebnf_graph.cc
-    ebnf_transformer.cc
-    ebnf_generator.cc
-)
-
-target_include_directories(ebnf_compiler_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
 add_executable(
-    ebnf_compiler
+    ebnfc
 
     ebnf_compiler.cc
 )
 
-target_link_libraries( ebnf_compiler ebnf_compiler_lib )
+target_link_libraries( ebnfc ebnf_compiler_lib )

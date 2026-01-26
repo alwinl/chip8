@@ -29,10 +29,10 @@ public:
 
     void create_dot_source( std::ostream& os );
     void create_svg_image( std::string filename );
-    void create_grammar_file( std::string filename );
+    void create_grammar_file( std::ostream &os );
     void stream_graph( std::ostream& os );
 
-    void create_ast_header( std::string filename, std::string tokeniser_header_name );
+	void create_ast_header( std::ostream& os, std::string tokeniser_header_name );
 
 private:
     SyntaxTree& syntax_tree;

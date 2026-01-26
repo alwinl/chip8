@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <stack>
+#include <optional>
 
 using Node = std::string;
 using Edges = std::unordered_set<Node>;
@@ -49,40 +50,13 @@ using Graph = std::unordered_map<Node, NodeData>;
 
 struct GraphBuilderVisitor : ASTVisitor
 {
-    GraphBuilderVisitor( Graph & graph ) : graph(graph) {};
+    GraphBuilderVisitor( Graph & graph );
 
-    void visit_symbol( const SymbolNode& symbol ) override
-    {
-        // the graph only holds non-terminals
-        if( !rule_stack.empty() && (symbol.token.type == Token::Type::NONTERMINAL) )
-        {
-            auto& lhs = rule_stack.top();
-            // graph[lhs].add_edge( symbol.token.lexeme );
-            // graph.try_emplace(symbol.token.lexeme);
-            graph.try_emplace(symbol.token.lexeme);
-            graph[symbol.token.lexeme].add_edge( lhs );
-            if( graph[lhs].is_base_class )
-                graph[symbol.token.lexeme].parent_class = lhs;
-        }
-    }
-
-    void pre_alternates( const AlternatePartsNode& alternates )
-    {
-        auto& lhs = rule_stack.top();
-        graph[lhs].is_base_class = true;
-    };
-
-    void pre_rules( const RuleNode& rule ) override
-    {
-        // The name of a rule by definition is non terminal
-        rule_stack.push(rule.name);
-        graph.try_emplace( rule.name );
-    }
-
-    void post_rules( const RuleNode& rule ) override
-    {
-        rule_stack.pop();
-    }
+    void visit_symbol( const SymbolNode& symbol ) override;
+    void pre_alternates( const AlternatePartsNode& alternates ) override;
+    void pre_production( const ProductionNode& production ) override;
+    void pre_rules( const RuleNode& rule ) override;
+    void post_rules( const RuleNode& rule ) override;
 
     Graph & graph;
     std::stack<std::string> rule_stack;

@@ -20,129 +20,13 @@
 #include "ebnf_generator.h"
 
 #include "ebnf_printer.h"
+#include "ebnf_jsonprinter.h"
 #include "ebnf_graph.h"
 #include "ebnf_transformer.h"
 
 #include <fstream>
 #include <stack>
 #include <string>
-
-struct JSONPrinter : ASTVisitor
-{
-    JSONPrinter( std::ostream& os ) : os(os) {};
-
-    void print_cardinality( std::ostream& os, const ElementNode::Cardinality& card )
-    {
-        if( card == ElementNode::Cardinality::ONCE )
-            return;
-
-        os << std::string(indent, ' ') << "\"cardinality\": \"";
-
-        switch( card ) {
-        case( ElementNode::Cardinality::ONE_OR_MORE ):  os << "+"; break;
-        case( ElementNode::Cardinality::OPTIONAL ):     os << "?"; break;
-        case( ElementNode::Cardinality::ZERO_OR_MORE ): os << "*"; break;
-        default: break;
-        }
-        os << "\",\n";
-    }
-
-    void visit_symbol( const SymbolNode& symbol )
-    {
-        os << std::string(indent, ' ')  << "{\n";
-        indent += 4;
-
-        print_cardinality( os, symbol.card );
-        os << std::string(indent, ' ')  << symbol.token << "\n";
-
-        indent -= 4;
-        os << std::string(indent, ' ')  << "},";
-        os << "\n";
-    }
-
-    void visit_literal( const LiteralNode& literal )
-    {
-    }
-
-    void pre_group( const GroupNode& group )
-    {
-        os << std::string(indent, ' ')  << "\"GroupNode\" : {\n";
-        indent += 4;
-        print_cardinality( os, group.card );
-    }
-
-    void post_group( const GroupNode& group )
-    {
-        indent -= 4;
-        os << std::string(indent, ' ')  << "}";
-        os << "\n";
-    }
-
-    void pre_elements( const SubPartNode& subpart )
-    {
-        os << std::string(indent, ' ')  << "\"SubpartNode\" : [\n";
-        indent += 4;
-    }
-
-    void post_elements( const SubPartNode& subpart )
-    {
-        indent -= 4;
-        os << std::string(indent, ' ')  << "]\n";
-    }
-
-    void pre_alternates( const AlternatePartsNode& alternates )
-    {
-        os << std::string(indent, ' ')  << "\"AlternatePartsNode\" : [\n";
-        indent += 4;
-    }
-
-    void post_alternates( const AlternatePartsNode& alternates )
-    {
-        indent -= 4;
-        os << std::string(indent, ' ')  << "]\n";
-    }
-
-    void pre_production( const ProductionNode& production )
-    {
-        os << std::string(indent, ' ')  << "\"ProductionNode\" : {\n";
-        indent += 4;
-    }
-
-    void post_production( const ProductionNode& production )
-    {
-        indent -= 4;
-        os << std::string(indent, ' ')  << "}\n";
-    }
-
-    void pre_rules( const RuleNode& rule )
-    {
-        os << std::string(indent, ' ')  << "\"RuleNode\" : {\n";
-        indent += 4;
-
-        os << std::string(indent, ' ')  << "\"name\" : \"" << rule.name << "\",\n";
-    }
-
-    void post_rules( const RuleNode& rule )
-    {
-        indent -= 4;
-        os << std::string(indent, ' ')  << "},\n";
-    }
-
-    void pre_syntax( const SyntaxTree& grammar )
-    {
-        os << "\"SyntaxTree\" : {\n";
-        indent += 4;
-    }
-
-    void post_syntax( const SyntaxTree& grammar )
-    {
-        indent -= 4;
-        os << "}\n";
-    }
-
-    std::ostream& os;
-    int indent = 0;
-};
 
 // struct DotVisitor : ASTVisitor
 // {
@@ -271,15 +155,10 @@ void Generator::create_svg_image( std::string filename )
         throw std::runtime_error("Graphviz 'dot' command failed.");
 }
 
-void Generator::create_grammar_file( std::string filename )
+void Generator::create_grammar_file( std::ostream &os )
 {
-    std::ofstream os( filename );
-    if( !os )
-        throw std::runtime_error("Cannot open: " + filename);
-
-    JSONPrinter printer( os );
+    JSONPrintVisitor printer( os );
     syntax_tree.accept( printer );
-
 }
 
 void Generator::stream_graph( std::ostream &os )
@@ -317,12 +196,8 @@ std::string convert_to_camel( std::string input )
 
 }
 
-void Generator::create_ast_header( std::string filename, std::string tokeniser_header_name )
+void Generator::create_ast_header( std::ostream& os, std::string tokeniser_header_name )
 {
-    std::ofstream os( filename );
-    if( !os )
-        throw std::runtime_error("Cannot open: " + filename);
-
     Transformer transformer( syntax_tree );
     transformer.transform_all();
 
@@ -338,8 +213,8 @@ void Generator::create_ast_header( std::string filename, std::string tokeniser_h
     std::vector<std::string> leaves;
     std::vector<std::string> internal_nodes;
 
-    for( auto graphdata : graph )
-        graphdata.second.edges.empty() ? leaves.emplace_back( graphdata.first ) : internal_nodes.emplace_back( graphdata.first );
+    for( auto& [node, node_data] : graph )
+        node_data.edges.empty() ? leaves.emplace_back( node ) : internal_nodes.emplace_back( node );
 
 
 
@@ -427,13 +302,26 @@ R"(
 )";
     for( auto node : class_list ) {
         if( graph[node].is_base_class )
-            os << "/* base class */\n";
+            os <<
+R"(
+/* base class */
+)";
 
         os << "struct " << convert_to_camel(node) << "Node";
         if( !graph[node].parent_class.empty() )
             os << " : " << convert_to_camel( graph[node].parent_class ) << "Node";
 
-        os << "\n{\n};\n\n";
+        os <<
+R"(
+{
+)";
+		os << "/* class implementation */\n";
+		os <<
+R"(
+};
+
+
+)";
     }
 
     os <<

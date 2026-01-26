@@ -19,10 +19,14 @@
 
 #include <algorithm>
 
+#define TRANSFORMER_DEBUG_VALIDATE_ORDER
+
 #include "ebnf_transformer.h"
 #include "ebnf_graph.h"
 #include <functional>
-
+#ifdef TRANSFORMER_DEBUG_VALIDATE_ORDER
+	#include <iostream>
+#endif
 
 GrammarIR Transformer::transform_all()
 {
@@ -64,18 +68,18 @@ void Transformer::strong_connect( const Node& node )
 
     for( const auto& neighbour : node_data.edges ) {
 
-        NodeData& next = graph.at( neighbour );
+        NodeData& neighbour_data = graph.at( neighbour );
 
-        if( !next.visited ) {
+        if( !neighbour_data.visited ) {
             strong_connect( neighbour );
-            node_data.lowlink = std::min( node_data.lowlink, next.lowlink );
-        } else if( next.on_stack )
-            node_data.lowlink = std::min( node_data.lowlink, next.index );
+            node_data.lowlink = std::min( node_data.lowlink, neighbour_data.lowlink );
+        } else if( neighbour_data.on_stack )
+            node_data.lowlink = std::min( node_data.lowlink, neighbour_data.index );
     }
 
     if( node_data.lowlink == node_data.index ) {
 
-        ComponentGroup new_component;
+        ComponentGroup new_group;
         Node member_node;
 
         do {
@@ -83,11 +87,11 @@ void Transformer::strong_connect( const Node& node )
             node_stack.pop();
             graph.at( member_node ).on_stack = false;
 
-            new_component.push_back( member_node );
+            new_group.push_back( member_node );
 
         } while( member_node != node );
 
-        sccs.push_back( std::move( new_component) );
+        sccs.push_back( std::move( new_group) );
     }
 }
 
@@ -111,53 +115,56 @@ std::vector<std::string> dag_topo_sort_with_priority( const Graph& graph, const 
 {
     // 1️⃣ compute indegrees
     std::unordered_map<std::string, int> indegree;
-    for (auto& p : graph) {
-        indegree[p.first] = 0; // ensure all nodes exist
-    }
-    for (auto& p : graph) {
-        for (auto& child : p.second.edges) {
-            indegree[child]++;
-        }
+
+    for( auto& [node, _] : graph )
+        indegree[node] = 0; // ensure all nodes exist
+
+    for( auto& [_, node_data] : graph ) {
+        for( auto& referenced_node : node_data.edges )
+            indegree[referenced_node]++;
     }
 
     // 2️⃣ priority function
-    auto priority = [&](const std::string& name) -> int {
+    auto priority = [&](const std::string& name) -> int
+	{
         auto it = graph.find(name);
-        if (it == graph.end()) return 1;       // fallback
-        if (it->second.is_base_class) return 0; // base classes first
-        if (it->second.edges.empty()) return 2; // leaves last
+        if( it == graph.end() ) return 1;       // fallback
+        if( it->second.is_base_class ) return 0; // base classes first
+        if( it->second.edges.empty() ) return 2; // leaves last
         return 1;                              // internal nodes
     };
 
-    auto cmp = [&](const std::string& a, const std::string& b) {
+    auto cmp = [&]( const std::string& a, const std::string& b )
+	{
         int pa = priority(a), pb = priority(b);
-        if (pa != pb) return pa < pb;
-        return a < b; // deterministic tiebreaker
+		// return (pa != pb) ? pa < pb : a < b; // priority first, if same lexographical compare
+		return (pa != pb) ? pa < pb : 0; // priority first, if same leave ordering
     };
 
-    // 3️⃣ initialize zero indegree queue
+    // 3️⃣ initialize zero indegree queue (nodes not referenced by others)
     std::vector<std::string> zero_indegree;
-    for (auto& [node, deg] : indegree)
-        if (deg == 0) zero_indegree.push_back(node);
+    for( auto& [node, deg] : indegree )
+        if( deg == 0 )
+			zero_indegree.push_back(node);
 
     // sort initially by priority
-    std::sort(zero_indegree.begin(), zero_indegree.end(), cmp);
+    std::sort( zero_indegree.begin(), zero_indegree.end(), cmp );
 
     std::vector<std::string> sorted_list;
 
-    while (!zero_indegree.empty()) {
+    while( !zero_indegree.empty() ) {
+
         // pop first (highest priority)
         std::string node = zero_indegree.front();
-        zero_indegree.erase(zero_indegree.begin());
+        zero_indegree.erase( zero_indegree.begin() );
 
         sorted_list.push_back(node);
 
-        // decrement children indegrees
-        for (auto& child : graph.at(node).edges) {
-            indegree[child]--;
-            if (indegree[child] == 0) {
-                zero_indegree.push_back(child);
-            }
+		// Decrement the reference count of all the nodes that the removed node refered to.
+        for( auto& referenced_node : graph.at(node).edges ) {
+            indegree[referenced_node]--;
+            if( indegree[referenced_node] == 0 )
+                zero_indegree.push_back(referenced_node);
         }
 
         // sort again after inserting new zero indegree nodes
@@ -165,18 +172,20 @@ std::vector<std::string> dag_topo_sort_with_priority( const Graph& graph, const 
     }
 
     // 4️⃣ sanity check: did we include all nodes? (cycle detection)
-    if (sorted_list.size() != graph.size()) {
+    if (sorted_list.size() != graph.size())
         throw std::runtime_error("Cycle detected in AST graph (should not happen after Tarjan)");
-    }
 
     // 5️⃣ optionally rotate forward-declared nodes to back
     std::unordered_set<std::string> forward_decl_set(forward_decls.begin(), forward_decls.end());
-    auto it = std::find_if(sorted_list.begin(), sorted_list.end(),
-        [&](const std::string& n){
-            return forward_decl_set.contains(n) && !graph.at(n).is_base_class;
-        });
-    if (it != sorted_list.end())
-        std::rotate(sorted_list.begin(), it + 1, sorted_list.end());
+
+    auto it = std::find_if( sorted_list.begin(), sorted_list.end(),
+					[&](const std::string& n)
+					{
+						return forward_decl_set.contains(n) && !graph.at(n).is_base_class;
+					});
+
+    if( it != sorted_list.end() )
+        std::rotate( sorted_list.begin(), it + 1, sorted_list.end() );
 
     return sorted_list;
 }
@@ -256,6 +265,7 @@ std::vector<std::string> dag_topo_sort_with_priority( const Graph& graph, const 
 // }
 
 // Put this method in your Transformer/Generator class implementation file.
+
 
 std::vector<Node> Transformer::ordered_class_list(const std::vector<std::string>& forward_decls)
 {
@@ -368,16 +378,23 @@ std::vector<Node> Transformer::ordered_class_list(const std::vector<std::string>
 #ifdef TRANSFORMER_DEBUG_VALIDATE_ORDER
     {
         std::unordered_map<Node, size_t> index;
-        for (size_t i = 0; i < sorted_list.size(); ++i) index[sorted_list[i]] = i;
 
-        for (auto &p : graph) {
-            const Node& from = p.first;
-            for (const Node& to : p.second.edges) {
-                auto itf = index.find(from);
-                auto itt = index.find(to);
-                if (itf == index.end() || itt == index.end()) continue;
-                if (itf->second >= itt->second) {
-                    std::cerr << "Ordering violation: '" << from << "' should appear before '" << to << "'\n";
+        for( size_t i = 0; i < sorted_list.size(); ++i )
+			index[ sorted_list[i] ] = i;
+
+        for( auto& [check_node, node_data] : graph ) {
+
+            for( const Node& referenced_by : node_data.edges ) {
+
+                auto check_node_it = index.find(check_node);
+                auto ref_by_it = index.find(referenced_by);
+
+                if( check_node_it == index.end() || ref_by_it == index.end() )
+					continue;
+
+                if( check_node_it->second > ref_by_it->second ) {
+
+                    std::cerr << "Ordering violation: '" << check_node << "' should appear before '" << referenced_by << "'\n";
                 }
             }
         }
