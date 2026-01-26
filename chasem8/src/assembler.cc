@@ -51,15 +51,11 @@ std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const
 	{ "RND",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<RNDInstruction >(args, sym_table); } },
 	{ "DRW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DRWInstruction >(args, sym_table); } },
 	{ "SKP",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKPInstruction >(args, sym_table); } },
-	{ "SKNP", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKNPInstruction>(args, sym_table); } },
+	{ "SKPN", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<SKPNInstruction>(args, sym_table); } },
 
 	{ ".DB",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
-	{ "DB",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DBInstruction  >(args, sym_table); } },
 	{ ".DW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
-	{ "DW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
-	{ "OPTION",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } },
-	{ "ALIGN",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } },
-	{ "END",   [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DummyInstruction  >(args, sym_table); } }
+	{ ".ORG", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
 };
 
 void Assembler::read_source( std::istream &source )

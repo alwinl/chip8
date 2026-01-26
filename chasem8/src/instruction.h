@@ -236,10 +236,10 @@ public:
     void emit_binary( std::ostream &target ) override;
 };
 
-class SKNPInstruction : public Instruction
+class SKPNInstruction : public Instruction
 {
 public:
-    SKNPInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
+    SKPNInstruction( const std::vector<std::string>& arguments, const SymbolTable& sym_table ) : Instruction( arguments, sym_table ) {};
 
     void emit_binary( std::ostream &target ) override;
 };

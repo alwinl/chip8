@@ -42,7 +42,7 @@ Instruction::Instruction( const std::vector<std::string>& arguments, const Symbo
 
     std::stringstream combined(joined);
     std::string parameter;
-    
+
     while( std::getline( combined, parameter, ',' ) ) {
 
         if( !parameter.empty() )
@@ -171,7 +171,7 @@ void JPInstruction::emit_binary( std::ostream &target )
         return;
     }
 
-    // Bnnn - JP V0,addr    
+    // Bnnn - JP V0,addr
     if( parameters.size() != 2 || parameters[0][1] != '0')
         throw std::runtime_error( "JP instruction requires the register to be V0" );
 
@@ -201,13 +201,13 @@ void SEInstruction::emit_binary( std::ostream &target )
 
         // 5xy0 - SE Vx, Vy
         uint8_t y_reg = get_register( parameters[1] );
-        push_uint16_t( target, (0x5000 | (x_reg << 8) | (y_reg << 4)) );   
+        push_uint16_t( target, (0x5000 | (x_reg << 8) | (y_reg << 4)) );
 
     } else {
 
         // 3xkk - SE Vx, byte
         uint8_t byte = get_byte(parameters[1]);
-        push_uint16_t( target, (0x3000 | (x_reg << 8) | byte) );   
+        push_uint16_t( target, (0x3000 | (x_reg << 8) | byte) );
     }
 }
 
@@ -224,11 +224,11 @@ void SNEInstruction::emit_binary( std::ostream &target )
     if( parameters[1][0] == 'V' ) {
         // 9xy0 - SNE Vx, Vy
         uint8_t y_reg = get_register( parameters[1] );
-        push_uint16_t( target, (0x9000 | (x_reg << 8) | (y_reg << 4)) );   
+        push_uint16_t( target, (0x9000 | (x_reg << 8) | (y_reg << 4)) );
     } else {
         // 4xkk - SNE Vx, byte
         uint8_t byte = get_byte(parameters[1]);
-        push_uint16_t( target, (0x4000 | (x_reg << 8) | byte) );   
+        push_uint16_t( target, (0x4000 | (x_reg << 8) | byte) );
     }
 }
 
@@ -483,7 +483,7 @@ void SKPInstruction::emit_binary( std::ostream &target )
     push_uint16_t( target, (0xE09E | (x_reg << 8)) );
 }
 
-void SKNPInstruction::emit_binary( std::ostream &target )
+void SKPNInstruction::emit_binary( std::ostream &target )
 {
     if( parameters.size() != 1 )
         throw std::runtime_error( "SKNP requires a register argument" );

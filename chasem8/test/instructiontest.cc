@@ -83,7 +83,7 @@ class SHLTest  : public InstructionEmitTest<SHLInstruction> {};
 class RNDTest  : public InstructionEmitTest<RNDInstruction> {};
 class DRWTest  : public InstructionEmitTest<DRWInstruction> {};
 class SKPTest  : public InstructionEmitTest<SKPInstruction> {};
-class SKNPTest : public InstructionEmitTest<SKNPInstruction> {};
+class SKPNTest : public InstructionEmitTest<SKPNInstruction> {};
 
 // TEST_P( DBTest,   EmitBinary ) { run_test(); }
 // TEST_P( DWTest,   EmitBinary ) { run_test(); }
@@ -106,7 +106,7 @@ TEST_P( SHLTest,  EmitBinary ) { run_test(); }
 TEST_P( RNDTest,  EmitBinary ) { run_test(); }
 TEST_P( DRWTest,  EmitBinary ) { run_test(); }
 TEST_P( SKPTest,  EmitBinary ) { run_test(); }
-TEST_P( SKNPTest, EmitBinary ) { run_test(); }
+TEST_P( SKPNTest, EmitBinary ) { run_test(); }
 
 // INSTANTIATE_TEST_SUITE_P( Chasem8, DBTest,
 //     ::testing::Values(
@@ -484,7 +484,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SKPTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SKNPTest,
+INSTANTIATE_TEST_SUITE_P( Chasem8, SKPNTest,
     ::testing::Values(
         TestCaseData{ "SkipIfKeyNotPressedV0", { "V0" }, true, 0xE0A1 },
         TestCaseData{ "SkipIfKeyNotPressedVF", { "VF" }, true, 0xEFA1 },
