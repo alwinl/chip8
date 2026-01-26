@@ -40,10 +40,10 @@ std::ostream& operator<<( std::ostream& os, const Token& token )
     };
 
     os << "{ "
-            "type: " << type_strings[token.type] << ", "
-            "lexeme: " << token.lexeme << ", "
-            "line: " << token.line << ", "
-            "column: " << token.column << "}";
+            "\"type\" : \"" << type_strings[token.type] << "\", "
+            "\"lexeme\" : \"" << token.lexeme << "\", "
+            "\"line\" : \"" << token.line << "\", "
+            "\"column\" : \"" << token.column << "\"}";
     return os;
 }
 
