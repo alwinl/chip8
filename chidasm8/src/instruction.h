@@ -48,7 +48,7 @@ public:
 			uint8_t low_byte = opcode & 0xFF;
 			uint8_t high_byte = (opcode >> 8) & 0xFF;
 
-			os << address << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
+			os << format_address(address) << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
 				<< mnemonic << " " << argument << label << "\n";
 		}
 	};

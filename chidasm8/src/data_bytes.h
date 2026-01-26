@@ -43,12 +43,20 @@ public:
 	void print( std::ostream &os, bool is_clean ) const
 	{
 		if( !is_clean )
-			os << address;
+			os << format_address(address) << "\t\t";
 
 		os << ".DB\t";
 
 		for( uint8_t byte : byte_run )
 			os << format_byte( byte ) << " ";
+
+		os << " ; ";
+		for(auto b : byte_run) {
+			if(b >= 0x20 && b <= 0x7E)
+				os << static_cast<char>(b);
+			else
+				os << '.';
+		}
 
 		os << '\n';
 	};

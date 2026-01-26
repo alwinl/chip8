@@ -32,4 +32,3 @@ add_executable(
 )
 
 target_link_libraries( chip8_compiler_test chip8_compiler gtest gtest_main )
-

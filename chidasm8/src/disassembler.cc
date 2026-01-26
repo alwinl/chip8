@@ -528,13 +528,6 @@ void Disassembler::collect_data_bytes()
 
             datarun.push_back( memory.get_byte(addr) );
 
-            // Flush every 16 bytes (optional grouping rule)
-            if( datarun.size() == 16 ) {
-
-                databytes.insert( DataBytes(run_start, datarun) );
-                datarun.clear();
-            }
-
         } else {
 
             // Instruction byte interrupts data run
