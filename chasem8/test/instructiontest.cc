@@ -136,7 +136,7 @@ TEST_P( SKPNTest, EmitBinary ) { run_test(); }
 //     }
 // );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, CLSTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, CLSTest,
     ::testing::Values(
         // success cases
         TestCaseData{ "ClearScreen", {}, true, 0x00E0 },
@@ -150,7 +150,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, CLSTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, RETTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, RETTest,
     ::testing::Values(
         // success cases
         TestCaseData{ "ReturnFromSubroutine", {}, true, 0x00EE },
@@ -164,7 +164,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, RETTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SYSTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SYSTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "SystemCallLowAddress", { "0x123" }, true, 0x0123 },
@@ -182,7 +182,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SYSTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, JPTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, JPTest,
     ::testing::Values(
         // success cases
         TestCaseData{ "EmitsJumpToAddress", { "0x300" }, true, 0x1300 },
@@ -196,7 +196,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, JPTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, CALLTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, CALLTest,
     ::testing::Values(
       // Success cases
       TestCaseData{ "CallSimpleAddress", { "0x300" }, true, 0x2300 },
@@ -214,7 +214,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, CALLTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SETest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SETest,
     ::testing::Values(
         // success cases
         TestCaseData{ "RegisterToRegisterComparison", {"V1", ",", "V2"}, true,  0x5120 }, // SE V1, V2 -> 5xy0 format
@@ -235,7 +235,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SETest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SNETest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SNETest,
     ::testing::Values(
         // success cases
         TestCaseData{ "RegisterToRegisterComparison", {"V1", ",", "V2"}, true,  0x9120 }, // SNE V1, V2 -> 5xy0 format
@@ -256,7 +256,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SNETest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, LDTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, LDTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "LoadImmediate", { "V1", ",", "0x7F" }, true, 0x617F },   // 6xkk
@@ -290,7 +290,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, LDTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, ADDTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, ADDTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x8564 },
@@ -307,7 +307,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, ADDTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, ORTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, ORTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V1", ",", "V2" }, true, 0x8121 },
@@ -324,7 +324,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, ORTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, ANDTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, ANDTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V3", ",", "V4" }, true, 0x8342 },
@@ -341,7 +341,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, ANDTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, XORTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, XORTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x8563 },
@@ -358,7 +358,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, XORTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SUBTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SUBTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x8565 },
@@ -375,7 +375,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SUBTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SHRTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SHRTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x8566 },
@@ -392,7 +392,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SHRTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SUBNTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SUBNTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x8567 },
@@ -409,7 +409,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SUBNTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SHLTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SHLTest,
     ::testing::Values(
         // Success cases
         TestCaseData{ "RegistersSimple", { "V5", ",", "V6" }, true, 0x856E },
@@ -426,7 +426,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SHLTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, RNDTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, RNDTest,
     ::testing::Values(
         TestCaseData{ "RandomIntoV0", { "V0", ",", "0x7F" }, true, 0xC07F },
         TestCaseData{ "RandomIntoVF", { "VF", ",", "0xFF" }, true, 0xCFFF },
@@ -446,7 +446,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, RNDTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, DRWTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, DRWTest,
     ::testing::Values(
       // Success cases
       TestCaseData{ "DrawSimple", { "V0", ",", "V1", ",", "5" }, true, 0xD015 },
@@ -466,7 +466,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, DRWTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SKPTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SKPTest,
     ::testing::Values(
        // Success cases
        TestCaseData{ "SkipIfKeyPressedV0", { "V0" }, true, 0xE09E },
@@ -484,7 +484,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SKPTest,
     }
 );
 
-INSTANTIATE_TEST_SUITE_P( Chasem8, SKPNTest,
+INSTANTIATE_TEST_SUITE_P( Instruction, SKPNTest,
     ::testing::Values(
         TestCaseData{ "SkipIfKeyNotPressedV0", { "V0" }, true, 0xE0A1 },
         TestCaseData{ "SkipIfKeyNotPressedVF", { "VF" }, true, 0xEFA1 },
@@ -504,7 +504,7 @@ INSTANTIATE_TEST_SUITE_P( Chasem8, SKPNTest,
 
 
 
-TEST(Chasem8_DBInstructionTest, ExplodedArguments)
+TEST(DBInstruction, ExplodedArguments)
 {
     SymbolTable sym;
     std::vector<std::string> args = { "0x1", ",", "2", ",", "003", ",", "0xFF" };
@@ -522,7 +522,7 @@ TEST(Chasem8_DBInstructionTest, ExplodedArguments)
     EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);
 }
 
-TEST(Chasem8_DBInstructionTest, CombinedArguments)
+TEST(DBInstruction, CombinedArguments)
 {
     SymbolTable sym;
     std::vector<std::string> args = { "0x1,2, 003 ,   0xFF " };
@@ -540,7 +540,7 @@ TEST(Chasem8_DBInstructionTest, CombinedArguments)
     EXPECT_EQ(static_cast<uint8_t>(result[3]), 0xFF);
 }
 
-TEST(Chasem8_DBInstructionTest, ThrowsOnInvalidByteValue)
+TEST(DBInstruction, ThrowsOnInvalidByteValue)
 {
     SymbolTable sym;
     std::vector<std::string> args = { "256" };
@@ -548,7 +548,7 @@ TEST(Chasem8_DBInstructionTest, ThrowsOnInvalidByteValue)
     EXPECT_THROW(DBInstruction instr(args, sym), std::runtime_error);
 }
 
-TEST(Chasem8_DBInstructionTest, ThrowsOnEmptyArgs)
+TEST(DBInstruction, ThrowsOnEmptyArgs)
 {
     SymbolTable sym;
     std::vector<std::string> args = {};

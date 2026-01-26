@@ -49,7 +49,16 @@ private:
 	std::vector<uint8_t>& buffer;
 };
 
-TEST(Chasem8_AssemblerTest, ClearScreen)
+class AssemblerTestInterface: public Assembler
+{
+public:
+	using Assembler::extract_label;
+    using Assembler::extract_instruction;
+    using Assembler::get_instruction_count;
+    using Assembler::get_symbol;
+};
+
+TEST(Assembler, ClearScreen)
 {
 	std::string input = "cls\nret\n";
 	std::stringstream source( input );
@@ -73,7 +82,7 @@ TEST(Chasem8_AssemblerTest, ClearScreen)
 	}
 }
 
-TEST(Chasem8_AssemblerTest, JP)
+TEST(Assembler, JP)
 {
 	std::string input = "\tjp 0x212\n";
 	std::stringstream source( input );
@@ -97,16 +106,7 @@ TEST(Chasem8_AssemblerTest, JP)
 	}
 }
 
-class AssemblerTestInterface: public Assembler
-{
-public:
-	using Assembler::extract_label;
-    using Assembler::extract_instruction;
-    using Assembler::get_instruction_count;
-    using Assembler::get_symbol;
-};
-
-TEST(Chasem8_AssemblerTest, ExtractsLabelAndRemovesItFromTokens)
+TEST(Assembler, ExtractsLabelAndRemovesItFromTokens)
 {
     AssemblerTestInterface assembler;
     std::vector<std::string> tokens = { "start:", "JP", "0x300" };
@@ -118,7 +118,7 @@ TEST(Chasem8_AssemblerTest, ExtractsLabelAndRemovesItFromTokens)
     ASSERT_EQ(tokens[0], "JP");
 }
 
-TEST(Chasem8_AssemblerTest, AddsInstructionAndReturnsCorrectLength)
+TEST(Assembler, AddsInstructionAndReturnsCorrectLength)
 {
     AssemblerTestInterface assembler;
     std::vector<std::string> tokens = { "CLS" };
