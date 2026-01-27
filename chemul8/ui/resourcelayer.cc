@@ -26,10 +26,14 @@
 #include <map>
 #include <stdexcept>
 
-std::map<SDL_Keycode, uint8_t> mapping = { { SDLK_0, 0x00 }, { SDLK_1, 0x01 }, { SDLK_2, 0x02 }, { SDLK_3, 0x03 },
+std::map<SDL_Keycode, uint8_t> mapping = {
+										   { SDLK_0, 0x00 }, { SDLK_1, 0x01 }, { SDLK_2, 0x02 }, { SDLK_3, 0x03 },
 										   { SDLK_4, 0x04 }, { SDLK_5, 0x05 }, { SDLK_6, 0x06 }, { SDLK_7, 0x07 },
 										   { SDLK_8, 0x08 }, { SDLK_9, 0x09 }, { SDLK_A, 0x0A }, { SDLK_B, 0x0B },
-										   { SDLK_C, 0x0C }, { SDLK_D, 0x0D }, { SDLK_E, 0x0E }, { SDLK_F, 0x0F } };
+										   { SDLK_C, 0x0C }, { SDLK_D, 0x0D }, { SDLK_E, 0x0E }, { SDLK_F, 0x0F },
+										   { SDLK_KP_0, 0x00 }, { SDLK_KP_1, 0x01 }, { SDLK_KP_2, 0x02 }, { SDLK_KP_3, 0x03 }, { SDLK_KP_4, 0x04 },
+										   { SDLK_KP_5, 0x05 }, { SDLK_KP_6, 0x06 }, { SDLK_KP_7, 0x07 }, { SDLK_KP_8, 0x08 }, { SDLK_KP_9, 0x09 }
+										};
 
 /*
 SDL_AudioDeviceID audio_id;
