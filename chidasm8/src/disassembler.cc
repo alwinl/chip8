@@ -23,10 +23,48 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
+#include <functional>
 
 #include "disassembler.h"
 
 #include "utils.h"
+
+void print_databytes( std::ostream &os, DataBytes& data_bytes, bool is_clean )
+{
+	if( !is_clean )
+		os << format_address(data_bytes.address) << "\t\t";
+
+	os << ".DB\t";
+
+	for( uint8_t byte : data_bytes.byte_run )
+		os << format_byte( byte ) << " ";
+
+	os << " ; ";
+	for(auto b : data_bytes.byte_run) {
+		if(b >= 0x20 && b <= 0x7E)
+			os << static_cast<char>(b);
+		else
+			os << '.';
+	}
+
+	os << '\n';
+};
+
+void print_instruction( std::ostream &os, Instruction& inst, std::string label, bool is_clean )
+{
+	if( is_clean ) {
+		os << inst.mnemonic << " " << inst.argument << label << "\n";
+
+	} else {
+		uint8_t low_byte = inst.opcode & 0xFF;
+		uint8_t high_byte = (inst.opcode >> 8) & 0xFF;
+
+		os << format_address(inst.address) << "\t\t" << format_naked_byte( high_byte ) << " " << format_naked_byte( low_byte ) << "\t"
+			<< inst.mnemonic << " " << inst.argument << label << "\n";
+	}
+};
+
 
 void Disassembler::read_input( std::istream& is )
 {
@@ -49,9 +87,21 @@ void Disassembler::disassemble()
 		disassemble_instruction( address ); /* this call can push between 0 and 2 new addresses on the address stack */
 	}
 
+	std::sort(instructions.begin(), instructions.end(),
+			[](const Instruction& a, const Instruction& b) {
+				return a.address < b.address;
+			});
+
 	targets.sort_vectors();
 
 	collect_data_bytes( );
+
+	std::sort(databytes.begin(), databytes.end(),
+			[](const DataBytes& a, const DataBytes& b) {
+				return a.address < b.address;
+			});
+
+
 }
 
 void Disassembler::print_output( std::ostream &os, bool is_clean )
@@ -76,34 +126,34 @@ void Disassembler::print_output( std::ostream &os, bool is_clean )
 	os << ";\n\n";
 	os << "\t.ORG " << format_address( origin ) << "\n\n";
 
-	std::set<Instruction>::iterator instruction_iter = instructions.begin();
-	std::set<DataBytes>::iterator datarun_iter = databytes.begin();
+	std::vector<Instruction>::iterator instruction_iter = instructions.begin();
+	std::vector<DataBytes>::iterator datarun_iter = databytes.begin();
 
 	while( instruction_iter != instructions.end() && datarun_iter != databytes.end() ) {
 
-		if( ( *instruction_iter ).get_address() < ( *datarun_iter ).get_address() ) {
-			output_label( os, (*instruction_iter).get_address() );
-			std::string label = targets.get_label( instruction_iter->get_target_address() );
-			instruction_iter->print( os, label, is_clean );
+		if( ( *instruction_iter ).address < ( *datarun_iter ).address ) {
+			output_label( os, (*instruction_iter).address );
+			std::string label = targets.get_label( instruction_iter->target_address );
+			print_instruction( os, *instruction_iter, label, is_clean );
 			++instruction_iter;
 		} else {
-			output_label( os, (*datarun_iter).get_address() );
-			datarun_iter->print( os, is_clean );
+			output_label( os, (*datarun_iter).address );
+			print_databytes( os, *datarun_iter, is_clean );
 			++datarun_iter;
 		}
 	}
 
 	// what have we remaining
 	while( instruction_iter != instructions.end() ) {
-		output_label( os, (*instruction_iter).get_address() );
-		std::string label = targets.get_label( instruction_iter->get_target_address() );
-		instruction_iter->print( os, label, is_clean );
+		output_label( os, (*instruction_iter).address );
+		std::string label = targets.get_label( instruction_iter->target_address );
+		print_instruction( os, *instruction_iter, label, is_clean );
 		++instruction_iter;
 	}
 
 	while( datarun_iter != databytes.end() ) {
-		output_label( os, (*datarun_iter).get_address() );
-		datarun_iter->print( os, is_clean );
+		output_label( os, (*datarun_iter).address );
+		print_databytes( os, *datarun_iter, is_clean );
 		++datarun_iter;
 	}
 }
@@ -136,7 +186,7 @@ Instruction Disassembler::decode_SYS( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, opcode, mnemonic, label );
+	return Instruction{ address, opcode, mnemonic, label, 0 };
 }
 
 Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
@@ -147,7 +197,7 @@ Instruction Disassembler::decode_JP( uint16_t address, uint16_t opcode )
 
 	address_stack.push( jmp_target );
 
-	return Instruction( address, opcode, "JP", "", jmp_target );
+	return Instruction{ address, opcode, "JP", "", jmp_target };
 }
 
 Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
@@ -159,7 +209,7 @@ Instruction Disassembler::decode_CALL( uint16_t address, uint16_t opcode )
 	address_stack.push( jmp_target );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "CALL", "", jmp_target );
+	return Instruction{ address, opcode, "CALL", "", jmp_target };
 }
 
 Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )
@@ -170,7 +220,7 @@ Instruction Disassembler::decode_SEI( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "SE", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction{ address, opcode, "SE", format_register( reg_x ) + ", " + format_byte( byte ), 0 };
 }
 
 Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
@@ -181,7 +231,7 @@ Instruction Disassembler::decode_SNEI( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "SNE", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction{ address, opcode, "SNE", format_register( reg_x ) + ", " + format_byte( byte ), 0 };
 }
 
 Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
@@ -206,7 +256,7 @@ Instruction Disassembler::decode_SER( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, opcode, mnemonic, argument );
+	return Instruction{ address, opcode, mnemonic, argument, 0 };
 }
 
 Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
@@ -219,7 +269,7 @@ Instruction Disassembler::decode_LD( uint16_t address, uint16_t opcode )
 	// if( reg_x == 0 )
 	// 	V0_content = byte;
 
-	return Instruction( address, opcode, "LD", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction{ address, opcode, "LD", format_register( reg_x ) + ", " + format_byte( byte ), 0 };
 }
 
 Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
@@ -232,7 +282,7 @@ Instruction Disassembler::decode_ADD( uint16_t address, uint16_t opcode )
 	// if( reg_x == 0 )
 	// 	V0_content += byte;
 
-	return Instruction( address, opcode, "ADD", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction{ address, opcode, "ADD", format_register( reg_x ) + ", " + format_byte( byte ), 0 };
 }
 
 Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
@@ -304,7 +354,7 @@ Instruction Disassembler::decode_MathOp( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, opcode, mnemonic, argument );
+	return Instruction{ address, opcode, mnemonic, argument, 0 };
 }
 
 Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
@@ -315,30 +365,30 @@ Instruction Disassembler::decode_SNE( uint16_t address, uint16_t opcode )
 	address_stack.push( address + 4 );
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "SNE", format_register( reg_x ) + ", " + format_register( reg_y ) );
+	return Instruction{ address, opcode, "SNE", format_register( reg_x ) + ", " + format_register( reg_y ), 0 };
 }
 
 Instruction Disassembler::decode_LDI( uint16_t address, uint16_t opcode )
 {
-	unsigned int load_address = opcode & 0xFFF;
+	uint16_t load_address = opcode & 0xFFF;
 
 	targets.add( load_address, Targets::eKind::I_TARGET );
 	// std::string label = add_target( load_address, Target::eTargetKind::I_TARGET );
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "LD", "I, ", load_address );
+	return Instruction{ address, opcode, "LD", "I, ", load_address };
 }
 
 Instruction Disassembler::decode_JMP( uint16_t address, uint16_t opcode )
 {
-	unsigned int target = ( opcode >> 0 ) & 0xFFF;
+	uint16_t target = ( opcode >> 0 ) & 0xFFF;
 
 	targets.add( target, Targets::eKind::INDEXED );
 	// std::string label = add_target( target, Target::eTargetKind::INDEXED );
 	// address_stack.push( target + V0 ); //this is a problem, we do not know the value of V0
 
-	return Instruction( address, opcode, "JMP", std::string( "V0, " ), target );
+	return Instruction{ address, opcode, "JMP", std::string( "V0, " ), target };
 }
 
 Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
@@ -348,7 +398,7 @@ Instruction Disassembler::decode_RND( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "RND", format_register( reg_x ) + ", " + format_byte( byte ) );
+	return Instruction{ address, opcode, "RND", format_register( reg_x ) + ", " + format_byte( byte ), 0 };
 }
 
 Instruction Disassembler::decode_DRW( uint16_t address, uint16_t opcode )
@@ -359,8 +409,8 @@ Instruction Disassembler::decode_DRW( uint16_t address, uint16_t opcode )
 
 	address_stack.push( address + 2 );
 
-	return Instruction( address, opcode, "DRW",
-						format_register( reg_x ) + ", " + format_register( reg_y ) + ", " + std::to_string( nibble ) );
+	return Instruction{ address, opcode, "DRW",
+						format_register( reg_x ) + ", " + format_register( reg_y ) + ", " + std::to_string( nibble ), 0 };
 }
 
 Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
@@ -391,7 +441,7 @@ Instruction Disassembler::decode_Key( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, opcode, mnemonic, argument );
+	return Instruction{ address, opcode, mnemonic, argument, 0 };
 }
 
 Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
@@ -462,42 +512,45 @@ Instruction Disassembler::decode_Misc( uint16_t address, uint16_t opcode )
 		break;
 	}
 
-	return Instruction( address, opcode, mnemonic, argument );
+	return Instruction{ address, opcode, mnemonic, argument, 0 };
 }
+
+
+Disassembler::Dispatcher Disassembler::dispatcher =
+{
+	 &Disassembler::decode_SYS,
+	 &Disassembler::decode_JP,
+	 &Disassembler::decode_CALL,
+	 &Disassembler::decode_SEI,
+	 &Disassembler::decode_SNEI,
+	 &Disassembler::decode_SER,
+	 &Disassembler::decode_LD,
+	 &Disassembler::decode_ADD,
+	 &Disassembler::decode_MathOp,
+	 &Disassembler::decode_SNE,
+	 &Disassembler::decode_LDI,
+	 &Disassembler::decode_JMP,
+	 &Disassembler::decode_RND,
+	 &Disassembler::decode_DRW,
+	 &Disassembler::decode_Key,
+	 &Disassembler::decode_Misc,
+};
 
 void Disassembler::disassemble_instruction( uint16_t address )
 {
 	unsigned int opcode;
 
-	if( instructions.find( Instruction( address ) ) != instructions.end() )
-		return; // the instruction has already been pushed so all is good
+	if( !decoded_instructions.insert(address).second )
+		return; // already decoded
 
 	if( (opcode = memory.get_byte(address + 1)) == (uint16_t)-1 )
 		return;	// not in raw bytes and not in instruction set. Worthy of an exception
 
 	opcode = memory.get_byte(address) << 8 | opcode;
 
-	switch( opcode >> 12 ) {
-	case 0x0: instructions.insert( decode_SYS( address, opcode ) ); break;
-	case 0x1: instructions.insert( decode_JP( address, opcode ) ); break;
-	case 0x2: instructions.insert( decode_CALL( address, opcode ) ); break;
-	case 0x3: instructions.insert( decode_SEI( address, opcode ) ); break;
-	case 0x4: instructions.insert( decode_SNEI( address, opcode ) ); break;
-	case 0x5: instructions.insert( decode_SER( address, opcode ) ); break;
-	case 0x6: instructions.insert( decode_LD( address, opcode ) ); break;
-	case 0x7: instructions.insert( decode_ADD( address, opcode ) ); break;
-	case 0x8: instructions.insert( decode_MathOp( address, opcode ) ); break;
-	case 0x9: instructions.insert( decode_SNE( address, opcode ) ); break;
-	case 0xA: instructions.insert( decode_LDI( address, opcode ) ); break;
-	case 0xB: instructions.insert( decode_JMP( address, opcode ) ); break;
-	case 0xC: instructions.insert( decode_RND( address, opcode ) ); break;
-	case 0xD: instructions.insert( decode_DRW( address, opcode ) ); break;
-	case 0xE: instructions.insert( decode_Key( address, opcode ) ); break;
-	case 0xF: instructions.insert( decode_Misc( address, opcode ) ); break;
-	}
+	instructions.push_back( (this->*dispatcher[(opcode >> 12) & 0x0F])( address, opcode ) );
 
     memory.mark_instruction(address);
-    memory.mark_instruction(address + 1);
 }
 
 void Disassembler::collect_data_bytes()
@@ -519,7 +572,7 @@ void Disassembler::collect_data_bytes()
             // If this byte is a jump target → end previous run
             if( !datarun.empty() && ! targets.get_label( addr ).empty()) {
 
-                databytes.insert( DataBytes(run_start, datarun) );
+                databytes.push_back( DataBytes(run_start, datarun) );
                 datarun.clear();
             }
 
@@ -533,7 +586,7 @@ void Disassembler::collect_data_bytes()
             // Instruction byte interrupts data run
             if( !datarun.empty() ) {
 
-                databytes.insert( DataBytes(run_start, datarun) );
+                databytes.push_back( DataBytes(run_start, datarun) );
                 datarun.clear();
             }
         }
@@ -541,5 +594,5 @@ void Disassembler::collect_data_bytes()
 
     // Flush leftover at end of memory block
     if( !datarun.empty() )
-        databytes.insert( DataBytes(run_start, datarun) );
+        databytes.push_back( DataBytes(run_start, datarun) );
 }

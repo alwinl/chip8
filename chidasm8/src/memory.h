@@ -37,8 +37,8 @@ public:
 private:
     uint16_t origin;
     std::vector<uint8_t> bytes;
-    std::vector<bool> instruction_flag;
+    std::vector<uint8_t> instruction_flag;
 
     void ensure_capacity(uint16_t addr);
-    bool check_bounds( uint16_t addr ) const;
+    bool contains( uint16_t addr ) const;
 };

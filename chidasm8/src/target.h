@@ -40,10 +40,13 @@ public:
 			std::sort( target_list.begin(), target_list.end() );
 			target_list.erase( std::unique( target_list.begin(), target_list.end()), target_list.end() );
 		}
+		sorted = true;
 	}
 
 	std::string get_label( uint16_t address ) const
 	{
+		assert( sorted );
+
 		static constexpr std::array<const char *,eKind::COUNT> prefixes{ "DATA", "FUNC", "LABEL", "TABLE" };
 
 		for( size_t kind = 0; kind < eKind::COUNT; ++ kind ) {
@@ -59,5 +62,6 @@ public:
 private:
 	using ListArray = std::array<std::vector<uint16_t>, eKind::COUNT>;
 
+	bool sorted = false;
 	ListArray target_lists;
 };

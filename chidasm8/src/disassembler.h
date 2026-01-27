@@ -23,15 +23,30 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include <cstdint>
 
 #include <iosfwd>
 
-#include "instruction.h"
-#include "data_bytes.h"
 #include "target.h"
 #include "memory.h"
+
+
+struct Instruction
+{
+	uint16_t address;
+	uint16_t opcode;
+	std::string mnemonic;
+	std::string argument;
+	uint16_t target_address;
+};
+
+struct DataBytes
+{
+	uint16_t address;
+	std::vector<uint8_t> byte_run;
+};
 
 class Disassembler
 {
@@ -48,8 +63,9 @@ private:
 	uint16_t origin;
 	std::string bin_name;
 	Memory memory;
-	std::set<Instruction> instructions;
-	std::set<DataBytes> databytes;
+	std::unordered_set<uint16_t> decoded_instructions;
+	std::vector<Instruction> instructions;
+	std::vector<DataBytes> databytes;
 	Targets targets;
 
 	std::stack<uint16_t> address_stack;
@@ -75,4 +91,8 @@ private:
 	void disassemble_instruction( uint16_t address );
 
 	void collect_data_bytes();
+
+	using Dispatcher = std::vector<Instruction (Disassembler::*)(uint16_t address, uint16_t opcode)>;
+
+	static Dispatcher dispatcher;
 };

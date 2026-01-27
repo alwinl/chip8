@@ -17,7 +17,8 @@
  * MA 02110-1301, USA.
  */
 
- #include "memory.h"
+#include "memory.h"
+#include <cassert>
 
 void Memory::add_byte(uint16_t addr, uint8_t value)
 {
@@ -27,18 +28,21 @@ void Memory::add_byte(uint16_t addr, uint8_t value)
 
 uint8_t Memory::get_byte(uint16_t addr) const
 {
-    return check_bounds( addr ) ? bytes[addr - origin] : (uint16_t)-1;
+	assert( contains( addr ) );
+    return bytes[addr - origin];
 }
 
 void Memory::mark_instruction(uint16_t addr)
 {
-    if( check_bounds( addr ) )
+    if( contains( addr ) ) {
         instruction_flag[addr - origin] = true;
+        instruction_flag[addr - origin + 1] = true;
+	}
 }
 
 bool Memory::is_instruction(uint16_t addr) const
 {
-    return check_bounds( addr ) ? instruction_flag[addr - origin] : false;
+    return contains( addr ) ? instruction_flag[addr - origin] : false;
 }
 
 void Memory::ensure_capacity(uint16_t addr)
@@ -51,7 +55,7 @@ void Memory::ensure_capacity(uint16_t addr)
     }
 }
 
-bool Memory::check_bounds( uint16_t addr ) const
+bool Memory::contains( uint16_t addr ) const
 {
     return( (addr >= origin) && ( addr - origin < bytes.size() ) );
 }
