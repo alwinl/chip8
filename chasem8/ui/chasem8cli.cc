@@ -17,7 +17,6 @@
  * MA 02110-1301, USA.
  */
 
-#include <fstream>
 #include <iostream>
 
 #include "cmdlineparser.h"
@@ -25,42 +24,27 @@
 
 int main( int argc, char **argv )
 {
-	CmdLineParser args;
+	try {
+		CmdLineParser args;
 
-	if( ! args.parse_args( argc, argv ) )
-		return 1;
+		if( ! args.parse_args( argc, argv ) )
+			return 1;
 
-	std::ifstream source = std::ifstream( args.get_source_name(), std::ios::in );
-	if( source.fail() ) {
-		std::cout << "Cannot open source file" << std::endl;
-		return 2;
+		Assembler worker;
+
+		worker.configure( args );
+
+		worker.read_source();
+		worker.write_binary( );
+
+		if( ! args.get_listing_name().empty() )
+			worker.write_listing();
 	}
+	catch( const std::exception &e ) {
 
-	if( source.peek() == std::ifstream::traits_type::eof() ) {
-		std::cout << "Source file is empty" << std::endl;
-		return 2;
+		std::cerr << e.what() << std::endl;
+        return 2;
 	}
-
-	std::ofstream binary = std::ofstream( args.get_binary_name(), std::ios::out | std::ios::binary );
-	if( !binary.is_open() ) {
-		std::cout << "Cannot open output file" << std::endl;
-		return 3;
-	}
-
-	Assembler worker;
-	worker.read_source( source );
-	worker.write_binary( binary );
-
-	if( args.get_listing_name().empty() )
-		return 0;
-
-	std::ofstream listing = std::ofstream( args.get_listing_name() );
-	if( !listing.is_open() ) {
-		std::cout << "Cannot open listing file. Listing is not generated" << std::endl;
-		return 0;
-	}
-
-	worker.write_listing( listing );
 
 	return 0;
 }

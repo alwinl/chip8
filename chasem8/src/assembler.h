@@ -32,14 +32,21 @@
 #include "instruction.h"
 
 #include "symboltable.h"
+#include "cmdlineparser.h"
 
 class Assembler
 {
 public:
 	Assembler() = default;
 
+	void configure( const CmdLineParser& cmd );
+
+	void read_source();
 	void read_source( std::istream &source );
+
+	void write_binary();
 	void write_binary( std::ostream &target );
+	void write_listing();
 	void write_listing( std::ostream &target );
 
 protected:
@@ -58,6 +65,8 @@ protected:
 	uint16_t get_symbol( const std::string &label ) const { return symbol_table.get_address( label ); }
 
 private:
+	CmdLineParser configuration;
+
 	std::vector<std::unique_ptr<Instruction>> instructions;
 	SymbolTable symbol_table;
 };

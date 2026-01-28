@@ -27,6 +27,7 @@
 #include <vector>
 #include <sstream>
 #include <functional>
+#include <fstream>
 
 #include <iostream>
 
@@ -57,6 +58,25 @@ std::unordered_map<std::string, std::function<std::unique_ptr<Instruction>(const
 	{ ".DW",  [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
 	{ ".ORG", [](const std::vector<std::string>& args, const SymbolTable& sym_table) { return std::make_unique<DWInstruction  >(args, sym_table); } },
 };
+
+void Assembler::configure( const CmdLineParser &cmd )
+{
+	configuration = cmd;
+}
+
+void Assembler::read_source()
+{
+	if( configuration.get_source_name() != "-" ) {
+
+		std::ifstream source_file = std::ifstream( configuration.get_source_name(), std::ios::in );
+		if( !source_file.is_open() )
+			throw std::runtime_error("Cannot open source file: " + configuration.get_source_name());
+
+		read_source( source_file );
+
+	} else
+		read_source( std::cin );
+}
 
 void Assembler::read_source( std::istream &source )
 {
@@ -163,6 +183,20 @@ uint16_t Assembler::extract_instruction( std::vector<std::string> &tokens )
 	return instructions.back()->length();
 }
 
+void Assembler::write_binary()
+{
+	if( configuration.get_binary_name() != "-" ) {
+
+		std::ofstream out_file = std::ofstream( configuration.get_binary_name(), std::ios::out | std::ios::binary );
+		if( !out_file.is_open() )
+			throw std::runtime_error("Cannot open listing file. Listing is not generated" + configuration.get_binary_name() );
+
+		write_binary( out_file );
+
+	} else
+		write_binary( std::cout );
+}
+
 void Assembler::write_binary( std::ostream &target )
 {
 	std::for_each( instructions.begin(), instructions.end(),
@@ -173,8 +207,24 @@ void Assembler::write_binary( std::ostream &target )
 	);
 }
 
+void Assembler::write_listing( )
+{
+	if( configuration.get_listing_name() != "-" ) {
+
+		std::ofstream out_file = std::ofstream( configuration.get_listing_name(), std::ios::out );
+		if( !out_file.is_open() )
+			throw std::runtime_error("Cannot open listing file. Listing is not generated" + configuration.get_listing_name() );
+
+		write_listing( out_file );
+
+	} else
+		write_listing( std::cout );
+
+}
+
 void Assembler::write_listing( std::ostream &target )
 {
+
 	std::for_each( instructions.begin(), instructions.end(),
 		[&target]( const std::unique_ptr<Instruction>& instruction )
 		{
