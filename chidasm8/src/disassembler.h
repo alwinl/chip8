@@ -46,7 +46,6 @@ class Disassembler
 {
 public:
 	Disassembler() = default;
-	// Disassembler( std::string bin_name, uint16_t origin ) :  bin_name(bin_name), origin(origin), memory( origin ) {}
 
 	void configure( const CmdLineParser& cmd );
 
@@ -56,9 +55,6 @@ public:
 
 private:
 	CmdLineParser configuration;
-	// uint16_t origin;
-	// std::string bin_name;
-	// bool is_clean;
 	Memory memory;
 	Targets targets;
 	std::vector<ASMElement> elements;

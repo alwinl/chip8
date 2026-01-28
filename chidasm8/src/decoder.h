@@ -39,6 +39,8 @@ struct DecodeResult
 class Decoder
 {
 public:
+	Decoder() = default;
+
 	DecodeResult decode(uint16_t address, Memory& memory );
 
 private:
