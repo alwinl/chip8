@@ -50,8 +50,12 @@ public:
 	void configure( const CmdLineParser& cmd );
 
 	void read_input();
+	void read_input( std::istream& is );
+
 	void disassemble();
+
 	void print_output();
+	void print_output( std::ostream& os );
 
 private:
 	CmdLineParser configuration;

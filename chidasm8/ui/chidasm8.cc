@@ -17,7 +17,6 @@
  * MA 02110-1301, USA.
  */
 
-#include <fstream>
 #include <iostream>
 
 #include "cmdlineparser.h"

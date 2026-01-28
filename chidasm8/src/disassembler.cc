@@ -39,22 +39,28 @@ void Disassembler::configure( const CmdLineParser &cmd )
 
 void Disassembler::read_input( )
 {
-	std::ifstream source_file;
-	std::istream* is = &std::cin;
-
 	if( configuration.get_source_name() != "-" ) {
-		source_file = std::ifstream( configuration.get_source_name(), std::ios::in | std::ios::binary );
+
+		std::ifstream source_file = std::ifstream( configuration.get_source_name(), std::ios::in | std::ios::binary );
 		if( !source_file.is_open() )
 			throw std::runtime_error("Cannot open source file: " + configuration.get_source_name());
 
-		is = &source_file;
-	}
+		read_input( source_file );
 
+	} else
+		read_input( std::cin );
+}
+
+void Disassembler::read_input( std::istream& is )
+{
 	uint16_t address = configuration.get_origin();
-    int byte;
+    char byte;
 
-    while( (byte = is->get()) != EOF )
-		memory.add_byte( address++, static_cast<uint8_t>(byte) );
+    while( is.get( byte ) )
+		memory.add_byte( address++, byte );
+
+	if( !is.eof() )
+        throw std::runtime_error("Error reading from input stream.");
 }
 
 void Disassembler::disassemble()
@@ -202,35 +208,37 @@ void emit_instruction( std::ostream &os, const Instruction& inst, std::string la
 	os << format_mnemonic(inst.mnemonic) << " " << inst.argument << label << "\n";
 };
 
-void Disassembler::print_output( )
+void Disassembler::print_output( std::ostream& os )
 {
-	std::ostream * os = &std::cout;
-	std::ofstream out_file;
-
-	if( configuration.get_output_name() != "-" ) {
-		std::ofstream out_file = std::ofstream( configuration.get_output_name(), std::ios::out );
-		if( !out_file.is_open() )
-			throw std::runtime_error("Cannot open output file: " + configuration.get_output_name() );
-
-		os = &out_file;
-	}
-
-	emit_header( *os, configuration.get_program_name(), configuration.get_origin() );
+	emit_header( os, configuration.get_program_name(), configuration.get_origin() );
 
 	for( const auto& elem : elements ) {
 
-		emit_label( *os, targets.get_label( elem.address ) );
+		emit_label( os, targets.get_label( elem.address ) );
 
 		std::visit( [&]( auto&& value )
 		{
 			using T = std::decay_t<decltype(value)>;
 
 			if constexpr ( std::is_same_v<T, Instruction> )
-				emit_instruction( *os, value, targets.get_label( value.target_address ), configuration.is_clean() );
+				emit_instruction( os, value, targets.get_label( value.target_address ), configuration.is_clean() );
 			else
-				emit_databytes( *os, value, configuration.is_clean() );
+				emit_databytes( os, value, configuration.is_clean() );
 
 		}, elem.value );
 	}
+}
 
+void Disassembler::print_output( )
+{
+	if( configuration.get_output_name() != "-" ) {
+
+		std::ofstream out_file = std::ofstream( configuration.get_output_name(), std::ios::out );
+		if( !out_file.is_open() )
+			throw std::runtime_error("Cannot open output file: " + configuration.get_output_name() );
+
+		print_output( out_file );
+
+	} else
+		print_output( std::cout );
 }
