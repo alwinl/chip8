@@ -100,9 +100,6 @@ DecodeResult Decoder::decode_LD( uint16_t address, uint16_t opcode )
 	uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 	uint8_t byte = ( opcode & 0xFF );
 
-	// if( reg_x == 0 )
-	// 	V0_content = byte;
-
 	return linear( address, opcode, "LD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
 
@@ -110,9 +107,6 @@ DecodeResult Decoder::decode_ADD( uint16_t address, uint16_t opcode )
 {
 	uint8_t reg_x = ( opcode >> 8 ) & 0xF;
 	uint8_t byte = ( opcode & 0xFF );
-
-	// if( reg_x == 0 )
-	// 	V0_content += byte;
 
 	return linear( address, opcode, "ADD", format_register( reg_x ) + ", " + format_byte( byte ) );
 }
@@ -318,7 +312,6 @@ DecodeResult Decoder::decode_LDI( uint16_t address, uint16_t opcode )
 	uint16_t next_address = address + 2;
 
 	return DecodeResult {
-		// Instruction{ address, opcode, "LD", "I, " + format_address( load_address ), 0 },
 		Instruction{ address, opcode, "LD", "I, ", load_address },
 		AddressList { next_address },
 		DecodedTarget { load_address, eKind::I_TARGET }
@@ -328,11 +321,16 @@ DecodeResult Decoder::decode_LDI( uint16_t address, uint16_t opcode )
 DecodeResult Decoder::decode_JMP( uint16_t address, uint16_t opcode )
 {
 	uint16_t table_base = ( opcode >> 0 ) & 0xFFF;
-	uint16_t jmp_address = table_base /* + [V0]*/;	// this is a problem, we do not know the value of V0, so we cannot mark the proper address as an instruction
+	/*
+		This looks a problem; we do not know the value of V0, so we cannot mark
+		the proper address as an instruction. However this is going to be resovled
+		at a higher level of abstraction, so putting table base in the AddressList
+		is the right thing to do here.
+	*/
+	uint16_t jmp_address = table_base /* + [V0]*/;
 
 	return DecodeResult {
 		Instruction{ address, opcode, "JMP", "V0, ", table_base },
-		// Instruction{ address, opcode, "JMP", "V0, " + format_address( table_base ), 0 },
 		AddressList { jmp_address },
 		DecodedTarget { table_base, eKind::INDEXED }
 	};
