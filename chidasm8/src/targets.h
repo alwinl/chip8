@@ -26,38 +26,25 @@
 #include <string>
 #include <iterator>
 #include <cassert>
+#include <optional>
+
+enum eKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
+
+struct DecodedTarget
+{
+	uint16_t address;
+	eKind kind;
+};
 
 class Targets
 {
 public:
-	enum eKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
+	Targets() = default;
 
-	void add( uint16_t address, eKind kind ) { target_lists[kind].push_back( address ); };
+	void add( std::optional<DecodedTarget> target );
+	void sort_vectors();
 
-	void sort_vectors()
-	{
-		for( auto& target_list : target_lists ) {
-			std::sort( target_list.begin(), target_list.end() );
-			target_list.erase( std::unique( target_list.begin(), target_list.end()), target_list.end() );
-		}
-		sorted = true;
-	}
-
-	std::string get_label( uint16_t address ) const
-	{
-		assert( sorted );
-
-		static constexpr std::array<const char *,eKind::COUNT> prefixes{ "DATA", "FUNC", "LABEL", "TABLE" };
-
-		for( size_t kind = 0; kind < eKind::COUNT; ++ kind ) {
-
-			auto it = std::lower_bound( target_lists[kind].begin(), target_lists[kind].end(), address );
-			if( (it != target_lists[kind].end()) && (*it == address) )
-				return std::string(prefixes[kind]) + std::to_string( std::distance( target_lists[kind].begin(), it) );
-		}
-
-		return {};
-	}
+	std::string get_label( uint16_t address ) const;
 
 private:
 	using ListArray = std::array<std::vector<uint16_t>, eKind::COUNT>;

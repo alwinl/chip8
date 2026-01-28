@@ -29,6 +29,7 @@ void Memory::add_byte(uint16_t addr, uint8_t value)
 uint8_t Memory::get_byte(uint16_t addr) const
 {
 	assert( contains( addr ) );
+
     return bytes[addr - origin];
 }
 
@@ -43,6 +44,11 @@ void Memory::mark_instruction(uint16_t addr)
 bool Memory::is_instruction(uint16_t addr) const
 {
     return contains( addr ) ? instruction_flag[addr - origin] : false;
+}
+
+uint16_t Memory::get_word( uint16_t address )
+{
+	return ( get_byte(address) << 8 ) | get_byte( address + 1 );
 }
 
 void Memory::ensure_capacity(uint16_t addr)

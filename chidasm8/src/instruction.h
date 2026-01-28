@@ -1,5 +1,5 @@
 /*
- * memory.h Copyright 2025 Alwin Leerling dna.leerling@gmail.com
+ * instruction.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,26 +20,13 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <string>
 
-class Memory {
-public:
-    Memory( uint16_t origin ) : origin( origin ) {}
-
-    void add_byte( uint16_t addr, uint8_t value );
-    void mark_instruction( uint16_t addr );
-
-    uint8_t get_byte( uint16_t addr ) const;
-	uint16_t get_word( uint16_t address);
-    uint16_t mem_start() const { return origin; }
-    uint16_t mem_end() const { return origin + bytes.size(); }
-    bool is_instruction( uint16_t addr ) const;
-
-private:
-    uint16_t origin;
-    std::vector<uint8_t> bytes;
-    std::vector<uint8_t> instruction_flag;
-
-    void ensure_capacity(uint16_t addr);
-    bool contains( uint16_t addr ) const;
+struct Instruction
+{
+	uint16_t address;
+	uint16_t opcode;
+	std::string mnemonic;
+	std::string argument;
+	uint16_t target_address;
 };

@@ -22,17 +22,12 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(
 	chidasm8_logic
 
-	disassembler.cc
-	# data_bytes.cc
-	# instruction.cc
-	# target.cc
-	utils.cc
-	memory.cc
 	cmdlineparser.cc
-	# filenameextractor.cc
-	# instruction.cc
-	# program.cc
-	# token.cc
+	disassembler.cc
+	decoder.cc
+	targets.cc
+	memory.cc
+	utils.cc
 )
 
 target_include_directories( chidasm8_logic INTERFACE ./ )
