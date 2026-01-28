@@ -24,8 +24,9 @@
 
 class Memory {
 public:
-    Memory( uint16_t origin ) : origin( origin ) {}
+    Memory( uint16_t origin = 0x200 ) : origin( origin ) {}
 
+	void set_origin( uint16_t org ) { origin = org; }
     void add_byte( uint16_t addr, uint8_t value );
     void mark_instruction( uint16_t addr );
 

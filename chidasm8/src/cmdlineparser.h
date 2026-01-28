@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "../vendor/cxxopts/cxxopts.hpp"
 
@@ -38,6 +39,7 @@ public:
     bool is_verbose() const;
     bool is_clean() const;
     bool show_help() const;
+	uint16_t get_origin() const;
 
 private:
     cxxopts::ParseResult result;

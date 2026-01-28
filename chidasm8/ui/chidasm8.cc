@@ -15,8 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
 
 #include <fstream>
@@ -25,48 +23,26 @@
 #include "cmdlineparser.h"
 #include "disassembler.h"
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-	static const unsigned int start_address = 0x200;
+    try {
+        CmdLineParser args;
 
-	CmdLineParser args;
+        if( !args.parse_args( argc, argv ) )
+			return 1;
 
-	args.parse_args( argc, argv );
+        Disassembler disasm;
+        disasm.configure( args );
 
-	std::ifstream source_file = std::ifstream( args.get_source_name(), std::ios::in | std::ios::binary );
-	if( source_file.fail() ) {
-		std::cout << "Cannot open source file" << std::endl;
-		return 2;
-	}
+        disasm.read_input();
+        disasm.disassemble();
+        disasm.print_output();
+    }
 
-	if( source_file.peek() == std::ifstream::traits_type::eof() ) {
-		std::cout << "Source file is empty" << std::endl;
-		return 2;
-	}
+	catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return 2;
+    }
 
-	std::ofstream output_file = std::ofstream( args.get_output_name(), std::ios::out );
-	if( !output_file.is_open() ) {
-		std::cout << "Cannot open output file" << std::endl;
-		return 3;
-	}
-
-
-	if( argc < 2 ) {
-		std::cout << "Usage dis_chip8 [program binary]" << std::endl;
-		return 1;
-	}
-
-	// InputData input( args.get_program_name(), start_address );
-
-	// source_file >> input;
-
-	Disassembler worker( args.get_program_name(), start_address );
-
-	worker.read_input( source_file );
-
-	worker.disassemble();
-
-	worker.print_output( output_file, args.is_clean() );
-
-	return 0;
+    return 0;
 }

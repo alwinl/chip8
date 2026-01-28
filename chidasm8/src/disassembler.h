@@ -28,6 +28,7 @@
 #include "targets.h"
 #include "memory.h"
 #include "instruction.h"
+#include "cmdlineparser.h"
 
 struct DataBytes
 {
@@ -44,15 +45,20 @@ struct ASMElement
 class Disassembler
 {
 public:
-	Disassembler( std::string bin_name, uint16_t origin ) :  bin_name(bin_name), origin(origin), memory( origin ) {}
+	Disassembler() = default;
+	// Disassembler( std::string bin_name, uint16_t origin ) :  bin_name(bin_name), origin(origin), memory( origin ) {}
 
-	void read_input( std::istream& is );
+	void configure( const CmdLineParser& cmd );
+
+	void read_input();
 	void disassemble();
-	void print_output( std::ostream& os, bool is_clean );
+	void print_output();
 
 private:
-	uint16_t origin;
-	std::string bin_name;
+	CmdLineParser configuration;
+	// uint16_t origin;
+	// std::string bin_name;
+	// bool is_clean;
 	Memory memory;
 	Targets targets;
 	std::vector<ASMElement> elements;

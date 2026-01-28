@@ -23,16 +23,37 @@
 #include <sstream>
 #include <stack>
 #include <unordered_set>
+#include <fstream>
+#include <iostream>
 
+#include "cmdlineparser.h"
 #include "decoder.h"
 #include "utils.h"
 
-void Disassembler::read_input( std::istream& is )
+void Disassembler::configure( const CmdLineParser &cmd )
 {
-	uint16_t address = origin;
+	configuration = cmd;
+
+	memory.set_origin( cmd.get_origin() );
+}
+
+void Disassembler::read_input( )
+{
+	std::ifstream source_file;
+	std::istream* is = &std::cin;
+
+	if( configuration.get_source_name() != "-" ) {
+		source_file = std::ifstream( configuration.get_source_name(), std::ios::in | std::ios::binary );
+		if( !source_file.is_open() )
+			throw std::runtime_error("Cannot open source file: " + configuration.get_source_name());
+
+		is = &source_file;
+	}
+
+	uint16_t address = configuration.get_origin();
     int byte;
 
-    while( (byte = is.get()) != EOF )
+    while( (byte = is->get()) != EOF )
 		memory.add_byte( address++, static_cast<uint8_t>(byte) );
 }
 
@@ -54,7 +75,7 @@ void Disassembler::collect_instructions()
 	std::unordered_set<uint16_t> decoded_instructions;
 	Decoder decoder;
 
-	address_stack.push( origin );	// Push the start address
+	address_stack.push( configuration.get_origin() );	// Push the start address
 
 	while( !address_stack.empty() ) {
 
@@ -181,22 +202,33 @@ void emit_instruction( std::ostream &os, const Instruction& inst, std::string la
 	os << format_mnemonic(inst.mnemonic) << " " << inst.argument << label << "\n";
 };
 
-void Disassembler::print_output( std::ostream &os, bool is_clean )
+void Disassembler::print_output( )
 {
-	emit_header( os, bin_name, origin );
+	std::ostream * os = &std::cout;
+	std::ofstream out_file;
+
+	if( configuration.get_output_name() != "-" ) {
+		std::ofstream out_file = std::ofstream( configuration.get_output_name(), std::ios::out );
+		if( !out_file.is_open() )
+			throw std::runtime_error("Cannot open output file: " + configuration.get_output_name() );
+
+		os = &out_file;
+	}
+
+	emit_header( *os, configuration.get_program_name(), configuration.get_origin() );
 
 	for( const auto& elem : elements ) {
 
-		emit_label( os, targets.get_label( elem.address ) );
+		emit_label( *os, targets.get_label( elem.address ) );
 
 		std::visit( [&]( auto&& value )
 		{
 			using T = std::decay_t<decltype(value)>;
 
 			if constexpr ( std::is_same_v<T, Instruction> )
-				emit_instruction( os, value, targets.get_label( value.target_address ), is_clean );
+				emit_instruction( *os, value, targets.get_label( value.target_address ), configuration.is_clean() );
 			else
-				emit_databytes( os, value, is_clean );
+				emit_databytes( *os, value, configuration.is_clean() );
 
 		}, elem.value );
 	}

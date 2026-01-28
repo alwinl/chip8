@@ -49,21 +49,22 @@ bool CmdLineParser::parse_args( int argc, char **argv )
 		( "h,help", "Show this help message" )
 		( "v,verbose", "Verbose output" )
 		( "c,clean", "Assembly only output" )
-		( "p,program", "Program name" )
-		( "o", "Output file name", cxxopts::value<std::string>() )
-		( "source", "Source binary file name", cxxopts::value<std::string>() );
+		( "p,program", "Program name", cxxopts::value<std::string>() )
+		( "o,output", "Output file name", cxxopts::value<std::string>() )
+		( "source", "Source file name", cxxopts::value<std::string>() );
 
 	options.parse_positional({"source"});
 	options.positional_help("<source>");
 	options.show_positional_help();
 
+	if( argc < 2 )
+		throw std::runtime_error( options.help() + "\nError: Source file is required.\n" );
+
 	try {
 		result = options.parse(argc, argv);
 	}
 	catch (const cxxopts::exceptions::exception& e) {
-		std::cerr << "Error parsing command line options: " << e.what() << std::endl;
-		std::cerr << options.help() << std::endl;
-		return false;
+		throw std::runtime_error( options.help() + "\nError: " + std::string(e.what()) );
 	}
 
 	if (result.count("help")) {
@@ -71,11 +72,8 @@ bool CmdLineParser::parse_args( int argc, char **argv )
 		return false;
     }
 
-    if (!result.count("source")) {
-		std::cerr << "Error: Source file is required." << std::endl;
-		std::cerr << options.help() << std::endl;
-		return false;
-	}
+    if( !result.count("source") )
+		throw std::runtime_error( options.help() + "\nError: Source file is required.\n" );
 
 	return true;
 }
@@ -92,18 +90,32 @@ std::string CmdLineParser::get_program_name()
 
 std::string CmdLineParser::get_output_name()
 {
-	return ( result.count("o") == 0 ) ? get_output_prefix() + ".lst" : result["o"].as<std::string>();
+	if( result.count("o") != 0 )
+		return result["o"].as<std::string>();
+
+	if( result.count("clean") != 0 )
+		return get_output_prefix() + ".asm";
+
+	return get_output_prefix() + ".lst";
 }
 
-bool CmdLineParser::is_verbose() const {
+bool CmdLineParser::is_verbose() const
+{
     return result["verbose"].as<bool>();
 }
 
-bool CmdLineParser::is_clean() const {
+bool CmdLineParser::is_clean() const
+{
     return result["clean"].as<bool>();
 }
 
-bool CmdLineParser::show_help() const {
+uint16_t CmdLineParser::get_origin() const
+{
+	return 0x200;
+}
+
+bool CmdLineParser::show_help() const
+{
     return result.count("help") > 0;
 }
 
