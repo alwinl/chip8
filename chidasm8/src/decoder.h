@@ -23,10 +23,11 @@
 #include <optional>
 
 #include "instruction.h"
-#include "memory.h"
 #include "targets.h"
 
 using AddressList = std::vector<uint16_t>;
+
+class Memory;
 
 struct DecodeResult
 {

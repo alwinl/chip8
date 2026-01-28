@@ -22,10 +22,7 @@
 #include <vector>
 #include <array>
 #include <cstdint>
-#include <algorithm>
 #include <string>
-#include <iterator>
-#include <cassert>
 #include <optional>
 
 enum eKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
@@ -45,6 +42,8 @@ public:
 	void sort_vectors();
 
 	std::string get_label( uint16_t address ) const;
+
+	std::vector<uint16_t> get_index_list( ) { return target_lists[INDEXED]; };
 
 private:
 	using ListArray = std::array<std::vector<uint16_t>, eKind::COUNT>;

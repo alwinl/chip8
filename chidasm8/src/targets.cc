@@ -19,6 +19,9 @@
 
 #include "targets.h"
 
+#include <algorithm>
+#include <cassert>
+
 void Targets::add(std::optional<DecodedTarget> target)
 {
 	if( target )

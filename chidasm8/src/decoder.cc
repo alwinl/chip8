@@ -18,7 +18,9 @@
  */
 
 #include "decoder.h"
+
 #include "utils.h"
+#include "memory.h"
 
 DecodeResult linear( uint16_t address, uint16_t opcode, std::string mnemonic, std::string argument = "" )
 {

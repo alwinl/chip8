@@ -19,11 +19,6 @@
 
 #include "cmdlineparser.h"
 
-#include <algorithm>
-#include <span>
-#include <stdexcept>
-#include <string>
-#include <filesystem>
 #include <iostream>
 
 bool CmdLineParser::parse_args( std::vector<std::string> arguments )

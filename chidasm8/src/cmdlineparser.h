@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "../vendor/cxxopts/cxxopts.hpp"
-
 #include <string>
 #include <vector>
+
+#include "../vendor/cxxopts/cxxopts.hpp"
 
 class CmdLineParser
 {

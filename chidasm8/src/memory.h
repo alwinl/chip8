@@ -34,6 +34,7 @@ public:
     uint16_t mem_start() const { return origin; }
     uint16_t mem_end() const { return origin + bytes.size(); }
     bool is_instruction( uint16_t addr ) const;
+    bool contains( uint16_t addr ) const;
 
 private:
     uint16_t origin;
@@ -41,5 +42,4 @@ private:
     std::vector<uint8_t> instruction_flag;
 
     void ensure_capacity(uint16_t addr);
-    bool contains( uint16_t addr ) const;
 };

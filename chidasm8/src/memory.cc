@@ -18,6 +18,7 @@
  */
 
 #include "memory.h"
+
 #include <cassert>
 
 void Memory::add_byte(uint16_t addr, uint8_t value)

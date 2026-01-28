@@ -20,33 +20,39 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
- 
+
  std::string format_register( unsigned int reg )
  {
      std::ostringstream oss;
      oss << "V" << std::uppercase << std::hex << reg;
      return oss.str();
  }
- 
+
  std::string format_byte( unsigned int byte )
  {
      std::ostringstream oss;
      oss << "0x" << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
      return oss.str();
  }
- 
+
  std::string format_naked_byte( unsigned int byte )
  {
      std::ostringstream oss;
      oss << std::setfill( '0' ) << std::setw( 2 ) << std::uppercase << std::hex << byte;
      return oss.str();
  }
- 
+
  std::string format_address( unsigned int address )
  {
      std::ostringstream oss;
      oss << "0x" << std::setfill( '0' ) << std::setw( 3 ) << std::uppercase << std::hex << address;
      return oss.str();
  }
- 
- 
+
+ std::string format_mnemonic( std::string mnemonic )
+ {
+     std::ostringstream oss;
+     oss << std::setfill( ' ' ) << std::setw( 4 ) << std::left << mnemonic;
+     return oss.str();
+ }
+

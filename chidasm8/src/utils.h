@@ -25,3 +25,4 @@ std::string format_register( unsigned int reg );
 std::string format_byte( unsigned int byte );
 std::string format_naked_byte( unsigned int byte );
 std::string format_address( unsigned int address );
+std::string format_mnemonic( std::string mnemonic );

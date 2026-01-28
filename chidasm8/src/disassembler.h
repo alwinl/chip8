@@ -19,13 +19,10 @@
 
 #pragma once
 
-#include <set>
-#include <stack>
 #include <string>
 #include <vector>
-#include <unordered_set>
 #include <cstdint>
-
+#include <variant>
 #include <iosfwd>
 
 #include "targets.h"
@@ -38,25 +35,28 @@ struct DataBytes
 	std::vector<uint8_t> byte_run;
 };
 
+struct ASMElement
+{
+    uint16_t address;
+    std::variant<Instruction, DataBytes> value;
+};
+
 class Disassembler
 {
 public:
 	Disassembler( std::string bin_name, uint16_t origin ) :  bin_name(bin_name), origin(origin), memory( origin ) {}
 
 	void read_input( std::istream& is );
-
-    void disassemble();
-
+	void disassemble();
 	void print_output( std::ostream& os, bool is_clean );
 
 private:
 	uint16_t origin;
 	std::string bin_name;
 	Memory memory;
-	std::unordered_set<uint16_t> decoded_instructions;
-	std::vector<Instruction> instructions;
-	std::vector<DataBytes> databytes;
 	Targets targets;
+	std::vector<ASMElement> elements;
 
+	void collect_instructions();
 	void collect_data_bytes();
 };
