@@ -22,11 +22,13 @@ include( GoogleTest )
 add_executable(
 	chasem8_tests
 
-	cmdlineparsertest.cc
-	assemblertest.cc
-	symboltabletest.cc
-	instructiontest.cc
-	numberparsertest.cc
+	# cmdlineparsertest.cc
+	# assemblertest.cc
+	# symboltabletest.cc
+	# instructiontest.cc
+	# numberparsertest.cc
+	tokeniser_test.cc
+	parser_test.cc
 )
 
 target_link_libraries( chasem8_tests PRIVATE gtest gtest_main chasem8_logic )

@@ -25,6 +25,9 @@ add_library(
 	symboltable.cc
 	instruction.cc
 	numberparser.cc
+
+	tokeniser.cc
+	parser.cc
 )
 
 target_include_directories( chasem8_logic INTERFACE ./ )

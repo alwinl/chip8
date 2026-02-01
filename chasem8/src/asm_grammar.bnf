@@ -1,0 +1,11 @@
+<program>       ::= <line>*
+<line>          ::= <label> | <variable_def> | <instruction> | <directive>
+
+<instruction>   ::= <label>? IDENTIFIER <argument_list>?
+<directive>     ::= <label>? DIRECTIVE <argument_list>?
+<variable_def>  ::= IDENTIFIER ASSIGNMENT <argument_list>
+
+<label>         ::= LABEL
+
+<argument_list> ::= <argument> ( COMMA <argument> )*
+<argument>      ::= IDENTIFIER | NUMBER
