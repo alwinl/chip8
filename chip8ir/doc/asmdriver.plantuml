@@ -1,0 +1,47 @@
+@startuml ASMDriver
+title "chasm8 sequence diagram"
+
+actor user
+participant Driver
+participant ASMSourceLoader
+participant Assembler
+participant BinaryEmitter
+participant ListingEmitter
+
+user ->Driver ++ : invoke( "chasm8" )
+return "Error, no source file"
+
+user ->Driver ++ : invoke( "chasm8 -h" )
+return help text
+
+user ->Driver ++ : invoke( "chasm8 source_file" )
+	Driver -> ASMSourceLoader ++ : load( source_file )
+	return ASMSource
+
+	Driver -> Assembler ++ : build_ir( ASMSource )
+	return IRProgram
+
+	Driver -> BinaryEmitter++ : emit( IRProgam )
+		BinaryEmitter -> binary ** : <<create>>
+		deactivate BinaryEmitter
+return
+
+user ->Driver ++ : invoke( "chasm8 -l souce_file" )
+	Driver -> ASMSourceLoader ++ : load( source_file )
+	return ASMSource
+
+	Driver -> Assembler ++ : build_ir( ASMSource )
+	return IRProgram
+
+	Driver -> BinaryEmitter++ : emit( IRProgam )
+		BinaryEmitter -> binary ** : <<create>>
+		deactivate BinaryEmitter
+
+	Driver -> ListingEmitter++ : emit( IRProgam )
+		ListingEmitter -> listing ** : <<create>>
+		deactivate ListingEmitter
+return
+
+hide footbox
+
+@enduml

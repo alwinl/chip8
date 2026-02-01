@@ -1,0 +1,29 @@
+@startuml DisasmDriver
+title "chidasm sequence diagram"
+
+actor user
+participant Driver
+participant BinaryLoader
+participant Disassembler
+participant ASMEmitter
+
+user -> Driver ++ : invoke("chidasm")
+return "Error, no source file"
+
+user -> Driver ++ : invoke("chidasm -h")
+return help text
+
+user -> Driver ++ : invoke("chidasm binary_file")
+Driver -> BinaryLoader ++ : load(binary_file)
+return BinImage
+
+Driver -> Disassembler ++ : build_ir(BinImage)
+return IRProgram
+
+Driver -> ASMEmitter ++ : emit(IRProgram)
+ASMEmitter -> asm_file ** : <<create>>
+deactivate ASMEmitter
+return
+
+hide footbox
+@enduml

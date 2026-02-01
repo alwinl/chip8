@@ -17,22 +17,12 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.10)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+include(GoogleTest)
 
-set(CMAKE_CXX_STANDARD 20)
+add_executable(
+	chip8ir_test
 
-include(CTest)
-enable_testing()
+	chip8ir_test.cc
+)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
-add_subdirectory(chip8ir)
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(chicom8)
-add_subdirectory(sprite_viewer)
-add_subdirectory(ebnfc)
+target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )

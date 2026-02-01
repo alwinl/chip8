@@ -1,0 +1,51 @@
+@startuml architecture
+title CHIP-8 Toolchain Architecture (IR-centric)
+
+actor User
+
+package "Assembler Tool" {
+    User --> AssemblerDriver : run
+    AssemblerDriver --> ASMSourceLoader : load(asm_file)
+    ASMSourceLoader --> ASMSource : return
+    AssemblerDriver --> Assembler : build_ir(source)
+    Assembler --> IRProgram : produces
+    AssemblerDriver --> BinaryEmitter : emit(ir)
+    AssemblerDriver --> ListingEmitter : emit(ir)
+}
+
+package "Disassembler Tool" {
+    User --> DisassemblerDriver : run
+    DisassemblerDriver --> BinaryLoader : load(binary_file)
+    BinaryLoader --> BinImage : return
+    DisassemblerDriver --> Disassembler : build_ir(image)
+    Disassembler --> IRProgram : produces
+    DisassemblerDriver --> ASMEmitter : emit(ir)
+}
+
+package "Emulator Tool" {
+    User --> EmulatorDriver : run
+    EmulatorDriver --> BinaryLoader : load(binary_file)
+    BinaryLoader --> BinImage : return
+    EmulatorDriver --> Disassembler : build_ir(image)
+    Disassembler --> IRProgram : produces
+    EmulatorDriver --> Emulator : run(ir, image)
+}
+
+package "Compiler Tool" {
+    User --> CompilerDriver : run
+    CompilerDriver --> C8CSourceLoader : load(c8c_file)
+    C8CSourceLoader --> C8CSource : return
+    CompilerDriver --> Compiler : build_ir(source)
+    Compiler --> IRProgram : produces
+    CompilerDriver --> BinaryEmitter : emit(ir)
+    CompilerDriver --> ListingEmitter : emit(ir)
+}
+
+note left of IRProgram
+    Central IR representation:
+    - instructions
+    - data
+    - symbol table
+end note
+
+@enduml

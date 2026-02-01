@@ -17,22 +17,31 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.10)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+add_executable (
+	new_chasm8
 
-set(CMAKE_CXX_STANDARD 20)
+	chasm8.cc
+)
 
-include(CTest)
-enable_testing()
+add_executable (
+	new_chemul8
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+	chemul8.cc
+)
 
-add_subdirectory(chip8ir)
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(chicom8)
-add_subdirectory(sprite_viewer)
-add_subdirectory(ebnfc)
+add_executable (
+	new_chicom8
+
+	chicom8.cc
+)
+
+add_executable (
+	new_chidasm8
+
+	chidasm8.cc
+)
+
+target_link_libraries( new_chasm8 PRIVATE chip8::ir )
+target_link_libraries( new_chemul8 PRIVATE chip8::ir )
+target_link_libraries( new_chicom8 PRIVATE chip8::ir )
+target_link_libraries( new_chidasm8 PRIVATE chip8::ir )

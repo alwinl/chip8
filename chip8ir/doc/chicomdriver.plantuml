@@ -1,0 +1,35 @@
+@startuml CompilerDriver
+title "chicom sequence diagram"
+
+actor user
+participant Driver
+participant C8CSourceLoader
+participant Compiler
+participant BinaryEmitter
+participant ListingEmitter
+
+user -> Driver ++ : invoke("chicom")
+return "Error, no source file"
+
+user -> Driver ++ : invoke("chicom -h")
+return help text
+
+user -> Driver ++ : invoke("chicom source_file")
+
+	Driver -> C8CSourceLoader ++ : load(source_file)
+	return C8CSource
+
+	Driver -> Compiler ++ : build_ir(C8CSource)
+	return IRProgram
+
+	Driver -> BinaryEmitter ++ : emit(IRProgram)
+		BinaryEmitter -> binary ** : <<create>>
+		deactivate BinaryEmitter
+
+'	Driver -> ListingEmitter ++ : emit(IRProgram)
+'		ListingEmitter -> listing ** : <<create>>
+'		deactivate ListingEmitter
+return
+
+hide footbox
+@enduml

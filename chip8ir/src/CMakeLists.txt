@@ -17,22 +17,20 @@
 # MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.10)
-project(Chip8 VERSION 0.1.0 LANGUAGES C CXX)
+add_library(
+	chip8ir
 
-set(CMAKE_CXX_STANDARD 20)
+	chip8ir.cc
 
-include(CTest)
-enable_testing()
+	cmdlineparser.cc
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+	disassembler.cc
+	targets.cc
+	decoder.cc
+)
 
-add_subdirectory(chip8ir)
-add_subdirectory(chasem8)
-add_subdirectory(chemul8)
-add_subdirectory(chidasm8)
-add_subdirectory(chicom8)
-add_subdirectory(sprite_viewer)
-add_subdirectory(ebnfc)
+add_library( chip8::ir ALIAS chip8ir )
+
+target_compile_features( chip8ir PUBLIC cxx_std_20 )
+
+target_include_directories( chip8ir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
