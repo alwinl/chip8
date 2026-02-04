@@ -191,7 +191,7 @@ LineNode Parser::next_line()
             node.kind = LineNode::Kind::VARIABLE;
 
             node.variable_name = consume( Token::Type::IDENTIFIER, "", "Expected symbol name" ).lexeme;
-            node.mnemonic = consume( Token::Type::IDENTIFIER, "EQU", "Expected EQU" ).lexeme;
+            node.mnemonic = consume( Token::Type::ASSIGNMENT, "EQU", "Expected EQU" ).lexeme;
 
             while( !end_of_current_line(start_line) )
                 node.arguments.push_back( consume( peek().type, "", "Expected expression").lexeme );

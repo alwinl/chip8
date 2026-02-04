@@ -124,7 +124,7 @@ std::string Tokeniser::post_process( Token::Type type, std::string lexeme )
     // if( type == Token::Type::ARGUMENT && lexeme.back() == ',' )
     //     lexeme.pop_back();
 
-	if( type == Token::Type::IDENTIFIER )
+	if( (type == Token::Type::IDENTIFIER) || (type == Token::Type::DIRECTIVE) || (type == Token::Type::ASSIGNMENT) )
 		std::transform( lexeme.begin(), lexeme.end(), lexeme.begin(),
 							[](unsigned char c){ return std::toupper(c); });
 

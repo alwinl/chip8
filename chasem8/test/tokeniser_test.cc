@@ -67,7 +67,7 @@ TEST(TokeniserTest, Directive)
     Tokeniser t(std::string(".db 0xFF, 0x01"));
     auto tokens = t.tokenise_all();
 
-    EXPECT_EQ(tokens[0].type, Token::Type::IDENTIFIER);
+    EXPECT_EQ(tokens[0].type, Token::Type::DIRECTIVE);
     EXPECT_EQ(tokens[0].lexeme, ".DB");
 
     EXPECT_EQ(tokens[1].lexeme, "0xFF");
