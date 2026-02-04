@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cassert>
 #include <variant>
+#include <iomanip>
 
 bool operator==( const Operand& a, const Operand& b )
 {
@@ -64,23 +65,29 @@ std::ostream& operator<<(std::ostream& os, const Operand& op)
 	{
         using T = std::decay_t<decltype(v)>;
 
+		auto flags = os.flags();
+		auto fill  = os.fill();
+
 		if constexpr( std::is_same_v<T, Reg> )
-			os << "V" << +v.index;
+			os << "V" << std::uppercase << std::hex << +v.index;
 
-		if constexpr( std::is_same_v<T, Addr> )
-			os << "0x" << +v.value;
+		else if constexpr( std::is_same_v<T, Addr> )
+			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
 
-		if constexpr( std::is_same_v<T, Imm> )
-			os << "#" << +v.value;
+		else if constexpr( std::is_same_v<T, Imm> )
+			os << "#" << std::dec << +v.value;
 
-		if constexpr( std::is_same_v<T, Nibble> )
-			os << +v.value;
+		else if constexpr( std::is_same_v<T, Nibble> )
+			os << "0x" << std::uppercase << std::hex << +v.value;
 
-		if constexpr( std::is_same_v<T, Key> )
-			os << "K" << +v.index;
+		else if constexpr( std::is_same_v<T, Key> )
+			os << "K" << std::uppercase << std::hex << +v.index;
 
-		if constexpr( std::is_same_v<T, RegCount> )
-			os << "0-" << +v.count;
+		else if constexpr( std::is_same_v<T, RegCount> )
+			os << "V0-V" << std::uppercase << std::hex << +v.count;
+
+		os.fill(fill);
+		os.flags(flags);
 
     }, op);
 
@@ -94,7 +101,7 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 		"SNE", "LD", "ADD", "OR", "AND",
 		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
 		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
-		"LD K,", "ST_DT", "ST_ST", "ADD I,",
+		"LD ST", "ST K", "ST DT", "ADD I",
 		"LD F", "LD B", "ST [I]", "LD [I]"
 	};
 

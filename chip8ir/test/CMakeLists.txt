@@ -24,6 +24,7 @@ add_executable(
 
 	chip8ir_test.cc
 	disasmmemory_test.cc
+	decoder_test.cc
 )
 
 target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )

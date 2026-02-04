@@ -90,7 +90,7 @@ DecodeResult Decoder::decode_ADD( uint16_t address, uint16_t opcode )
 DecodeResult Decoder::decode_MathOp( uint16_t address, uint16_t opcode )
 {
 	Reg reg_x { uint8_t((opcode >> 8) & 0xF) };
-	Reg reg_y { uint8_t( opcode       & 0xF) };
+	Reg reg_y { uint8_t((opcode >> 4) & 0xF) };
 	uint16_t next_address( address + 2 );
 
 	switch( opcode & 0xF ) {
@@ -247,6 +247,9 @@ DecodeResult Decoder::decode_SNE( uint16_t address, uint16_t opcode )
 	Reg reg_y { uint8_t((opcode >> 4) & 0xF) };
 	uint16_t next_address = address + 2;
 	uint16_t skip_address = address + 4;
+
+	if( opcode & 0x0F )
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
 
     return { Instruction::make_skip_neq( reg_x, reg_y ), AddressList{ next_address, skip_address }, std::nullopt };
 }
