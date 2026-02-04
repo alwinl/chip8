@@ -80,6 +80,9 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Ta
 
 			auto result = decoder.decode( address, memory.get_word( address ) );
 
+			if( !result.valid )
+				continue;
+
 			memory.mark_instruction( address );
 
 			ir.elements.push_back( InstructionElement { address, result.instruction } );

@@ -65,7 +65,7 @@ DecodeResult Decoder::decode_SYS( uint16_t address, uint16_t opcode )
 	/* opcodes 00EF .. 0FFF not defined */
 
 	default:
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 	}
 }
 
@@ -131,7 +131,7 @@ DecodeResult Decoder::decode_MathOp( uint16_t address, uint16_t opcode )
 
 	/* opcode 8xyF not defined */
 	default:
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 	}
 }
 
@@ -199,7 +199,7 @@ DecodeResult Decoder::decode_Misc( uint16_t address, uint16_t opcode )
 
 	/* opcodes Fx66 .. FxFF not defined */
 	default:
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 	}
 }
 
@@ -237,7 +237,7 @@ DecodeResult Decoder::decode_SER( uint16_t address, uint16_t opcode )
 	/* opcodes 5xy1 .. 5xyF not defined */
 
 	default:
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 	}
 }
 
@@ -249,7 +249,7 @@ DecodeResult Decoder::decode_SNE( uint16_t address, uint16_t opcode )
 	uint16_t skip_address = address + 4;
 
 	if( opcode & 0x0F )
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 
     return { Instruction::make_skip_neq( reg_x, reg_y ), AddressList{ next_address, skip_address }, std::nullopt };
 }
@@ -271,7 +271,7 @@ DecodeResult Decoder::decode_Key( uint16_t address, uint16_t opcode )
 
 	/* opcodes ExA2 .. ExFF not defined */
 	default:
-		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt };
+		return { Instruction::make_nop(), AddressList{ next_address }, std::nullopt, false };
 	}
 }
 

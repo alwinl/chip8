@@ -34,6 +34,7 @@ struct DecodeResult
 	Instruction instruction;
 	AddressList next_addresses;
 	std::optional<DecodedTarget> target;
+	bool valid = true;
 };
 
 class Decoder
