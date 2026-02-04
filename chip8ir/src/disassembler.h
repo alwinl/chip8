@@ -61,6 +61,7 @@ public:
     uint16_t end() const { return image_ ? origin + image_->size() : 0; }
 
     bool is_instruction( uint16_t addr ) const { return (contains( addr ) && contains( addr  + 1 )) ? instruction_flag[addr - origin] : false; };
+	bool is_data( uint16_t addr ) const  { return contains( addr ) ? !instruction_flag[addr - origin] : false; };
 
     bool contains( uint16_t addr ) const { return( (addr >= origin) && ( addr - origin < image_->size() ) ); }
 

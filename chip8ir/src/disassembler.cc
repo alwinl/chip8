@@ -75,6 +75,9 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Ta
 			if( !decoded_instructions.insert(address).second )
 				continue; // already decoded
 
+			if( !memory.contains(address) || !memory.contains(address + 1) )
+				continue; // implicit termination
+
 			auto result = decoder.decode( address, memory.get_word( address ) );
 
 			memory.mark_instruction( address );
@@ -121,7 +124,7 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Targ
 
     for( uint16_t addr = start; addr < end; ++addr ) {
 
-        if( !memory.is_instruction(addr) ) {		// If byte is NOT part of an instruction → it's data
+        if( memory.is_data(addr) ) {		// If byte is NOT part of an instruction → it's data
 
             // If this byte is a jump target → end previous run
             if( ! targets.get_label( addr ).empty() )
