@@ -196,3 +196,78 @@ TEST_F(DecoderTest, decode_invalids_generated)
         }
     }
 }
+
+TEST_F(DecoderTest, control_flow_unconditional)
+{
+    auto r = decoder.decode(0x200, 0x1234); // JP 0x234
+
+    ASSERT_TRUE(r.target.has_value());
+    EXPECT_EQ(r.target->address, 0x234);
+
+    EXPECT_EQ(r.next_addresses.size(), 1);
+    EXPECT_EQ(r.next_addresses[0], 0x234);
+}
+
+TEST_F(DecoderTest, control_flow_call)
+{
+    auto r = decoder.decode(0x200, 0x2ABC); // CALL 0xABC
+
+    ASSERT_TRUE(r.target.has_value());
+    EXPECT_EQ(r.target->address, 0xABC);
+
+    EXPECT_EQ(r.next_addresses.size(), 2);
+    EXPECT_EQ(r.next_addresses[0], 0x202);
+    EXPECT_EQ(r.next_addresses[1], 0xABC);
+}
+
+TEST_F(DecoderTest, control_flow_ret)
+{
+    auto r = decoder.decode(0x200, 0x00EE); // RET
+
+    EXPECT_FALSE(r.target.has_value());
+    EXPECT_TRUE(r.next_addresses.empty());
+}
+
+TEST_F(DecoderTest, control_flow_skip)
+{
+    // SE V1, #AA
+    auto r = decoder.decode(0x300, 0x31AA);
+
+    EXPECT_FALSE(r.target.has_value());
+
+    ASSERT_EQ(r.next_addresses.size(), 2);
+    EXPECT_EQ(r.next_addresses[0], 0x302); // fallthrough
+    EXPECT_EQ(r.next_addresses[1], 0x304); // skip
+}
+
+TEST_F(DecoderTest, control_flow_key_skip)
+{
+    // SKP V9
+    auto r = decoder.decode(0x400, 0xE99E);
+
+    EXPECT_FALSE(r.target.has_value());
+
+    ASSERT_EQ(r.next_addresses.size(), 2);
+    EXPECT_EQ(r.next_addresses[0], 0x402);
+    EXPECT_EQ(r.next_addresses[1], 0x404);
+}
+
+TEST_F(DecoderTest, control_flow_fallthrough_only)
+{
+    auto r = decoder.decode(0x500, 0x8374); // ADD V3, V7
+
+    EXPECT_FALSE(r.target.has_value());
+
+    ASSERT_EQ(r.next_addresses.size(), 1);
+    EXPECT_EQ(r.next_addresses[0], 0x502);
+}
+
+TEST_F(DecoderTest, control_flow_invalid_opcode)
+{
+    auto r = decoder.decode(0x600, 0xFFFF);
+
+    EXPECT_FALSE(r.target.has_value());
+
+    ASSERT_EQ(r.next_addresses.size(), 1);
+    EXPECT_EQ(r.next_addresses[0], 0x602);
+}
