@@ -36,7 +36,9 @@ IRProgram Disassembler::build_ir( const BinImage &binary )
 
 	ir.origin = cmd_.get_origin();
 
-	DisasmMemory memory( binary, ir.origin );
+	DisasmMemory memory;
+	memory.bind( binary, ir.origin );
+
 	Targets targets;
 
 	collect_instructions( ir, memory, targets );
