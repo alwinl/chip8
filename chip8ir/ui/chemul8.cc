@@ -36,7 +36,7 @@ int main( int argc, char ** argv )
 		Disassembler disassembler;
 
 		std::ifstream is( args.get_program(), std::ios::binary );
-		BinImage image = BinaryLoader::load( is, 0x200 );
+		BinImage image = load_binary( is );
 
 		IRProgram ir = disassembler.build_ir( image );
 

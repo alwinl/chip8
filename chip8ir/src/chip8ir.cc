@@ -59,6 +59,22 @@ bool operator==(const Instruction& a, const Instruction& b)
     return true;
 }
 
+std::ostream& operator<<(std::ostream& os, const Opcode& opcode )
+{
+	static std::array<std::string, opcode_count> mnemonics = {
+		"NOP", "CLS", "RET", "JP", "CALL", "SE",
+		"SNE", "LD", "ADD", "OR", "AND",
+		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
+		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
+		"LD ST", "ST K", "ST DT", "ADD I",
+		"LD F", "LD B", "ST [I]", "LD [I]"
+	};
+
+    os << "Opcode: " << mnemonics[static_cast<int>(opcode)];
+
+	return os;
+}
+
 std::ostream& operator<<(std::ostream& os, const Operand& op)
 {
     std::visit( [&os](auto&& v)
@@ -105,7 +121,8 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 		"LD F", "LD B", "ST [I]", "LD [I]"
 	};
 
-    os << "Opcode: " << mnemonics[static_cast<int>(instr.opcode())] << " Operands: [";
+    // os << "Opcode: " << mnemonics[static_cast<int>(instr.opcode())] << " Operands: [";
+    os << instr.opcode() << " Operands: [";
 
     bool first = true;
     for( auto& op : instr.operands() )

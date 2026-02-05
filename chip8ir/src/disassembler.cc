@@ -19,31 +19,24 @@
 
 #include "disassembler.h"
 
-#include "targets.h"
 #include "decoder.h"
 
 #include <variant>
 #include <stack>
 
-void Disassembler::configure( const ChidasmCmdLineParser& cmd )
-{
-	cmd_ = cmd;
-}
-
 IRProgram Disassembler::build_ir( const BinImage &binary )
 {
 	IRProgram ir {};
 
-	ir.origin = cmd_.get_origin();
+	ir.origin = configuration.origin;
+	ir.binary = &binary;
 
 	DisasmMemory memory;
 	memory.bind( binary, ir.origin );
 
-	Targets targets;
+	collect_instructions( ir, memory, ir.symbols );
 
-	collect_instructions( ir, memory, targets );
-
-	collect_data_bytes( ir, memory, targets );
+	collect_data_bytes( ir, memory, ir.symbols );
 
     std::sort( ir.elements.begin(), ir.elements.end(),
         [](const ASMElement& a, const ASMElement& b)
@@ -57,13 +50,13 @@ IRProgram Disassembler::build_ir( const BinImage &binary )
 	return ir;
 }
 
-void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Targets& targets )
+void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols )
 {
 	std::stack<uint16_t> address_stack;
 	std::unordered_set<uint16_t> decoded_instructions;
 	Decoder decoder;
 
-	address_stack.push( cmd_.get_origin() );	// Push the start address
+	address_stack.push( configuration.origin );	// Push the start address
 
 	while( !address_stack.empty() ) {
 
@@ -90,14 +83,14 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Ta
 			for( auto next_address : result.next_addresses )
 				address_stack.push( next_address );
 
-			targets.add( result.target );
+			symbols.add( result.target );
 		}
 
-		targets.sort_vectors();
+		symbols.sort_vectors();
 
-		for( auto table_address : targets.get_index_list() ) {
+		for( auto table_address : symbols.get_index_list() ) {
 
-			while( memory.contains(table_address) && targets.get_label(table_address).empty() ) {
+			while( memory.contains(table_address) && symbols.get_label(table_address).empty() ) {
 
 				address_stack.push( table_address );
 				table_address += 2;
@@ -106,7 +99,7 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Ta
 	}
 }
 
-void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Targets& targets )
+void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols )
 {
     std::vector<uint8_t> datarun;
     uint16_t run_start = 0;
@@ -130,7 +123,7 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Targ
         if( memory.is_data(addr) ) {		// If byte is NOT part of an instruction → it's data
 
             // If this byte is a jump target → end previous run
-            if( ! targets.get_label( addr ).empty() )
+            if( ! symbols.get_label( addr ).empty() )
 				flush();
 
             if( datarun.empty() )

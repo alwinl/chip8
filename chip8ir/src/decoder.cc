@@ -282,7 +282,7 @@ DecodeResult Decoder::decode_JP( uint16_t address, uint16_t opcode )
 	return DecodeResult {
 		Instruction::make_jump( Addr { jmp_address } ),
 		AddressList { jmp_address },
-		DecodedTarget { jmp_address, eKind::JUMP }
+		DecodedSymbol { jmp_address, eSymbolKind::JUMP }
 	};
 }
 
@@ -294,7 +294,7 @@ DecodeResult Decoder::decode_CALL( uint16_t address, uint16_t opcode )
 	return DecodeResult {
 		Instruction::make_call( Addr { jmp_address } ),
 		AddressList { next_address, jmp_address },
-		DecodedTarget { jmp_address, eKind::SUBROUTINE }
+		DecodedSymbol { jmp_address, eSymbolKind::SUBROUTINE }
 	};
 }
 
@@ -306,7 +306,7 @@ DecodeResult Decoder::decode_LDI( uint16_t address, uint16_t opcode )
 	return DecodeResult {
 		Instruction::make_ld_i( Addr { load_address } ),
 		AddressList { next_address },
-		DecodedTarget { load_address, eKind::I_TARGET }
+		DecodedSymbol { load_address, eSymbolKind::I_TARGET }
 	};
 }
 
@@ -324,6 +324,6 @@ DecodeResult Decoder::decode_JMP( uint16_t address, uint16_t opcode )
 	return DecodeResult {
 		Instruction::make_jump_indexed( Addr { jmp_address } ),
 		AddressList { jmp_address },
-		DecodedTarget { table_base, eKind::INDEXED }
+		DecodedSymbol { table_base, eSymbolKind::INDEXED }
 	};
 }

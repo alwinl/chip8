@@ -23,7 +23,6 @@
 #include <optional>
 
 #include "chip8ir.h"
-#include "targets.h"
 
 using AddressList = std::vector<uint16_t>;
 
@@ -33,7 +32,7 @@ struct DecodeResult
 {
 	Instruction instruction;
 	AddressList next_addresses;
-	std::optional<DecodedTarget> target;
+	std::optional<DecodedSymbol> target;
 	bool valid = true;
 };
 

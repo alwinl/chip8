@@ -26,7 +26,24 @@
 class ASMEmitter
 {
 public:
+	struct Config {
+		std::string bin_name;
+		bool is_clean;
+	};
+
 	ASMEmitter() = default;
 
-	static void emit( std::ostream& os, const IRProgram& ir ) {}
+	void emit( std::ostream& os, const IRProgram& ir );
+
+	void configure( Config config ) { configuration = std::move(config); };
+
+private:
+	const IRProgram * program = nullptr;
+	Config configuration;
+
+	void emit_operand( std::ostream& os, const Operand& op );
+	void emit_mnemonic( std::ostream& os, const Opcode& opcode );
+	void emit_element( std::ostream& os, const InstructionElement& element );
+	void emit_element( std::ostream& os, const DataElement& element );
+	void emit_header( std::ostream &os );
 };

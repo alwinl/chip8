@@ -25,8 +25,8 @@ add_library(
 	cmdlineparser.cc
 
 	disassembler.cc
-	targets.cc
 	decoder.cc
+	asm_emitter.cc
 )
 
 add_library( chip8::ir ALIAS chip8ir )

@@ -277,12 +277,12 @@ TEST_F(Chip8IRTest, InstructionEqualityAndStream)
 	// Mnemonics array
     constexpr size_t opcode_count = (size_t)Opcode::LD_REGS + 1;
     static std::array<std::string, opcode_count> mnemonics = {
-        "NOP", "CLS", "RET", "JP", "CALL", "SE",
-        "SNE", "LD", "ADD", "OR", "AND",
-        "XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
-        "JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
-        "LD K,", "ST_DT", "ST_ST", "ADD I,",
-        "LD F", "LD B", "ST [I]", "LD [I]"
+		"NOP", "CLS", "RET", "JP", "CALL", "SE",
+		"SNE", "LD", "ADD", "OR", "AND",
+		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
+		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
+		"LD ST", "ST K", "ST DT", "ADD I",
+		"LD F", "LD B", "ST [I]", "LD [I]"
     };
 
     // Test equality and streaming
@@ -302,7 +302,7 @@ TEST_F(Chip8IRTest, InstructionEqualityAndStream)
         std::ostringstream oss;
         oss << instructions[i];
         std::string out = oss.str();
-        EXPECT_NE(out.find(mnemonics[static_cast<int>(instructions[i].opcode())]), std::string::npos)
-            << "Mnemonic not found in stream: " << out;
+		std::string mnemonic = mnemonics[static_cast<int>(instructions[i].opcode())];
+        EXPECT_NE(out.find(mnemonic), std::string::npos) << "Mnemonic \"" << mnemonic << "\" not found in stream: " << out;
     }
 }

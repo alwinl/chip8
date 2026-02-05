@@ -35,15 +35,18 @@ int main( int argc, char ** argv )
 			return 1;
 
 		Disassembler disassembler;
-		disassembler.configure( args );
+		disassembler.configure( {args.get_origin()} );
 
 		std::ifstream is( args.get_source_name(), std::ios::binary );
-		BinImage image = BinaryLoader::load( is, 0x200 );
+		BinImage image = load_binary( is );
 
 		IRProgram ir = disassembler.build_ir( image );
 
 		std::ofstream os( args.get_output_name() );
-		ASMEmitter::emit( os, ir );
+		ASMEmitter emitter;
+
+		emitter.configure( {args.get_program_name()} );
+		emitter.emit( os, ir );
 
     }
 

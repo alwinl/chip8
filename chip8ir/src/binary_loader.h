@@ -22,11 +22,4 @@
 #include <istream>
 #include "chip8ir.h"
 
-class BinaryLoader
-{
-public:
-	BinaryLoader() = default;
-
-	static BinImage load( std::istream& is, uint16_t start_address )
-		{ return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() }; }
-};
+inline BinImage load_binary( std::istream& is ) { return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() }; }

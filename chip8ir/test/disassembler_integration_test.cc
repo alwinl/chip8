@@ -23,11 +23,9 @@
 class DisassemblerIntegrationTest : public ::testing::Test {
 protected:
     Disassembler dis;
-    ChidasmCmdLineParser cmd;
 
     void SetUp() override {
-        // cmd.set_origin(0x200);   // adjust if your API differs 0x200 is default in CidamCmdLineParser
-        dis.configure(cmd);
+        dis.configure({0x200});
     }
 };
 

@@ -23,7 +23,6 @@
 
 #include "chip8ir.h"
 
-#include "targets.h"
 #include <cassert>
 
 class DisasmMemory
@@ -71,20 +70,22 @@ private:
     std::vector<uint8_t> instruction_flag;
 };
 
-
-
 class Disassembler
 {
 public:
+	struct Config {
+		uint16_t origin;
+	};
+
 	Disassembler() = default;
 
-	void configure( const ChidasmCmdLineParser& cmd );
+	void configure( Config config ) { configuration = std::move(config); };
 
 	IRProgram build_ir( const BinImage& binary );
 
 private:
-	ChidasmCmdLineParser cmd_;
+	Config configuration;
 
-	void collect_instructions( IRProgram& ir, DisasmMemory& memory, Targets& targets );
-	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Targets& targets );
+	void collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
+	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
 };
