@@ -63,18 +63,18 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
 		ASMEmitter emitter;
-		emitter.configure( { "Test program", false } );
+		emitter.configure( { "Test program" } );
 
-		emitter.emit(std::cout, ir);
+		emitter.emit( std::cout, ir, ASMEmitter::OutputMode::Listing );
 
 		std::cout << "=============================\n";
 	}
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
 		ASMEmitter emitter;
-		emitter.configure( { "Test program (clean)", true } );
+		emitter.configure( { "Test program (assembly)" } );
 
-		emitter.emit(std::cout, ir);
+		emitter.emit(std::cout, ir, ASMEmitter::OutputMode::Assembly );
 
 		std::cout << "=============================\n";
 	}
@@ -146,13 +146,13 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     // Emit full and clean versions
     std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
     ASMEmitter emitter;
-    emitter.configure({ "All opcodes test", false });
-    emitter.emit(std::cout, ir);
+    emitter.configure({ "All opcodes test" });
+    emitter.emit(std::cout, ir, ASMEmitter::OutputMode::Listing);
     std::cout << "=============================\n";
 
     std::cout << "\n===== ASM EMITTER OUTPUT (clean) =====\n";
     ASMEmitter emitter_clean;
-    emitter_clean.configure({ "All opcodes test (clean)", true });
-    emitter_clean.emit(std::cout, ir);
+    emitter_clean.configure({ "All opcodes test (assembly)" });
+    emitter_clean.emit(std::cout, ir, ASMEmitter::OutputMode::Assembly);
     std::cout << "=============================\n";
 }

@@ -21,20 +21,75 @@
 
 #include <iomanip>
 
-void ASMEmitter::emit_operand( std::ostream& os, const Operand& op )
+struct StreamStateGuard
+{
+    StreamStateGuard(std::ostream& os) : os(os), flags(os.flags()), fill(os.fill()) {}
+
+    ~StreamStateGuard() {
+        os.flags(flags);
+        os.fill(fill);
+    }
+
+    std::ostream& os;
+    std::ios::fmtflags flags;
+    char fill;
+};
+
+
+void ASMEmitter::emit_label( std::ostream& os, const IRProgram& ir, uint16_t address )
+{
+	std::string label = ir.symbols.get_label( address );
+
+	if( !label.empty() )
+		label += ":";
+
+	os << std::left << std::setw(8) << std::setfill(' ') << label;
+}
+
+void ASMEmitter::emit_address( std::ostream& os, uint16_t address )
+{
+	os << "0x" << std::hex << std::uppercase << std::setw(3) << std::setfill('0') << address << "  ";
+}
+
+void ASMEmitter::emit_opcode( std::ostream& os, const IRProgram& ir, uint16_t address )
+{
+	uint8_t high_byte = (*ir.binary)[ address - ir.origin ];
+	uint8_t low_byte  = (*ir.binary)[ address - ir.origin + 1 ];
+
+	os << std::hex << std::uppercase
+		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
+
+	os << std::hex << std::uppercase
+		<< std::setw(2) << std::setfill('0') << +low_byte << "  ";
+}
+
+void ASMEmitter::emit_mnemonic( std::ostream& os, const Opcode& opcode )
+{
+	static std::array<std::string, opcode_count> mnemonics = {
+		"NOP", "CLS", "RET", "JP", "CALL", "SE",
+		"SNE", "LD", "ADD", "OR", "AND",
+		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I,",
+		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
+		"LD ST,", "ST K,", "ST DT,", "ADD I,",
+		"LD F,", "LD B,", "ST [I],", "LD [I],"
+	};
+
+	os << mnemonics[ static_cast<int>(opcode) ];
+}
+
+void ASMEmitter::emit_operand( std::ostream& os, const IRProgram& ir, const Operand& op )
 {
     std::visit( [&](auto&& v)
 	{
-        using T = std::decay_t<decltype(v)>;
+		StreamStateGuard guard(os);
 
-		auto flags = os.flags();
-		auto fill  = os.fill();
+        using T = std::decay_t<decltype(v)>;
 
 		if constexpr( std::is_same_v<T, Reg> )
 			os << "V" << std::uppercase << std::hex << +v.index;
 
 		else if constexpr( std::is_same_v<T, Addr> ) {
-			std::string target = program->symbols.get_label( v.value );
+			std::string target = ir.symbols.get_label( v.value );
 			if( target.empty() )
 				os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
 			else
@@ -53,93 +108,46 @@ void ASMEmitter::emit_operand( std::ostream& os, const Operand& op )
 		else if constexpr( std::is_same_v<T, RegCount> )
 			os << "V0-V" << std::uppercase << std::hex << +v.count;
 
-		os.fill(fill);
-		os.flags(flags);
-
     }, op);
 }
 
-void ASMEmitter::emit_mnemonic( std::ostream& os, const Opcode& opcode )
+void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const InstructionElement& element )
 {
-	static std::array<std::string, opcode_count> mnemonics = {
-		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "LD", "ADD", "OR", "AND",
-		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I,",
-		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
-		"LD ST,", "ST K,", "ST DT,", "ADD I,",
-		"LD F,", "LD B,", "ST [I],", "LD [I],"
-	};
-
-	// os << std::left << std::setw(8) << std::setfill(' ') << mnemonics[ static_cast<int>(opcode) ];
-	os << mnemonics[ static_cast<int>(opcode) ];
-}
-
-void ASMEmitter::emit_element( std::ostream& os, const InstructionElement& element )
-{
-	static constexpr int ADDR_WIDTH    = 3;   // 0x200 → 4 chars
-	static constexpr int OPCODE_WIDTH  = 4;   // 2 bytes → 4 hex digits
-	static constexpr int OPERAND_WIDTH = 12;  // widest operand string
-
 	const Instruction& instruction = element.instruction;
 
-	std::string label = program->symbols.get_label( element.address );
+	if( mode == OutputMode::Listing ) {
+		emit_address( os, element.address );
+		emit_opcode( os, ir, element.address );
+	}
 
-	if( !label.empty() )
-		label += ":";
-
-	os << std::left << std::setw(8) << std::setfill(' ') << label;
-
-	if( !configuration.is_clean )
-	{
-		// os << "0x" << std::setfill( '0' ) << std::setw( 3 ) << std::uppercase << std::hex << element.address << "  ";
-
-		uint16_t opcode_word = ((*program->binary)[ element.address - program->origin ] << 8 ) |
-						 		(*program->binary)[ element.address - program->origin + 1 ];
-
-
- 		os << "0x" << std::hex << std::uppercase
-           << std::setw(ADDR_WIDTH)  << std::setfill('0') << element.address << "  "
-           << std::setw(OPCODE_WIDTH) << opcode_word << "  ";
-    }
+	emit_label( os, ir, element.address );
 
 	emit_mnemonic( os, instruction.opcode() );
-	os << " ";
 
-	bool first = true;
+	for( bool first = true; const auto& operand : instruction.operands() )
+	{
+		os << (first ? " " : ", " );
+		first = false;
 
-	for( const auto& operand : instruction.operands() ) {
-		if( !first )
-			os << ", ";
-		else
-			first = false;
-
-		emit_operand( os, operand );
+		emit_operand( os, ir, operand );
 	}
 
 	os << "\n";
 }
 
-void ASMEmitter::emit_element( std::ostream& os, const DataElement& element )
+void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const DataElement& element )
 {
-	std::string label = program->symbols.get_label( element.address );
+	if( mode == OutputMode::Listing )
+		emit_address( os, element.address );
 
-	if( !label.empty() )
-		label += ":";
+	emit_label( os, ir, element.address );
 
-	os << std::left << std::setw(8) << std::setfill(' ') << label;
+	os << ".DB";
 
-	if( !configuration.is_clean )
-		os << "0x" << std::setfill( '0' ) << std::setw( 3 ) << std::uppercase << std::hex << element.address << "  ";
-
-	os << ".DB ";
-
-	bool first = true;
-
-	for( const auto& byte : element.byte_run ) {
-		if( !first )
-			os << ", ";
-		else
-			first = false;
+	for( bool first = true; const auto& byte : element.byte_run )
+	{
+		os << (first ? " " : ", " );
+		first = false;
 
 		os << std::hex << "0x" << std::setw(2) << std::setfill('0') << std::uppercase << +byte;
 	}
@@ -151,21 +159,23 @@ void ASMEmitter::emit_element( std::ostream& os, const DataElement& element )
 	os << "\n";
 }
 
-void ASMEmitter::emit_header( std::ostream &os )
+void ASMEmitter::emit_header( std::ostream &os, const IRProgram& ir, std::string name )
 {
-	os << "; Disasembly of " << configuration.bin_name << "\n";
+	os << "; Disasembly of " << name << "\n";
 	os << "; Generated by chidisas8\n";
 	os << ";\n\n";
-	os << "\t.ORG 0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << program->origin << "\n\n";
+	os << "\t.ORG ";
+
+	emit_address( os, ir.origin );
+
+	os << "\n\n";
 }
 
 
-void ASMEmitter::emit( std::ostream& os, const IRProgram& ir )
+void ASMEmitter::emit( std::ostream& os, const IRProgram& ir, OutputMode mode )
 {
-	program = &ir;
-
-	emit_header( os );
+	emit_header( os, ir, configuration.bin_name );
 
 	for( const auto& element : ir.elements )
-        std::visit( [&]( const auto& v ) { emit_element( os, v ); }, element );
+        std::visit( [&]( const auto& v ) { emit_element( os, ir, mode, v ); }, element );
 }

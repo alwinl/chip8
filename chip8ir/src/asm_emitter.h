@@ -20,30 +20,33 @@
 #pragma once
 
 #include <ostream>
+#include <string>
 
 #include "chip8ir.h"
 
 class ASMEmitter
 {
 public:
+	enum class OutputMode { Assembly, Listing };
 	struct Config {
 		std::string bin_name;
-		bool is_clean;
 	};
 
 	ASMEmitter() = default;
 
-	void emit( std::ostream& os, const IRProgram& ir );
+	void emit( std::ostream& os, const IRProgram& ir, OutputMode mode );
 
 	void configure( Config config ) { configuration = std::move(config); };
 
 private:
-	const IRProgram * program = nullptr;
 	Config configuration;
 
-	void emit_operand( std::ostream& os, const Operand& op );
+	void emit_label( std::ostream& os, const IRProgram& ir, uint16_t address );
+	void emit_address( std::ostream& os, uint16_t address );
+	void emit_opcode( std::ostream& os, const IRProgram& ir, uint16_t address );
 	void emit_mnemonic( std::ostream& os, const Opcode& opcode );
-	void emit_element( std::ostream& os, const InstructionElement& element );
-	void emit_element( std::ostream& os, const DataElement& element );
-	void emit_header( std::ostream &os );
+	void emit_operand( std::ostream& os, const IRProgram& ir, const Operand& op );
+	void emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const InstructionElement& element );
+	void emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const DataElement& element );
+	void emit_header( std::ostream &os, const IRProgram& ir, std::string name );
 };
