@@ -3,49 +3,81 @@ title CHIP-8 Toolchain Architecture (IR-centric)
 
 actor User
 
-package "Assembler Tool" {
-    User --> AssemblerDriver : run
-    AssemblerDriver --> ASMSourceLoader : load(asm_file)
-    ASMSourceLoader --> ASMSource : return
+database IRProgram
+artifact Listing
+artifact BinImage
+artifact ASMSource
+artifact C8CSource
+
+interface IRBuilder
+
+package "Tools" {
+	entity Assembler
+	entity Disassembler
+	entity Compiler
+	entity Emulator
+
+    Assembler ..|> IRBuilder
+    Disassembler ..|> IRBuilder
+    Compiler ..|> IRBuilder
+
+	IRBuilder --> IRProgram : creates
+}
+
+package "Loaders" {
+	entity ASMSourceLoader
+	entity BinaryLoader
+	entity C8CSourceLoader
+
+	ASMSourceLoader --> ASMSource : returns source
+	BinaryLoader --> BinImage : returns image
+	C8CSourceLoader --> C8CSource : returns source
+}
+
+package "Emitters" {
+	entity ASMEmitter
+	entity ListingEmitter
+	entity BinaryEmitter
+
+	ListingEmitter --> Listing : creates
+	BinaryEmitter --> BinImage : creates
+	ASMEmitter --> ASMSource : creates
+}
+
+package "Drivers" {
+    User --> AssemblerDriver : run(asm_file)
+    AssemblerDriver ----> ASMSourceLoader : load(asm_file)
     AssemblerDriver --> Assembler : build_ir(source)
-    Assembler --> IRProgram : produces
     AssemblerDriver --> BinaryEmitter : emit(ir)
     AssemblerDriver --> ListingEmitter : emit(ir)
-}
 
-package "Disassembler Tool" {
-    User --> DisassemblerDriver : run
-    DisassemblerDriver --> BinaryLoader : load(binary_file)
-    BinaryLoader --> BinImage : return
+    User --> DisassemblerDriver : run(binary_file)
+    DisassemblerDriver ----> BinaryLoader : load(binary_file)
     DisassemblerDriver --> Disassembler : build_ir(image)
-    Disassembler --> IRProgram : produces
-    DisassemblerDriver --> ASMEmitter : emit(ir)
-}
+    DisassemblerDriver ----> ASMEmitter : emit(ir)
+    DisassemblerDriver ----> ListingEmitter : emit(ir)
 
-package "Emulator Tool" {
-    User --> EmulatorDriver : run
+    User --> EmulatorDriver : run(binary_file)
     EmulatorDriver --> BinaryLoader : load(binary_file)
-    BinaryLoader --> BinImage : return
     EmulatorDriver --> Disassembler : build_ir(image)
-    Disassembler --> IRProgram : produces
     EmulatorDriver --> Emulator : run(ir, image)
-}
 
-package "Compiler Tool" {
-    User --> CompilerDriver : run
-    CompilerDriver --> C8CSourceLoader : load(c8c_file)
-    C8CSourceLoader --> C8CSource : return
+    User --> CompilerDriver : run(c8c_file)
+    CompilerDriver ----> C8CSourceLoader : load(c8c_file)
     CompilerDriver --> Compiler : build_ir(source)
-    Compiler --> IRProgram : produces
-    CompilerDriver --> BinaryEmitter : emit(ir)
-    CompilerDriver --> ListingEmitter : emit(ir)
+    CompilerDriver ----> BinaryEmitter : emit(ir)
+    CompilerDriver ----> ListingEmitter : emit(ir)
 }
 
 note left of IRProgram
-    Central IR representation:
-    - instructions
-    - data
-    - symbol table
+    Stable internal representation.
+    All tools communicate through IR.
+    No tool mutates IR + Binary simultaneously.
 end note
+
+ASMEmitter ..> IRProgram
+BinaryEmitter ..> IRProgram
+ListingEmitter ..> IRProgram
+Emulator ..> IRProgram
 
 @enduml

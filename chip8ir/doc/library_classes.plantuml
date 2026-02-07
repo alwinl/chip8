@@ -1,0 +1,110 @@
+@startuml library_classes
+title "Library classes"
+
+struct Operand <<variant>>
+{
+	+Reg      : struct { uint8_t index  }
+	+Addr     : struct { uint16_t value }
+	+Imm      : struct { uint8_t value  }
+	+Nibble   : struct { uint8_t value  }
+	+Key      : struct { uint8_t index  }
+	+RegCount : struct { uint8_t count  }
+}
+
+class Instruction <<IR>>
+{
+	+{static} make*() : Instruction
+
+	+opcode() : Opcode
+	+operands() : std::span<const Operand>
+
+	-opcode : enum Opcode
+	-operands_ : std::array<Operand,3>
+	-operand_count_ : size_t
+}
+
+Instruction *- Operand
+
+struct DataElement <<IR>>
+{
+	+address : uint16_t
+	+byte_run : std::vector<uint8_t>
+}
+
+struct InstructionElement <<IR>>
+{
+	+address : uint16_t
+	+instruction : Instruction
+}
+
+class ASMElement <<variant>>
+{
+    +InstructionElement
+    +DataElement
+}
+
+struct DecodedSymbol
+{
+	address : uint16_t
+	 kind : enum eSymbolKind
+}
+
+class SymbolTable <<IR>>
+{
+	+add()
+	+sort_vectors()
+	+get_label()
+}
+
+ASMElement o-- DataElement
+ASMElement o-- InstructionElement
+
+InstructionElement *-- Instruction
+
+SymbolTable <. DecodedSymbol : add()
+
+struct IRProgram <<IR>>
+{
+    +origin : uint16_t
+    +elements : std::vector<ASMElement>
+    +symbols : SymbolTable
+}
+
+IRProgram *-- ASMElement
+IRProgram *-- SymbolTable
+
+struct DecodeResult
+{
+	instruction : Instruction
+	next_addresses : AddressList
+	target : std::optional<DecodedSymbol>
+	valid : bool
+}
+
+class Decoder
+{
+	+decode(uint16_t address, uint16_t opcode ) : DecodeResult
+}
+
+' Decoder <. DecodeResult
+
+class DisasmMemory
+
+class BinImage <<type alias>>
+BinImage ..> "std::vector<uint8_t>"
+
+class Disassembler
+{
+	+configure( Config config )
+	+build_ir( const BinImage& binary ) : IRProgram
+}
+
+Disassembler *-- DisasmMemory
+Disassembler --> Decoder
+Disassembler --> IRProgram
+
+
+Decoder ..> Disassembler : DecodeResult
+
+DisasmMemory *-- BinImage
+@enduml
