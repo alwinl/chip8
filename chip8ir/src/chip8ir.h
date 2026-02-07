@@ -20,15 +20,13 @@
 #pragma once
 
 #include <cstdint>
-#include <array>
+#include <cstddef>
 #include <variant>
 #include <span>
 #include <cassert>
 #include <ostream>
 #include <algorithm>
 #include <vector>
-#include <span>
-#include <string>
 #include <optional>
 
 enum class Opcode
@@ -193,7 +191,6 @@ private:
 
 };
 
-using BinImage = std::vector<uint8_t>;
 using ASMSource = std::vector<std::string>;
 using C8CSource = std::vector<std::string>;
 
@@ -202,5 +199,4 @@ struct IRProgram
     uint16_t origin = 0x200;
     std::vector<ASMElement> elements;
     SymbolTable symbols;
-	const BinImage* binary = nullptr;
 };

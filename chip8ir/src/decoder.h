@@ -20,13 +20,10 @@
 #pragma once
 
 #include <array>
-#include <optional>
 
 #include "chip8ir.h"
 
 using AddressList = std::vector<uint16_t>;
-
-class Memory;
 
 struct DecodeResult
 {

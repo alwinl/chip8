@@ -23,6 +23,7 @@
 #include <string>
 
 #include "chip8ir.h"
+#include "chip8bin.h"
 
 class ASMEmitter
 {
@@ -34,7 +35,7 @@ public:
 
 	ASMEmitter() = default;
 
-	void emit( std::ostream& os, const IRProgram& ir, OutputMode mode );
+	void emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode );
 
 	void configure( Config config ) { configuration = std::move(config); };
 
@@ -43,10 +44,10 @@ private:
 
 	void emit_label( std::ostream& os, const IRProgram& ir, uint16_t address );
 	void emit_address( std::ostream& os, uint16_t address );
-	void emit_opcode( std::ostream& os, const IRProgram& ir, uint16_t address );
+	void emit_opcode( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, uint16_t address );
 	void emit_mnemonic( std::ostream& os, const Opcode& opcode );
 	void emit_operand( std::ostream& os, const IRProgram& ir, const Operand& op );
-	void emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const InstructionElement& element );
-	void emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const DataElement& element );
+	void emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const InstructionElement& element );
+	void emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const DataElement& element );
 	void emit_header( std::ostream &os, const IRProgram& ir, std::string name );
 };

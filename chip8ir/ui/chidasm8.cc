@@ -46,7 +46,7 @@ int main( int argc, char ** argv )
 		ASMEmitter emitter;
 
 		emitter.configure( {args.get_program_name()} );
-		emitter.emit( os, ir, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+		emitter.emit( os, ir, image, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
 
     }
 

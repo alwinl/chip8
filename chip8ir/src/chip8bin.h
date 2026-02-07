@@ -1,5 +1,5 @@
 /*
- * binary_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * chip8bin.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <istream>
+#include <vector>
+#include <cstdint>
 
-#include "chip8bin.h"
-
-inline BinImage load_binary( std::istream& is ) { return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() }; }
+using BinImage = std::vector<uint8_t>;

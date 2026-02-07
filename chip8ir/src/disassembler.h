@@ -19,11 +19,10 @@
 
 #pragma once
 
-#include "cmdlineparser.h"
+#include <cassert>
 
 #include "chip8ir.h"
-
-#include <cassert>
+#include "chip8bin.h"
 
 class DisasmMemory
 {
@@ -86,6 +85,6 @@ public:
 private:
 	Config configuration;
 
-	void collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
-	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
+	void collect_instructions( IRProgram& ir, DisasmMemory& memory );
+	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory );
 };

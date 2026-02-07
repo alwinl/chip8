@@ -19,6 +19,8 @@
 
 #include "asm_emitter.h"
 
+#include "binary_loader.h"
+
 #include <iomanip>
 
 struct StreamStateGuard
@@ -51,10 +53,10 @@ void ASMEmitter::emit_address( std::ostream& os, uint16_t address )
 	os << "0x" << std::hex << std::uppercase << std::setw(3) << std::setfill('0') << address << "  ";
 }
 
-void ASMEmitter::emit_opcode( std::ostream& os, const IRProgram& ir, uint16_t address )
+void ASMEmitter::emit_opcode( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, uint16_t address )
 {
-	uint8_t high_byte = (*ir.binary)[ address - ir.origin ];
-	uint8_t low_byte  = (*ir.binary)[ address - ir.origin + 1 ];
+	uint8_t high_byte = bin_image[ address - ir.origin ];
+	uint8_t low_byte  = bin_image[ address - ir.origin + 1 ];
 
 	os << std::hex << std::uppercase
 		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
@@ -111,13 +113,13 @@ void ASMEmitter::emit_operand( std::ostream& os, const IRProgram& ir, const Oper
     }, op);
 }
 
-void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const InstructionElement& element )
+void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const InstructionElement& element )
 {
 	const Instruction& instruction = element.instruction;
 
 	if( mode == OutputMode::Listing ) {
 		emit_address( os, element.address );
-		emit_opcode( os, ir, element.address );
+		emit_opcode( os, ir, bin_image, element.address );
 	}
 
 	emit_label( os, ir, element.address );
@@ -135,7 +137,7 @@ void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, OutputMode
 	os << "\n";
 }
 
-void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, OutputMode mode, const DataElement& element )
+void ASMEmitter::emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const DataElement& element )
 {
 	if( mode == OutputMode::Listing )
 		emit_address( os, element.address );
@@ -172,10 +174,10 @@ void ASMEmitter::emit_header( std::ostream &os, const IRProgram& ir, std::string
 }
 
 
-void ASMEmitter::emit( std::ostream& os, const IRProgram& ir, OutputMode mode )
+void ASMEmitter::emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode )
 {
 	emit_header( os, ir, configuration.bin_name );
 
 	for( const auto& element : ir.elements )
-        std::visit( [&]( const auto& v ) { emit_element( os, ir, mode, v ); }, element );
+        std::visit( [&]( const auto& v ) { emit_element( os, ir, bin_image, mode, v ); }, element );
 }
