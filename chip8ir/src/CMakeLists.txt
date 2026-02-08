@@ -27,6 +27,7 @@ add_library(
 	disassembler.cc
 	decoder.cc
 	asm_emitter.cc
+	cfg_emitter.cc
 )
 
 add_library( chip8::ir ALIAS chip8ir )

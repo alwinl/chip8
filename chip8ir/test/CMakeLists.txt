@@ -28,6 +28,7 @@ add_executable(
 	symbols_test.cc
 	disassembler_integration_test.cc
 	asm_emitter_test.cc
+	cfg_emitter_test.cc
 )
 
 target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )

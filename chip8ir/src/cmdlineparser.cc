@@ -144,6 +144,8 @@ bool ChidasmCmdLineParser::parse_args( int argc, char **argv )
 		( "v,verbose", "Verbose output" )
 		( "c,clean", "Assembly only output" )
 		( "p,program", "Program name", cxxopts::value<std::string>() )
+		( "d,dot", "Output a Dot file" )
+		( "u,uml", "Output a PlantUML file" )
 		( "o,output", "Output file name", cxxopts::value<std::string>() )
 		( "source", "Source file name", cxxopts::value<std::string>() );
 
@@ -170,6 +172,22 @@ bool ChidasmCmdLineParser::parse_args( int argc, char **argv )
 		throw std::runtime_error( options.help() + "\nError: Source file is required.\n" );
 
 	return true;
+}
+
+std::string ChidasmCmdLineParser::get_dot_name()
+{
+	if( result.count("d") == 0 )
+		return {};
+
+	return get_output_prefix() + ".dot";
+}
+
+std::string ChidasmCmdLineParser::get_uml_name()
+{
+	if( result.count("u") == 0 )
+		return {};
+
+	return get_output_prefix() + ".plantuml";
 }
 
 std::string ChidasmCmdLineParser::get_output_name()

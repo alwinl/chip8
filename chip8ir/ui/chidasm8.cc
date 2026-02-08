@@ -24,6 +24,7 @@
 #include "disassembler.h"
 #include "binary_loader.h"
 #include "asm_emitter.h"
+#include "cfg_emitter.h"
 
 int main( int argc, char ** argv )
 {
@@ -47,6 +48,22 @@ int main( int argc, char ** argv )
 
 		emitter.configure( {args.get_program_name()} );
 		emitter.emit( os, ir, image, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+
+		if( !args.get_dot_name().empty() || !args.get_uml_name().empty() ) {
+			CFGEmitter cfg_emitter;
+
+			if( !args.get_uml_name().empty() ) {
+				std::ofstream plantuml_file(args.get_uml_name());
+				cfg_emitter.emit(plantuml_file, ir, CFGEmitter::OutputMode::PlantUML);
+				plantuml_file.close();
+			}
+
+			if( !args.get_dot_name().empty() ) {
+				std::ofstream dot_file(args.get_dot_name());
+				cfg_emitter.emit(dot_file, ir, CFGEmitter::OutputMode::Dot);
+				dot_file.close();
+			}
+		}
 
     }
 
