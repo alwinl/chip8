@@ -20,12 +20,55 @@
 #pragma once
 
 #include <istream>
-#include "chip8ir.h"
+#include <string>
+#include <cassert>
+
+#include "chip8formats.h"
 
 class ASMSourceLoader
 {
 public:
 	ASMSourceLoader() = default;
 
-	static ASMSource load( std::istream& is ) { return ASMSource {}; };
+	ASMSource load( std::istream& is )
+	{
+		ASMSource source {};
+		std::string line;
+		size_t line_no = 0;
+
+		while( std::getline( is, line ) ) {
+
+			line_no++;
+
+			if( line.empty() || strip_trailing_cr( line ) || strip_comments( line ) )
+				continue;
+
+			source.push_back( {line, line_no} );
+		}
+
+		return source;
+	};
+
+private:
+	bool strip_trailing_cr( std::string &line )
+	{
+		assert( !line.empty() && "strip_trailing_cr requires non-empty line" );
+
+		if( line.back() == '\r' )
+			line.pop_back();
+
+		return line.empty();
+	}
+
+	bool strip_comments( std::string &line )
+	{
+		assert( !line.empty() && "strip_comments requires non-empty line" );
+
+		const size_t comment_start = line.find_first_of(';');
+
+		if( comment_start != std::string::npos )
+			line = line.substr(0, comment_start);
+
+		return line.empty();
+	}
 };

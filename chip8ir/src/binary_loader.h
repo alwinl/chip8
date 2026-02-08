@@ -23,4 +23,7 @@
 
 #include "chip8formats.h"
 
-inline BinImage load_binary( std::istream& is ) { return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() }; }
+inline BinImage load_binary( std::istream& is )
+{
+	return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() };
+}

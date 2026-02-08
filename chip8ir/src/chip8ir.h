@@ -191,9 +191,6 @@ private:
 
 };
 
-using ASMSource = std::vector<std::string>;
-using C8CSource = std::vector<std::string>;
-
 struct IRProgram
 {
     uint16_t origin = 0x200;

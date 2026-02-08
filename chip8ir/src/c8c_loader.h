@@ -20,7 +20,7 @@
 #pragma once
 
 #include <istream>
-#include "chip8ir.h"
+#include "chip8formats.h"
 
 class C8CSourceLoader
 {

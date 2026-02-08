@@ -21,6 +21,7 @@
 
 #include "chip8ir.h"
 #include "cmdlineparser.h"
+#include "chip8formats.h"
 
 class Assembler
 {

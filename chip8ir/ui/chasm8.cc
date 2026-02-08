@@ -39,7 +39,7 @@ int main( int argc, char ** argv )
 		assembler.configure( args );
 
 		std::ifstream asm_file( args.get_source_name() );
-		ASMSource source = ASMSourceLoader::load( asm_file );
+		ASMSource source = ASMSourceLoader().load( asm_file );
 
 		IRProgram ir = assembler.build_ir( source );
 
