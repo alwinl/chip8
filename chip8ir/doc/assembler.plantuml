@@ -1,0 +1,25 @@
+@startuml assembler
+title Assembler sequence
+
+actor User
+participant Assembler
+participant Tokeniser
+participant Parser
+participant IRGenerator
+
+User -> Assembler ++: build_ir( ASMSource )
+
+Assembler -> Tokeniser ++ : tokenise( ASMSource)
+return TokenList
+
+Assembler -> Parser ++ : parse( TokenList )
+return ParseTree
+
+Assembler -> IRGenerator ++ : generate( ParseTree )
+return IRProgram
+
+return IRProgram
+
+hide footbox
+
+@enduml

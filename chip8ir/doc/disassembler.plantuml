@@ -1,0 +1,37 @@
+@startuml disassembler
+title Disassembler sequence
+
+actor User
+participant Disassembler
+participant DisasmMemory
+participant Decoder
+
+User -> Disassembler ++: build_ir( BinImage )
+
+Disassembler -> IRProgram ** : create
+Disassembler -> DisasmMemory ** : create
+
+Disassembler -> Disassembler : push origin to address_stack
+
+Disassembler -> Disassembler ++ : collect_instructions()
+	loop while address_stack not empty : DFS over control flow graph
+		Disassembler -> Decoder ++ : decode( Address, Opcode)
+		return next_addresses InstructionElement DecodedSymbol
+
+		Disassembler -> Disassembler : push(next_addresses)
+		Disassembler -> DisasmMemory : mark_instruction( Address )
+
+		Disassembler -> IRProgram  : push InstructionElement
+		Disassembler -> IRProgram : add DecodedSymbol
+	end
+return
+
+Disassembler -> Disassembler ++ : collect_data_bytes( )
+	Disassembler -> IRProgram : push DataElement
+return
+
+return IRProgram
+
+hide footbox
+
+@enduml
