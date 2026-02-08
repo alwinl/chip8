@@ -1,5 +1,5 @@
 /*
- * assembler.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * assembler.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,9 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include "assembler.h"
 
-#include "chip8ir.h"
-#include "cmdlineparser.h"
-
-class Assembler
+IRProgram Assembler::build_ir( ASMSource source )
 {
-public:
-	Assembler() = default;
-
-	void configure( const ChasmCmdLineParser& cmd ) {};
-
-	IRProgram build_ir( ASMSource source );
-};
+	return IRProgram {};
+}

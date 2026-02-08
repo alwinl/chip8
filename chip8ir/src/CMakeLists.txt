@@ -24,6 +24,7 @@ add_library(
 
 	cmdlineparser.cc
 
+	assembler.cc
 	disassembler.cc
 	decoder.cc
 	asm_emitter.cc
