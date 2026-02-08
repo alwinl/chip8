@@ -23,7 +23,7 @@
 #include <string>
 
 #include "chip8ir.h"
-#include "chip8bin.h"
+#include "chip8formats.h"
 
 class ASMEmitter
 {

@@ -1,5 +1,5 @@
 /*
- * chip8bin.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * chip8formats.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
