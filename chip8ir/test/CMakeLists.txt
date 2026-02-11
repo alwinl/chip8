@@ -29,6 +29,7 @@ add_executable(
 	disassembler_integration_test.cc
 	asm_emitter_test.cc
 	cfg_emitter_test.cc
+	asm_tokeniser_test.cc
 )
 
 target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )

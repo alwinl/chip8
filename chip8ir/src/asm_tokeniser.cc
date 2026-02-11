@@ -38,7 +38,7 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), Token::Type::LABEL, false },
 	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::DIRECTIVE, false },
 	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::IDENTIFIER, false },
-    TokenMatcher{ std::regex(R"(^0x[0-9A-Fa-f]+|\d+)"), Token::Type::NUMBER, false },
+    TokenMatcher{ std::regex(R"(^(0x[0-9A-Fa-f]+|\d+))"), Token::Type::NUMBER, false },
     TokenMatcher{ std::regex(R"(^,)"), Token::Type::COMMA, true }
 };
 
@@ -67,7 +67,7 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, Tokens 
 
 		for( const auto& match_entry : match_set ) {
 
-			if( std::regex_search( begin, end, match, match_entry.pattern) )
+			if( ! std::regex_search( begin, end, match, match_entry.pattern) )
 				continue;
 
 			assert( match.position() == 0 );
@@ -88,7 +88,6 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, Tokens 
             cursor++;
         }
 	}
-
 }
 
 std::string ASMTokeniser::post_process( Token::Type type, std::string lexeme )
