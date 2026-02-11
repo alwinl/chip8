@@ -36,49 +36,49 @@ protected:
 
 TEST_F(ASMTokeniserTestTest, EmptyInput)
 {
-	ASMTokens tokens = tokeniser.tokenise( ASMSource {} );
+	Tokens tokens = tokeniser.tokenise( ASMSource {} );
 
     ASSERT_EQ(tokens.size(), 1);
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::END_OF_INPUT);
+    EXPECT_EQ(tokens[0].type, Token::Type::END_OF_INPUT);
 }
 
 
 TEST_F(ASMTokeniserTestTest, LabelOnly)
 {
 	source.push_back( ASMLine { "start:", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	Tokens tokens = tokeniser.tokenise( source );
 
     ASSERT_EQ(tokens.size(), 2);
 
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::LABEL);
+    EXPECT_EQ(tokens[0].type, Token::Type::LABEL);
     EXPECT_EQ(tokens[0].lexeme, "start");
 
-    EXPECT_EQ(tokens.back().type, ASMToken::Type::END_OF_INPUT);
+    EXPECT_EQ(tokens.back().type, Token::Type::END_OF_INPUT);
 }
 
 TEST_F(ASMTokeniserTestTest, InstructionWithArguments)
 {
 	source.push_back( ASMLine { "ld v0, 10", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	Tokens tokens = tokeniser.tokenise( source );
 
     ASSERT_GE(tokens.size(), 4);
 
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::IDENTIFIER);
+    EXPECT_EQ(tokens[0].type, Token::Type::IDENTIFIER);
     EXPECT_EQ(tokens[0].lexeme, "LD");
 
-    EXPECT_EQ(tokens[1].type, ASMToken::Type::IDENTIFIER);
+    EXPECT_EQ(tokens[1].type, Token::Type::IDENTIFIER);
     EXPECT_EQ(tokens[1].lexeme, "V0");
 
-    EXPECT_EQ(tokens[2].type, ASMToken::Type::NUMBER);
+    EXPECT_EQ(tokens[2].type, Token::Type::NUMBER);
     EXPECT_EQ(tokens[2].lexeme, "10");
 }
 
 TEST_F(ASMTokeniserTestTest, Directive)
 {
 	source.push_back( ASMLine { ".db 0xFF, 0x01", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	Tokens tokens = tokeniser.tokenise( source );
 
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::DIRECTIVE);
+    EXPECT_EQ(tokens[0].type, Token::Type::DIRECTIVE);
     EXPECT_EQ(tokens[0].lexeme, ".DB");
 
     EXPECT_EQ(tokens[1].lexeme, "0xFF");
@@ -88,11 +88,11 @@ TEST_F(ASMTokeniserTestTest, Directive)
 TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
 {
 	source.push_back( ASMLine { "LD V0, 1 ; comment here", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	Tokens tokens = tokeniser.tokenise( source );
 
     bool found_comment = false;
     for (const auto& tok : tokens)
-        if (tok.type == ASMToken::Type::COMMENT)
+        if (tok.type == Token::Type::COMMENT)
             found_comment = true;
 
     EXPECT_TRUE(found_comment);
@@ -101,12 +101,12 @@ TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
 TEST_F(ASMTokeniserTestTest, AssignmentIsCaseInsensitve)
 {
 	source.push_back( ASMLine { "equ", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	Tokens tokens = tokeniser.tokenise( source );
 
     ASSERT_EQ(tokens.size(), 2);
 
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::ASSIGNMENT);
+    EXPECT_EQ(tokens[0].type, Token::Type::ASSIGNMENT);
     EXPECT_EQ(tokens[0].lexeme, "EQU");
 
-    EXPECT_EQ(tokens[1].type, ASMToken::Type::END_OF_INPUT);
+    EXPECT_EQ(tokens[1].type, Token::Type::END_OF_INPUT);
 }

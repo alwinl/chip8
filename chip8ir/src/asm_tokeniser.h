@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "token.h"
+#include "asm_token.h"
 #include "chip8formats.h"
 
 class ASMTokeniser
@@ -29,9 +29,9 @@ class ASMTokeniser
 public:
     ASMTokeniser() = default;
 
-    Tokens tokenise( ASMSource source );
+    ASMTokens tokenise( ASMSource source );
 
 private:
-	void tokenise_line( const std::string&  input, int line_no, Tokens & tokens );
-    std::string post_process( Token::Type type, std::string lexeme );
+	void tokenise_line( const std::string&  input, int line_no, ASMTokens & tokens );
+    std::string post_process( ASMToken::Type type, std::string lexeme );
 };

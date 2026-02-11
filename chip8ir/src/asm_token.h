@@ -23,7 +23,7 @@
 #include <vector>
 #include <ostream>
 
-struct Token
+struct ASMToken
 {
     enum class Type { COMMENT, WHITESPACE, ASSIGNMENT, LABEL, DIRECTIVE, IDENTIFIER, NUMBER, COMMA, END_OF_INPUT, INVALID };
 
@@ -33,4 +33,4 @@ struct Token
     int column;
 };
 
-using Tokens = std::vector<Token>;
+using ASMTokens = std::vector<ASMToken>;

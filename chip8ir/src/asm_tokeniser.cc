@@ -26,35 +26,35 @@
 struct TokenMatcher
 {
     std::regex pattern;
-    Token::Type type;
+    ASMToken::Type type;
     bool skip_token;
 };
 
 std::vector<TokenMatcher> match_set =
 {
-    TokenMatcher{ std::regex(R"(^;[^\n]*)"), Token::Type::COMMENT, false},
-    TokenMatcher{ std::regex(R"(^\s+)"), Token::Type::WHITESPACE, true },
-	TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), Token::Type::ASSIGNMENT, false },
-    TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), Token::Type::LABEL, false },
-	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::DIRECTIVE, false },
-	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::IDENTIFIER, false },
-    TokenMatcher{ std::regex(R"(^(0x[0-9A-Fa-f]+|\d+))"), Token::Type::NUMBER, false },
-    TokenMatcher{ std::regex(R"(^,)"), Token::Type::COMMA, true }
+    TokenMatcher{ std::regex(R"(^;[^\n]*)"), ASMToken::Type::COMMENT, false},
+    TokenMatcher{ std::regex(R"(^\s+)"), ASMToken::Type::WHITESPACE, true },
+	TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), ASMToken::Type::ASSIGNMENT, false },
+    TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), ASMToken::Type::LABEL, false },
+	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::DIRECTIVE, false },
+	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::IDENTIFIER, false },
+    TokenMatcher{ std::regex(R"(^(0x[0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },
+    TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, true }
 };
 
-Tokens ASMTokeniser::tokenise( ASMSource source )
+ASMTokens ASMTokeniser::tokenise( ASMSource source )
 {
-    Tokens tokens;
+    ASMTokens tokens;
 
 	for( const auto& line : source )
         tokenise_line( line.text, line.line_no, tokens );
 
-	tokens.push_back({ Token::Type::END_OF_INPUT, "", 0, 0 });
+	tokens.push_back({ ASMToken::Type::END_OF_INPUT, "", 0, 0 });
 
     return tokens;
 }
 
-void ASMTokeniser::tokenise_line( const std::string& input, int line_no, Tokens & tokens )
+void ASMTokeniser::tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
 {
 	int cursor = 0;
 	auto end = input.cend();
@@ -84,20 +84,20 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, Tokens 
 		}
 
 		if( !matched ) {
-            tokens.push_back( { Token::Type::INVALID, std::string(1, input[cursor]), line_no, cursor + 1 } );
+            tokens.push_back( { ASMToken::Type::INVALID, std::string(1, input[cursor]), line_no, cursor + 1 } );
             cursor++;
         }
 	}
 }
 
-std::string ASMTokeniser::post_process( Token::Type type, std::string lexeme )
+std::string ASMTokeniser::post_process( ASMToken::Type type, std::string lexeme )
 {
 	auto make_upper = [](unsigned char c){ return std::toupper(c); };
 
-	if( type == Token::Type::LABEL && lexeme.back() == ':' )
+	if( type == ASMToken::Type::LABEL && lexeme.back() == ':' )
         lexeme.pop_back();
 
-	if( (type == Token::Type::IDENTIFIER) || (type == Token::Type::DIRECTIVE) || (type == Token::Type::ASSIGNMENT) )
+	if( (type == ASMToken::Type::IDENTIFIER) || (type == ASMToken::Type::DIRECTIVE) || (type == ASMToken::Type::ASSIGNMENT) )
 		std::transform( lexeme.begin(), lexeme.end(), lexeme.begin(), make_upper );
 
     return lexeme;
