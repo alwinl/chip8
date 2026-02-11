@@ -18,14 +18,14 @@ runtimes:
 lint:
   enabled:
     - markdownlint@0.47.0
-    - checkov@3.2.499
+    - checkov@3.2.500
     - prettier@3.8.1
-    - trivy@0.69.0
+    - trivy@0.69.1
     - yamllint@1.38.0
     - clang-format@16.0.3
     - clang-tidy@16.0.3
     - git-diff-check
-    - trufflehog@3.92.5
+    - trufflehog@3.93.2
 actions:
   disabled:
     - trunk-announce
