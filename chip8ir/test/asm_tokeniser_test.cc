@@ -97,3 +97,16 @@ TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
 
     EXPECT_TRUE(found_comment);
 }
+
+TEST_F(ASMTokeniserTestTest, AssignmentIsCaseInsensitve)
+{
+	source.push_back( ASMLine { "equ", 1 } );
+	Tokens tokens = tokeniser.tokenise( source );
+
+    ASSERT_EQ(tokens.size(), 2);
+
+    EXPECT_EQ(tokens[0].type, Token::Type::ASSIGNMENT);
+    EXPECT_EQ(tokens[0].lexeme, "EQU");
+
+    EXPECT_EQ(tokens[1].type, Token::Type::END_OF_INPUT);
+}

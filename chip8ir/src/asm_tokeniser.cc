@@ -34,7 +34,7 @@ std::vector<TokenMatcher> match_set =
 {
     TokenMatcher{ std::regex(R"(^;[^\n]*)"), Token::Type::COMMENT, false},
     TokenMatcher{ std::regex(R"(^\s+)"), Token::Type::WHITESPACE, true },
-	TokenMatcher{ std::regex(R"(^(=|EQU)\b)"), Token::Type::ASSIGNMENT, false },
+	TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), Token::Type::ASSIGNMENT, false },
     TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), Token::Type::LABEL, false },
 	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::DIRECTIVE, false },
 	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), Token::Type::IDENTIFIER, false },
