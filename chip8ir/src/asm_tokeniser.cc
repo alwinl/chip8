@@ -40,7 +40,7 @@ std::vector<TokenMatcher> match_set =
 	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::DIRECTIVE, false },
 	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::IDENTIFIER, false },
     TokenMatcher{ std::regex(R"(^(0x[0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },
-    TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, true }
+    TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
 };
 
 ASMTokens ASMTokeniser::tokenise( ASMSource source )
@@ -93,13 +93,8 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, ASMToke
 
 std::string ASMTokeniser::post_process( ASMToken::Type type, std::string lexeme )
 {
-	auto make_upper = [](unsigned char c){ return std::toupper(c); };
-
 	if( type == ASMToken::Type::LABEL && lexeme.back() == ':' )
         lexeme.pop_back();
-
-	if( (type == ASMToken::Type::IDENTIFIER) || (type == ASMToken::Type::DIRECTIVE) || (type == ASMToken::Type::ASSIGNMENT) )
-		std::transform( lexeme.begin(), lexeme.end(), lexeme.begin(), make_upper );
 
     return lexeme;
 }

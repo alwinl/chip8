@@ -30,6 +30,7 @@ add_library(
 	asm_emitter.cc
 	cfg_emitter.cc
 	asm_tokeniser.cc
+	asm_parser.cc
 )
 
 add_library( chip8::ir ALIAS chip8ir )

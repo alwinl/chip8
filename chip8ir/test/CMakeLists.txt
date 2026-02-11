@@ -30,6 +30,8 @@ add_executable(
 	asm_emitter_test.cc
 	cfg_emitter_test.cc
 	asm_tokeniser_test.cc
+	asm_parser_test.cc
+	asm_parser_integration.cc
 )
 
 target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )

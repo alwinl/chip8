@@ -58,7 +58,7 @@ TEST_F(ASMTokeniserTestTest, LabelOnly)
 
 TEST_F(ASMTokeniserTestTest, InstructionWithArguments)
 {
-	source.push_back( ASMLine { "ld v0, 10", 1 } );
+	source.push_back( ASMLine { "LD V0, 10", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
 
     ASSERT_GE(tokens.size(), 4);
@@ -69,20 +69,24 @@ TEST_F(ASMTokeniserTestTest, InstructionWithArguments)
     EXPECT_EQ(tokens[1].type, ASMToken::Type::IDENTIFIER);
     EXPECT_EQ(tokens[1].lexeme, "V0");
 
-    EXPECT_EQ(tokens[2].type, ASMToken::Type::NUMBER);
-    EXPECT_EQ(tokens[2].lexeme, "10");
+    EXPECT_EQ(tokens[2].type, ASMToken::Type::COMMA);
+    EXPECT_EQ(tokens[2].lexeme, ",");
+
+	EXPECT_EQ(tokens[3].type, ASMToken::Type::NUMBER);
+    EXPECT_EQ(tokens[3].lexeme, "10");
 }
 
 TEST_F(ASMTokeniserTestTest, Directive)
 {
-	source.push_back( ASMLine { ".db 0xFF, 0x01", 1 } );
+	source.push_back( ASMLine { ".DB 0xFF, 0x01", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
 
     EXPECT_EQ(tokens[0].type, ASMToken::Type::DIRECTIVE);
     EXPECT_EQ(tokens[0].lexeme, ".DB");
 
     EXPECT_EQ(tokens[1].lexeme, "0xFF");
-    EXPECT_EQ(tokens[2].lexeme, "0x01");
+    EXPECT_EQ(tokens[2].lexeme, ",");
+    EXPECT_EQ(tokens[3].lexeme, "0x01");
 }
 
 TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
@@ -96,19 +100,6 @@ TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
             found_comment = true;
 
     EXPECT_TRUE(found_comment);
-}
-
-TEST_F(ASMTokeniserTestTest, AssignmentIsCaseInsensitve)
-{
-	source.push_back( ASMLine { "equ", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
-
-    ASSERT_EQ(tokens.size(), 2);
-
-    EXPECT_EQ(tokens[0].type, ASMToken::Type::ASSIGNMENT);
-    EXPECT_EQ(tokens[0].lexeme, "EQU");
-
-    EXPECT_EQ(tokens[1].type, ASMToken::Type::END_OF_INPUT);
 }
 
 TEST_F(ASMTokeniserTestTest, Operators)
