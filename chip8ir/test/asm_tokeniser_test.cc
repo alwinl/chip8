@@ -110,3 +110,18 @@ TEST_F(ASMTokeniserTestTest, AssignmentIsCaseInsensitve)
 
     EXPECT_EQ(tokens[1].type, ASMToken::Type::END_OF_INPUT);
 }
+
+TEST_F(ASMTokeniserTestTest, Operators)
+{
+	source.push_back( ASMLine { "+-*/", 1 } );
+	ASMTokens tokens = tokeniser.tokenise( source );
+
+    ASSERT_EQ(tokens.size(), 5);
+
+    EXPECT_EQ(tokens[0].type, ASMToken::Type::OPERATOR); EXPECT_EQ(tokens[0].lexeme, "+");
+    EXPECT_EQ(tokens[1].type, ASMToken::Type::OPERATOR); EXPECT_EQ(tokens[1].lexeme, "-");
+    EXPECT_EQ(tokens[2].type, ASMToken::Type::OPERATOR); EXPECT_EQ(tokens[2].lexeme, "*");
+    EXPECT_EQ(tokens[3].type, ASMToken::Type::OPERATOR); EXPECT_EQ(tokens[3].lexeme, "/");
+
+    EXPECT_EQ(tokens[4].type, ASMToken::Type::END_OF_INPUT);
+}
