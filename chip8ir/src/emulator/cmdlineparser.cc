@@ -17,7 +17,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "cmdlineparser.h"
+#include "emulator/cmdlineparser.h"
 
 #include <iostream>
 
