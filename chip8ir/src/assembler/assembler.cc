@@ -17,7 +17,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "assembler.h"
+#include "assembler/assembler.h"
 
 IRProgram Assembler::build_ir( ASMSource source )
 {

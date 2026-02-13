@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "disassembler.h"
+#include "disassembler/disassembler.h"
 
 class DisasmMemoryTest : public ::testing::Test {
 protected:

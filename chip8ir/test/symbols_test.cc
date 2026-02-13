@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "chip8ir.h"
+#include "ir/chip8ir.h"
 
 class SymbolsTest : public ::testing::Test {
 protected:

@@ -1,5 +1,5 @@
 /*
- * assembler.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * asm_tokeniser.h Copyright 2026 Alwin Leerling <dna.leerling@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,19 @@
 
 #pragma once
 
-#include "ir/chip8ir.h"
+#include <string>
+
+#include "assembler/token.h"
 #include "ir/chip8formats.h"
 
-#include "assembler/cmdlineparser.h"
-
-class Assembler
+class ASMTokeniser
 {
 public:
-	Assembler() = default;
+    ASMTokeniser() = default;
 
-	void configure( const ChasmCmdLineParser& cmd ) {};
+    ASMTokens tokenise( ASMSource source );
 
-	IRProgram build_ir( ASMSource source );
+private:
+	void tokenise_line( const std::string&  input, int line_no, ASMTokens & tokens );
+    std::string post_process( ASMToken::Type type, std::string lexeme );
 };

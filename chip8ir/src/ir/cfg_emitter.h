@@ -25,7 +25,7 @@
 #include <map>
 #include <string>
 
-#include "chip8ir.h"
+#include "ir/chip8ir.h"
 
 class CFGEmitter
 {

@@ -1,5 +1,5 @@
 /*
- * asm_tokeniser.h Copyright 2026 Alwin Leerling <dna.leerling@gmail.com>
+ * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,18 +20,21 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <cstdint>
 
-#include "asm_token.h"
-#include "chip8formats.h"
+#include "../vendor/cxxopts/cxxopts.hpp"
 
-class ASMTokeniser
+class ChemulCmdLineParser
 {
 public:
-    ASMTokeniser() = default;
+	ChemulCmdLineParser() = default;
 
-    ASMTokens tokenise( ASMSource source );
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
+
+	std::string get_program();
 
 private:
-	void tokenise_line( const std::string&  input, int line_no, ASMTokens & tokens );
-    std::string post_process( ASMToken::Type type, std::string lexeme );
+    cxxopts::ParseResult result;
 };

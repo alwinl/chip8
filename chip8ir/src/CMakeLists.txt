@@ -20,17 +20,24 @@
 add_library(
 	chip8ir
 
+	# cmdlineparser.cc
+
 	ir/chip8ir.cc
+	ir/cfg_emitter.cc
 
-	cmdlineparser.cc
-
+	assembler/cmdlineparser.cc
 	assembler/assembler.cc
+	assembler/emitter.cc
+	assembler/tokeniser.cc
+	assembler/parser.cc
+
+	disassembler/cmdlineparser.cc
 	disassembler/disassembler.cc
 	disassembler/decoder.cc
-	assembler/asm_emitter.cc
-	ir/cfg_emitter.cc
-	assembler/asm_tokeniser.cc
-	assembler/asm_parser.cc
+
+	emulator/cmdlineparser.cc
+
+	compiler/cmdlineparser.cc
 )
 
 add_library( chip8::ir ALIAS chip8ir )

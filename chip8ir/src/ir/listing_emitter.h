@@ -21,7 +21,7 @@
 
 #include <ostream>
 
-#include "chip8ir.h"
+#include "ir/chip8ir.h"
 
 class ListingEmitter
 {

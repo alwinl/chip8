@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "asm_tokeniser.h"
-#include "chip8formats.h"
+#include "assembler/tokeniser.h"
+#include "ir/chip8formats.h"
 
 class ASMTokeniserTestTest : public ::testing::Test {
 protected:

@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "chip8ir.h"
-#include "cfg_emitter.h"
+#include "ir/chip8ir.h"
+#include "ir/cfg_emitter.h"
 
 #include <fstream>
 

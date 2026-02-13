@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 // #include "chip8ir.h"
-#include "asm_emitter.h"
+#include "assembler/emitter.h"
 
 TEST(ASMEmitterTest, manual_visual_inspection)
 {

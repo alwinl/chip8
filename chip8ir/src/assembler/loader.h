@@ -23,7 +23,7 @@
 #include <string>
 #include <cassert>
 
-#include "chip8formats.h"
+#include "ir/chip8formats.h"
 
 class ASMSourceLoader
 {

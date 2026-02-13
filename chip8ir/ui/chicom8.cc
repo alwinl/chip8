@@ -20,10 +20,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "cmdlineparser.h"
-#include "binary_emitter.h"
-#include "c8c_loader.h"
-#include "compiler.h"
+#include "compiler/cmdlineparser.h"
+#include "ir/binary_emitter.h"
+#include "compiler/c8c_loader.h"
+#include "compiler/compiler.h"
 
 int main( int argc, char ** argv )
 {

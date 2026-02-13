@@ -25,64 +25,6 @@
 
 #include "../vendor/cxxopts/cxxopts.hpp"
 
-class ChasmCmdLineParser
-{
-public:
-	ChasmCmdLineParser() = default;
-
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
-
-    std::string get_source_name();
-	std::string get_binary_name();
-	std::string get_listing_name();
-    bool is_verbose() const;
-    bool show_help() const;
-
-private:
-    cxxopts::ParseResult result;
-
-	const std::string get_output_prefix();
-};
-
-class ChidasmCmdLineParser
-{
-public:
-	ChidasmCmdLineParser() = default;
-
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
-
-    std::string get_source_name();
-    std::string get_program_name();
-	std::string get_output_name();
-	std::string get_dot_name();
-	std::string get_uml_name();
-    bool is_verbose() const;
-    bool is_clean() const;
-    bool show_help() const;
-	uint16_t get_origin() const;
-
-private:
-    cxxopts::ParseResult result;
-
-	const std::string get_output_prefix();
-};
-
-class ChemulCmdLineParser
-{
-public:
-	ChemulCmdLineParser() = default;
-
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
-
-	std::string get_program();
-
-private:
-    cxxopts::ParseResult result;
-};
-
 class ChicomCmdLineParser
 {
 public:

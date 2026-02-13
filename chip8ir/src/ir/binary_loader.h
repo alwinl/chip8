@@ -1,5 +1,5 @@
 /*
- * assembler.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * binary_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,11 @@
 
 #pragma once
 
-#include "ir/chip8ir.h"
+#include <istream>
+
 #include "ir/chip8formats.h"
 
-#include "assembler/cmdlineparser.h"
-
-class Assembler
+inline BinImage load_binary( std::istream& is )
 {
-public:
-	Assembler() = default;
-
-	void configure( const ChasmCmdLineParser& cmd ) {};
-
-	IRProgram build_ir( ASMSource source );
-};
+	return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() };
+}

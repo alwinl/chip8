@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "decoder.h"
+#include "disassembler/decoder.h"
 
 class DecoderTest : public ::testing::Test {
 protected:

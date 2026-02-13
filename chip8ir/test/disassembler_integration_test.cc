@@ -18,7 +18,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "disassembler.h"
+#include "disassembler/disassembler.h"
 
 class DisassemblerIntegrationTest : public ::testing::Test {
 protected:

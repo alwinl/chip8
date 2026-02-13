@@ -17,9 +17,7 @@
  * MA 02110-1301, USA.
  */
 
-#include "decoder.h"
-
-#include "memory.h"
+#include "disassembler/decoder.h"
 
 Decoder::Dispatcher Decoder::dispatcher =
 {

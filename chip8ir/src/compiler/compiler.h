@@ -21,8 +21,8 @@
 
 #include "cmdlineparser.h"
 
-#include "chip8ir.h"
-#include "chip8formats.h"
+#include "ir/chip8ir.h"
+#include "ir/chip8formats.h"
 
 class Compiler
 {

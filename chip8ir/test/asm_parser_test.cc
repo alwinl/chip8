@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "asm_parser.h"
+#include "assembler/parser.h"
 
 class ASMParserTest : public ::testing::Test {
 protected:

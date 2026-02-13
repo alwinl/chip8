@@ -17,8 +17,9 @@
  * MA 02110-1301, USA.
  */
 
-#include "asm_parser.h"
 #include <algorithm>
+
+#include "assembler/parser.h"
 
 ASTProgram ASMParser::parse_asm_tokens( const ASMTokens& tokens )
 {

@@ -1,5 +1,5 @@
 /*
- * binary_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,28 @@
 
 #pragma once
 
-#include <istream>
+#include <string>
+#include <vector>
+#include <cstdint>
 
-#include "chip8formats.h"
+#include "../vendor/cxxopts/cxxopts.hpp"
 
-inline BinImage load_binary( std::istream& is )
+class ChasmCmdLineParser
 {
-	return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() };
-}
+public:
+	ChasmCmdLineParser() = default;
+
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
+
+    std::string get_source_name();
+	std::string get_binary_name();
+	std::string get_listing_name();
+    bool is_verbose() const;
+    bool show_help() const;
+
+private:
+    cxxopts::ParseResult result;
+
+	const std::string get_output_prefix();
+};

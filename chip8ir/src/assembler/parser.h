@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "asm_ast.h"
-
-#include "asm_token.h"
+#include "assembler/ast.h"
+#include "assembler/token.h"
 
 class ASMParser
 {

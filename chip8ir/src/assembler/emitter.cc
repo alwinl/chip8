@@ -17,11 +17,11 @@
  * MA 02110-1301, USA.
  */
 
-#include "asm_emitter.h"
-
-#include "binary_loader.h"
+#include "assembler/emitter.h"
 
 #include <iomanip>
+
+#include "ir/binary_loader.h"
 
 struct StreamStateGuard
 {

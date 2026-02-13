@@ -18,9 +18,9 @@
  */
 
 #include <gtest/gtest.h>
-#include <asm_loader.h>
-#include <asm_tokeniser.h>
-#include <asm_parser.h>
+#include <assembler/loader.h>
+#include <assembler/tokeniser.h>
+#include <assembler/parser.h>
 
 class ASMParserIntegrationTest : public ::testing::Test {
 protected:

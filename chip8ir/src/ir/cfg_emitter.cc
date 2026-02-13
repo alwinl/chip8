@@ -17,7 +17,7 @@
   * MA 02110-1301, USA.
   */
 
-#include "cfg_emitter.h"
+#include "ir/cfg_emitter.h"
 
 #include <map>
 #include <unordered_map>

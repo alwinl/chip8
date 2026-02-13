@@ -1,5 +1,5 @@
 /*
- * assembler.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,32 @@
 
 #pragma once
 
-#include "ir/chip8ir.h"
-#include "ir/chip8formats.h"
+#include <string>
+#include <vector>
+#include <cstdint>
 
-#include "assembler/cmdlineparser.h"
+#include "../vendor/cxxopts/cxxopts.hpp"
 
-class Assembler
+class ChidasmCmdLineParser
 {
 public:
-	Assembler() = default;
+	ChidasmCmdLineParser() = default;
 
-	void configure( const ChasmCmdLineParser& cmd ) {};
+	bool parse_args( int argc, char ** argv );
+    bool parse_args( std::vector<std::string> arguments );
 
-	IRProgram build_ir( ASMSource source );
+    std::string get_source_name();
+    std::string get_program_name();
+	std::string get_output_name();
+	std::string get_dot_name();
+	std::string get_uml_name();
+    bool is_verbose() const;
+    bool is_clean() const;
+    bool show_help() const;
+	uint16_t get_origin() const;
+
+private:
+    cxxopts::ParseResult result;
+
+	const std::string get_output_prefix();
 };

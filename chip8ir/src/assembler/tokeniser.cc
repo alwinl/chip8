@@ -17,7 +17,7 @@
   * MA 02110-1301, USA.
   */
 
-#include "asm_tokeniser.h"
+#include "assembler/tokeniser.h"
 
 #include <regex>
 #include <unordered_map>

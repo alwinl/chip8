@@ -20,11 +20,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "cmdlineparser.h"
-#include "disassembler.h"
-#include "binary_loader.h"
-#include "asm_emitter.h"
-#include "cfg_emitter.h"
+#include "disassembler/cmdlineparser.h"
+#include "disassembler/disassembler.h"
+#include "ir/binary_loader.h"
+#include "assembler/emitter.h"
+#include "ir/cfg_emitter.h"
 
 int main( int argc, char ** argv )
 {

@@ -17,7 +17,7 @@
   * MA 02110-1301, USA.
   */
 
-#include "chip8ir.h"
+#include "ir/chip8ir.h"
 
 #include <algorithm>
 #include <cassert>

@@ -18,8 +18,10 @@
  */
 
 #include <gtest/gtest.h>
-#include "chip8ir.h"
+
 #include <sstream>
+
+#include "ir/chip8ir.h"
 
 class Chip8IRTest : public ::testing::Test {
 protected:

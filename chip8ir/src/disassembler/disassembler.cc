@@ -17,13 +17,12 @@
  * MA 02110-1301, USA.
  */
 
-#include "disassembler.h"
-
 #include <variant>
 #include <stack>
 #include <unordered_set>
 
-#include "decoder.h"
+#include "disassembler/disassembler.h"
+#include "disassembler/decoder.h"
 
 IRProgram Disassembler::build_ir( const BinImage &binary )
 {

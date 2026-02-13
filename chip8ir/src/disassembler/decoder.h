@@ -21,7 +21,7 @@
 
 #include <array>
 
-#include "chip8ir.h"
+#include "ir/chip8ir.h"
 
 using AddressList = std::vector<uint16_t>;
 
