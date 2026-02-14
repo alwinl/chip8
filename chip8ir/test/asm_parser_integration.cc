@@ -42,11 +42,14 @@ protected:
     ASMParser parser;
 };
 
+// Helper for operand assertions
 template<typename T>
-T* get_operand( const ASTExpression& expr )
+T* get_operand( ASTExpression& expr )
 {
-    auto ptr = std::get_if<T>( &expr.expression );
-    ASSERT_NE( ptr, nullptr );
+    T* ptr = std::get_if<T>(&expr.expression);
+    if (!ptr) {
+        throw std::runtime_error("Operand type mismatch in test helper");
+    }
     return ptr;
 }
 
@@ -65,7 +68,7 @@ R"(start:
 	ASMTokens tokens = tokeniser.tokenise( source );
 	ASTProgram program = parser.parse_asm_tokens( tokens );
 
-	ASSERT_EQ( program.size(), 4);
+	ASSERT_EQ( program.size(), 4 );
 
 	{
 		EXPECT_TRUE( program[0].label.has_value() );
@@ -77,70 +80,36 @@ R"(start:
 		EXPECT_EQ( program[1].line, 2 );
 
 		auto instr_ptr = std::get_if<ASTInstruction>(&program[1].body);
-		ASSERT_NE(instr_ptr, nullptr);
-
+		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "LD" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 2 );
-		{
-			auto operand_ptr = std::get_if<IdentifierExpr>(&instr_ptr->operands[0].expression);
-			ASSERT_NE(operand_ptr, nullptr);
-			EXPECT_EQ( operand_ptr->text, "V0" );
-		}
-		{
-			auto operand_ptr = std::get_if<NumberExpr>(&instr_ptr->operands[1].expression);
-			ASSERT_NE(operand_ptr, nullptr);
-			EXPECT_EQ( operand_ptr->value, 10 );
-		}
+		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
+		EXPECT_EQ( get_operand<NumberExpr>(instr_ptr->operands[1])->value, 10 );
 	}
 	{
 		EXPECT_FALSE( program[2].label.has_value() );
 		EXPECT_EQ( program[2].line, 3 );
 
 		auto instr_ptr = std::get_if<ASTInstruction>(&program[2].body);
-		ASSERT_NE(instr_ptr, nullptr);
-
+		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "ADD" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 2 );
-		{
-			auto operand_ptr = std::get_if<IdentifierExpr>(&instr_ptr->operands[0].expression);
-			ASSERT_NE(operand_ptr, nullptr);
-			EXPECT_EQ( operand_ptr->text, "V0" );
-		}
-		{
-			auto operand_ptr = std::get_if<NumberExpr>(&instr_ptr->operands[1].expression);
-			ASSERT_NE(operand_ptr, nullptr);
-			EXPECT_EQ( operand_ptr->value, 5 );
-		}
+		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
+		EXPECT_EQ( get_operand<NumberExpr>(instr_ptr->operands[1])->value, 5 );
 	}
 	{
 		EXPECT_FALSE( program[3].label.has_value() );
 		EXPECT_EQ( program[3].line, 4 );
 
 		auto instr_ptr = std::get_if<ASTInstruction>(&program[3].body);
-		ASSERT_NE(instr_ptr, nullptr);
-
+		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "JP" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 1 );
-		{
-			auto operand_ptr = std::get_if<IdentifierExpr>(&instr_ptr->operands[0].expression);
-			ASSERT_NE(operand_ptr, nullptr);
-			EXPECT_EQ( operand_ptr->text, "start" );
-		}
+		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "start" );
 	}
-}
-
-// Helper for operand assertions
-template<typename T>
-T* get_operand( ASTExpression& expr )
-{
-    T* ptr = std::get_if<T>(&expr.expression);
-    if (!ptr) {
-        throw std::runtime_error("Operand type mismatch in test helper");
-    }
-    return ptr;
 }
 
 TEST_F(ASMParserIntegrationExtendedTest, DirectiveWithOperands)
