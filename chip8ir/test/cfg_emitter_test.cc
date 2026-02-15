@@ -24,8 +24,12 @@
 
 #include <fstream>
 
-class CFGEmitterTest : public ::testing::Test {
+class CFGEmitterTest : public ::testing::Test
+{
 protected:
+	IRProgram ir;
+	CFGEmitter emitter;
+
 	void SetUp() override
 	{
 		ir.origin = 0x200;
@@ -37,11 +41,7 @@ protected:
 		ir.elements.push_back( InstructionElement{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
 	}
 
-	void TearDown() override {
-	}
-
-	IRProgram ir;
-	CFGEmitter emitter;
+	void TearDown() override {}
 };
 
 TEST_F(CFGEmitterTest, create_plantuml )

@@ -20,9 +20,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "emulator/cmdlineparser.h"
-#include "disassembler/disassembler.h"
 #include "ir/binary_loader.h"
+#include "disassembler/disassembler.h"
+#include "emulator/cmdlineparser.h"
 #include "emulator/emulator.h"
 
 int main( int argc, char ** argv )

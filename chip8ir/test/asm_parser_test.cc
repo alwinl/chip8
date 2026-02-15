@@ -21,13 +21,14 @@
 
 #include "assembler/parser.h"
 
-class ASMParserTest : public ::testing::Test {
+class ASMParserTest : public ::testing::Test
+{
 protected:
-	void SetUp() override {}
-	void TearDown() override {}
-
 	ASMParser parser;
 	ASMTokens tokens;
+
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
 TEST_F(ASMParserTest, NoTokens)

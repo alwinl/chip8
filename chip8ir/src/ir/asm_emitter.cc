@@ -20,11 +20,6 @@
 #include <iomanip>
 
 #include "ir/asm_emitter.h"
-// #include "ir/chip8ir.h"
-// #include "ir/chip8formats.h"
-
-
-// #include "ir/binary_loader.h"
 
 void ASMEmitter::emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, const SymbolTable& symbols, OutputMode mode )
 {

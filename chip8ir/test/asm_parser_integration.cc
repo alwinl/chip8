@@ -22,24 +22,15 @@
 #include <assembler/tokeniser.h>
 #include <assembler/parser.h>
 
-class ASMParserIntegrationTest : public ::testing::Test {
+class ASMParserIntegrationTest : public ::testing::Test
+{
 protected:
-	void SetUp() override {}
-	void TearDown() override {}
-
 	ASMSourceLoader loader;
 	ASMTokeniser tokeniser;
 	ASMParser parser;
-};
 
-class ASMParserIntegrationExtendedTest : public ::testing::Test {
-protected:
-    void SetUp() override {}
-    void TearDown() override {}
-
-    ASMSourceLoader loader;
-    ASMTokeniser tokeniser;
-    ASMParser parser;
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
 // Helper for operand assertions
@@ -112,7 +103,7 @@ R"(start:
 	}
 }
 
-TEST_F(ASMParserIntegrationExtendedTest, DirectiveWithOperands)
+TEST_F(ASMParserIntegrationTest, DirectiveWithOperands)
 {
     std::string input =
 R"(.DW 0x10, 0x20, 0x30
@@ -137,7 +128,7 @@ R"(.DW 0x10, 0x20, 0x30
     EXPECT_EQ(get_operand<NumberExpr>(dir_ptr->args[2])->value, 0x30);
 }
 
-TEST_F(ASMParserIntegrationExtendedTest, VariableDefinitionEqu)
+TEST_F(ASMParserIntegrationTest, VariableDefinitionEqu)
 {
     std::string input =
 R"(X_POS EQU 0x10
@@ -163,7 +154,7 @@ Y_POS EQU 0x20
     EXPECT_EQ(get_operand<NumberExpr>(equ2->value)->value, 0x20);
 }
 
-TEST_F(ASMParserIntegrationExtendedTest, CommentsAndWhitespace)
+TEST_F(ASMParserIntegrationTest, CommentsAndWhitespace)
 {
     std::string input =
 R"(start:          ; label comment
@@ -202,7 +193,7 @@ R"(start:          ; label comment
     EXPECT_EQ(get_operand<IdentifierExpr>(jp_ptr->operands[0])->text, "start");
 }
 
-TEST_F(ASMParserIntegrationExtendedTest, SimpleExpressionOperands)
+TEST_F(ASMParserIntegrationTest, SimpleExpressionOperands)
 {
     std::string input =
 R"(LD V0, 10+5*2

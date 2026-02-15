@@ -19,17 +19,15 @@
 
 #include <gtest/gtest.h>
 
-#include "disassembler/decoder.h"
+#include "ir/decoder.h"
 
-class DecoderTest : public ::testing::Test {
+class DecoderTest : public ::testing::Test
+{
 protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-
 	Decoder decoder;
+
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
 TEST_F(DecoderTest, decode_system_and_flow)

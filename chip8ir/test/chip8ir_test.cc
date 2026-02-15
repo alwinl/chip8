@@ -23,17 +23,15 @@
 
 #include "ir/chip8ir.h"
 
-class Chip8IRTest : public ::testing::Test {
+class Chip8IRTest : public ::testing::Test
+{
 protected:
-    void SetUp() override {
-        // Nothing special to set up for now
-    }
-    void TearDown() override {
-        // Nothing special to clean up
-    }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
-TEST_F(Chip8IRTest, Construction) {
+TEST_F(Chip8IRTest, Construction)
+{
     // Simple instructions
     auto instr_cls = Instruction::make_clear();
     auto instr_ret = Instruction::make_return();

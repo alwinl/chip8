@@ -116,10 +116,11 @@ private:
 };
 
 bool operator==(const Instruction& a, const Instruction& b);
+bool operator==( const Operand& a, const Operand& b );
 
-std::ostream& operator<<(std::ostream& os, const Opcode& mnemonic );
-std::ostream& operator<<(std::ostream& os, const Operand& op);
 std::ostream& operator<<(std::ostream& os, const Instruction& instr);
+std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
+std::ostream& operator<<(std::ostream& os, const Operand& op);
 
 struct DataElement
 {

@@ -35,6 +35,7 @@ public:
 
     std::string get_input_name() const;
 	std::string get_output_name() const;
+	std::string get_listing_name() const;
 
     bool is_verbose() const;
     bool show_help() const;

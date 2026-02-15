@@ -22,7 +22,7 @@
 #include <unordered_set>
 
 #include "disassembler/disassembler.h"
-#include "disassembler/decoder.h"
+#include "ir/decoder.h"
 
 DisassemblyResult Disassembler::build_ir( const BinImage &binary )
 {

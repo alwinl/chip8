@@ -22,16 +22,14 @@
 #include "assembler/tokeniser.h"
 #include "ir/chip8formats.h"
 
-class ASMTokeniserTestTest : public ::testing::Test {
+class ASMTokeniserTestTest : public ::testing::Test
+{
 protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-
 	ASMTokeniser tokeniser;
 	ASMSource source;
+
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
 TEST_F(ASMTokeniserTestTest, EmptyInput)
@@ -41,7 +39,6 @@ TEST_F(ASMTokeniserTestTest, EmptyInput)
     ASSERT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0].type, ASMToken::Type::END_OF_INPUT);
 }
-
 
 TEST_F(ASMTokeniserTestTest, LabelOnly)
 {

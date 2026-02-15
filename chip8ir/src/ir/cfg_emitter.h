@@ -35,10 +35,14 @@ public:
 	void emit( std::ostream& os, const IRProgram& ir, OutputMode mode );
 
 private:
+	struct Successor {
+		uint16_t address;
+		std::string condition;
+	};
 	struct CFGNode {
 		uint16_t address;
 		std::string mnemonic;
-		std::vector<uint16_t> successors;
+		std::vector<Successor> successors;
 	};
 
 	using CFGraph = std::map<uint16_t, CFGNode>;

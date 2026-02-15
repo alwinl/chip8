@@ -21,15 +21,13 @@
 
 #include "disassembler/disassembler.h"
 
-class DisasmMemoryTest : public ::testing::Test {
+class DisasmMemoryTest : public ::testing::Test
+{
 protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-
 	DisasmMemory memory;
+
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
 TEST_F(DisasmMemoryTest, TestBoundaries)

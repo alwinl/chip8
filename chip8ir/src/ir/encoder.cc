@@ -1,5 +1,5 @@
 /*
- * listing_emitter.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * binary_encoder.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,10 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include "ir/encoder.h"
+#include "encoder.h"
 
-#include <ostream>
-
-#include "ir/chip8ir.h"
-
-class ListingEmitter
+BinImage BinaryEncoder::encode( const IRProgram &ir )
 {
-public:
-	ListingEmitter() = default;
-
-	static void emit( std::ostream& os, const IRProgram& ir ) {}
-};
+	return BinImage();
+}

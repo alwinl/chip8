@@ -24,6 +24,21 @@
 #include <variant>
 #include <iomanip>
 
+bool operator==(const Instruction& a, const Instruction& b)
+{
+    if( a.opcode_ != b.opcode_ )
+        return false;
+
+    if( a.operand_count_ != b.operand_count_ )
+        return false;
+
+    for( size_t i = 0; i < a.operand_count_; ++i )
+		if( !(a.operands_[i] == b.operands_[i]) )
+			return false;
+
+    return true;
+}
+
 bool operator==( const Operand& a, const Operand& b )
 {
     if( a.index() != b.index() )
@@ -43,20 +58,24 @@ bool operator==( const Operand& a, const Operand& b )
 	);
 }
 
-
-bool operator==(const Instruction& a, const Instruction& b)
+std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 {
-    if( a.opcode_ != b.opcode_ )
-        return false;
+    os << instr.opcode() << " Operands: [";
 
-    if( a.operand_count_ != b.operand_count_ )
-        return false;
+    bool first = true;
+    for( auto& op : instr.operands() )
+	{
+        if(!first)
+			os << ", ";
+		else
+			first = false;
 
-    for( size_t i = 0; i < a.operand_count_; ++i )
-		if( !(a.operands_[i] == b.operands_[i]) )
-			return false;
+        os << op;
+    }
 
-    return true;
+    os << "]";
+
+    return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const Opcode& opcode )
@@ -106,36 +125,6 @@ std::ostream& operator<<(std::ostream& os, const Operand& op)
 		os.flags(flags);
 
     }, op);
-
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Instruction& instr)
-{
-	static std::array<std::string, opcode_count> mnemonics = {
-		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "LD", "ADD", "OR", "AND",
-		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
-		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
-		"LD ST", "ST K", "ST DT", "ADD I",
-		"LD F", "LD B", "ST [I]", "LD [I]"
-	};
-
-    // os << "Opcode: " << mnemonics[static_cast<int>(instr.opcode())] << " Operands: [";
-    os << instr.opcode() << " Operands: [";
-
-    bool first = true;
-    for( auto& op : instr.operands() )
-	{
-        if(!first)
-			os << ", ";
-		else
-        	first = false;
-
-        os << op;
-    }
-
-    os << "]";
 
     return os;
 }

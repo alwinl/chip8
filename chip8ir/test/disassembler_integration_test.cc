@@ -20,7 +20,8 @@
 #include <gtest/gtest.h>
 #include "disassembler/disassembler.h"
 
-class DisassemblerIntegrationTest : public ::testing::Test {
+class DisassemblerIntegrationTest : public ::testing::Test
+{
 protected:
     Disassembler dis;
 

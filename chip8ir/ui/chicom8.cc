@@ -20,8 +20,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "compiler/cmdlineparser.h"
 #include "ir/binary_emitter.h"
+#include "ir/asm_emitter.h"
+#include "ir/encoder.h"
+#include "compiler/cmdlineparser.h"
 #include "compiler/c8c_loader.h"
 #include "compiler/compiler.h"
 
@@ -41,13 +43,16 @@ int main( int argc, char ** argv )
 
 		IRProgram ir = compiler.build_ir( source );
 
-		std::ofstream os( args.get_output_name(), std::ios::binary );
-		BinaryEmitter::emit( os, ir );
+		BinImage image = BinaryEncoder().encode( ir );
 
-		// if( !args.get_listing_name().empty() ) {
-		// 	std::ofstream listing_os( args.get_listing_name() );
-		// 	ListingEmitter::emit( listing_os, ir );
-		// }
+		std::ofstream os( args.get_output_name(), std::ios::binary );
+		save_binary( os, image );
+
+		if( !args.get_listing_name().empty() ) {
+			SymbolTable symbols {};
+			std::ofstream listing_os( args.get_listing_name() );
+			ASMEmitter().emit( listing_os, ir, image, symbols, ASMEmitter::OutputMode::Listing );
+		}
 
     }
 

@@ -26,6 +26,8 @@ add_library(
 	ir/cfg_emitter.cc
 	ir/asm_emitter.cc
 	ir/symbol_table.cc
+	ir/decoder.cc
+	ir/encoder.cc
 
 	assembler/cmdlineparser.cc
 	assembler/assembler.cc
@@ -34,7 +36,6 @@ add_library(
 
 	disassembler/cmdlineparser.cc
 	disassembler/disassembler.cc
-	disassembler/decoder.cc
 
 	emulator/cmdlineparser.cc
 

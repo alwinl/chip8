@@ -32,7 +32,6 @@ static std::array<std::string, opcode_count> mnemonics = {
 	"LD F,", "LD B,", "ST [I],", "LD [I],"
 };
 
-
 void CFGEmitter::emit( std::ostream &os, const IRProgram &ir, OutputMode mode )
 {
 	CFGraph graph = build_graph( ir );
@@ -67,12 +66,12 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 
 			switch( instruction_element->instruction.opcode() ) {
 			case Opcode::CALL:
-				node.successors.push_back( instruction_element->address + 2 );
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "" } );
 				// fall through
 
 			case Opcode::JP: {
 				auto target = std::get<Addr>(instruction_element->instruction.operands()[0]).value;
-				node.successors.push_back(target);
+				node.successors.push_back( { target, "" } );
 				break;
 			}
 
@@ -80,15 +79,19 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 				break;
 
 			case Opcode::SE:
-			case Opcode::SNE:
 			case Opcode::SKP:
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "false" } );
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 4), "true" } );
+				break;
+
+			case Opcode::SNE:
 			case Opcode::SKNP:
-				node.successors.push_back( instruction_element->address + 2 );
-				node.successors.push_back( instruction_element->address + 4 );
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "false" } );
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 4), "true" } );
 				break;
 
 			default:
-				node.successors.push_back( instruction_element->address + 2 );
+				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "" } );
 				break;
 			}
 
@@ -97,50 +100,6 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 	}
 
 	return graph;
-}
-
-
-/*
-@startuml chip8_cfg
-title CHIP-8 Control Flow Graph
-
-node "0x200\nCLS" as n200
-node "0x202\nSE V0, #1" as n202
-node "0x204\nJP 0x20A" as n204
-node "0x206\nADD V0, #1" as n206
-node "0x208\nJP 0x202" as n208
-node "0x20A\nRET" as n20A
-
-n200 --> n202
-n202 --> n204 : condition false
-n202 --> n206 : condition true
-n204 --> n20A
-n206 --> n208
-n208 --> n202
-
-@enduml
-*/
-void CFGEmitter::emit_node( std::ostream &os, const CFGNode& node, OutputMode mode )
-{
-	if( mode == OutputMode::PlantUML )
-		os << "    node \"0x" << std::hex << node.address << "\\n" << node.mnemonic << "\" as n" << node.address << "\n";
-	else
-		os << "    \"0x" << std::hex << node.address << "\" [label=\"0x" << std::hex << node.address << ": " << node.mnemonic << "\"];\n";
-}
-
-void CFGEmitter::emit_edge( std::ostream &os, const CFGNode &node, OutputMode mode )
-{
-	if( mode == OutputMode::PlantUML) {
-		for( auto succ : node.successors ) {
-			os << "    n" << std::hex << node.address
-			<< " --> n" << std::hex << succ << "\n";
-		}
-	} else {
-		for( auto succ : node.successors ) {
-			os << "  \"0x" << std::hex << node.address
-			<< "\" -> \"0x" << std::hex << succ << "\";\n";
-		}
-	}
 }
 
 void CFGEmitter::emit_header( std::ostream &os, const IRProgram &ir, OutputMode mode )
@@ -171,7 +130,6 @@ void CFGEmitter::emit_header( std::ostream &os, const IRProgram &ir, OutputMode 
     ];
 )";
 	}
-
 }
 
 void CFGEmitter::emit_node_header( std::ostream &os, OutputMode mode )
@@ -182,12 +140,41 @@ void CFGEmitter::emit_node_header( std::ostream &os, OutputMode mode )
 		os << "\n    // Nodes\n";
 }
 
+void CFGEmitter::emit_node( std::ostream &os, const CFGNode& node, OutputMode mode )
+{
+	if( mode == OutputMode::PlantUML )
+		os << "    node \"0x" << std::hex << node.address << "\\n" << node.mnemonic << "\" as n" << node.address << "\n";
+	else
+		os << "    n" << std::hex << node.address << " [label=\"0x" << std::hex << node.address << ": " << node.mnemonic << "\"];\n";
+}
+
 void CFGEmitter::emit_edge_header( std::ostream &os, OutputMode mode )
 {
 	if( mode == OutputMode::PlantUML )
 		os << "\n    ' Edges\n";
 	else
 		os << "\n    // Edges\n";
+}
+
+void CFGEmitter::emit_edge( std::ostream &os, const CFGNode &node, OutputMode mode )
+{
+	if( mode == OutputMode::PlantUML) {
+		for( auto succ : node.successors ) {
+			os << "    n" << std::hex << node.address
+			<< " --> n" << std::hex << succ.address;
+			if( !succ.condition.empty() )
+				os << " : " << succ.condition;
+			os << "\n";
+		}
+	} else {
+		for( auto succ : node.successors ) {
+			os << "   n" << std::hex << node.address
+			<< " -> n" << std::hex << succ.address;
+			if( !succ.condition.empty() )
+				os << " [ label=" << succ.condition << " ]";
+			os << ";\n";
+		}
+	}
 }
 
 void CFGEmitter::emit_footer( std::ostream &os, const IRProgram &ir, OutputMode mode )

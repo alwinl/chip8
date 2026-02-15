@@ -20,6 +20,7 @@
 #include "compiler/cmdlineparser.h"
 
 #include <iostream>
+#include "cmdlineparser.h"
 
 bool ChicomCmdLineParser::parse_args( std::vector<std::string> arguments )
 {
@@ -97,6 +98,11 @@ std::string ChicomCmdLineParser::get_output_name() const
 	std::string const source = result["source"].as<std::string>();
     std::filesystem::path const path(source);
     return path.stem().string() + ".ch8";
+}
+
+std::string ChicomCmdLineParser::get_listing_name() const
+{
+	return std::string();
 }
 
 bool ChicomCmdLineParser::is_verbose() const

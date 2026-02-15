@@ -1,5 +1,5 @@
 /*
- * binary_emitter.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * binary_encoder.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,13 @@
 
 #pragma once
 
-#include <ostream>
-
+#include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
 
-inline void save_binary( std::ostream& os, const BinImage& image )
+class BinaryEncoder
 {
-	os.write(reinterpret_cast<const char*>(image.data()), image.size());
-}
+public:
+	BinaryEncoder() = default;
+
+	static BinImage encode( const IRProgram& ir );
+};
