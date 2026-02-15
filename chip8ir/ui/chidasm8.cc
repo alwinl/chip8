@@ -41,13 +41,13 @@ int main( int argc, char ** argv )
 		std::ifstream is( args.get_source_name(), std::ios::binary );
 		BinImage image = load_binary( is );
 
-		IRProgram ir = disassembler.build_ir( image );
+		auto [ir, symbols] = disassembler.build_ir( image );
 
 		std::ofstream os( args.get_output_name() );
 		ASMEmitter emitter;
 
 		emitter.configure( {args.get_program_name()} );
-		emitter.emit( os, ir, image, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+		emitter.emit( os, ir, image, symbols, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
 
 		if( !args.get_dot_name().empty() || !args.get_uml_name().empty() ) {
 			CFGEmitter cfg_emitter;

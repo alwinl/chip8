@@ -38,7 +38,7 @@ TEST_F(DisassemblerIntegrationTest, straight_line_with_data)
         0xAA, 0xBB
     };
 
-    IRProgram ir = dis.build_ir(bin);
+    auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);
 
@@ -67,7 +67,7 @@ TEST_F(DisassemblerIntegrationTest, conditional_skip)
         0x60, 0x02
     };
 
-    IRProgram ir = dis.build_ir(bin);
+    auto [ir, symbols] = dis.build_ir(bin);
 
     // All three instructions must be discovered
     ASSERT_EQ(ir.elements.size(), 3);
@@ -94,7 +94,7 @@ TEST_F(DisassemblerIntegrationTest, jump_skips_data)
         0x60, 0x01
     };
 
-    IRProgram ir = dis.build_ir(bin);
+    auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);
 
@@ -121,7 +121,7 @@ TEST_F(DisassemblerIntegrationTest, no_overlapping_elements)
         0x60, 0x01
     };
 
-    IRProgram ir = dis.build_ir(bin);
+    auto [ir, symbols] = dis.build_ir(bin);
 
     std::set<uint16_t> covered;
 
@@ -146,7 +146,7 @@ TEST_F(DisassemblerIntegrationTest, invalid_opcode_terminates_code_path)
         0xFF, 0xFF
     };
 
-    IRProgram ir = dis.build_ir(bin);
+    auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);
 

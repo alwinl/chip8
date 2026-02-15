@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "ir/chip8ir.h"
+#include "ir/symbol_table.h"
 
 class SymbolsTest : public ::testing::Test {
 protected:

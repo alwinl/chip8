@@ -23,6 +23,7 @@
 
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
+#include "ir/symbol_table.h"
 
 class DisasmMemory
 {
@@ -69,6 +70,12 @@ private:
     std::vector<uint8_t> instruction_flag;
 };
 
+struct DisassemblyResult
+{
+	IRProgram ir;
+	SymbolTable symbols;
+};
+
 class Disassembler
 {
 public:
@@ -80,11 +87,11 @@ public:
 
 	void configure( Config config ) { configuration = std::move(config); };
 
-	IRProgram build_ir( const BinImage& binary );
+	DisassemblyResult build_ir( const BinImage& binary );
 
 private:
 	Config configuration;
 
-	void collect_instructions( IRProgram& ir, DisasmMemory& memory );
-	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory );
+	void collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
+	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
 };

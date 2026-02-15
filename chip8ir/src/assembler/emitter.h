@@ -24,6 +24,7 @@
 
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
+#include "ir/symbol_table.h"
 
 class ASMEmitter
 {
@@ -35,19 +36,27 @@ public:
 
 	ASMEmitter() = default;
 
-	void emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode );
+	void emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, const SymbolTable& symbols, OutputMode mode );
 
 	void configure( Config config ) { configuration = std::move(config); };
 
 private:
+	struct EmitContext {
+		std::ostream& os;
+		const IRProgram& ir;
+		const BinImage& bin_image;
+		const SymbolTable& symbols;
+		OutputMode mode;
+	};
+
 	Config configuration;
 
-	void emit_label( std::ostream& os, const IRProgram& ir, uint16_t address );
-	void emit_address( std::ostream& os, uint16_t address );
-	void emit_opcode( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, uint16_t address );
-	void emit_mnemonic( std::ostream& os, const Opcode& opcode );
-	void emit_operand( std::ostream& os, const IRProgram& ir, const Operand& op );
-	void emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const InstructionElement& element );
-	void emit_element( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, OutputMode mode, const DataElement& element );
-	void emit_header( std::ostream &os, const IRProgram& ir, std::string name );
+	void emit_header( const EmitContext& ctx, std::string name );
+	void emit_element( const EmitContext& ctx, const InstructionElement& element );
+	void emit_element( const EmitContext& ctx, const DataElement& element );
+	void emit_address( const EmitContext& ctx, uint16_t address );
+	void emit_opcode( const EmitContext& ctx, uint16_t address );
+	void emit_label( const EmitContext& ctx, uint16_t address );
+	void emit_mnemonic( const EmitContext& ctx, const Opcode& opcode );
+	void emit_operand( const EmitContext& ctx, const Operand& op );
 };

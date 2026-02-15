@@ -22,6 +22,7 @@
 #include <array>
 
 #include "ir/chip8ir.h"
+#include "ir/symbol_table.h"
 
 using AddressList = std::vector<uint16_t>;
 

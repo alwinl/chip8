@@ -135,65 +135,8 @@ struct InstructionElement
 
 using ASMElement = std::variant<InstructionElement, DataElement>;
 
-enum eSymbolKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
-
-struct DecodedSymbol
-{
-	uint16_t address;
-	eSymbolKind kind;
-};
-
-
-class SymbolTable
-{
-public:
-	SymbolTable() = default;
-
-	void add( std::optional<DecodedSymbol> symbol )
-	{
-		if( symbol )
-			symbol_lists[symbol->kind].push_back( symbol->address );
-	}
-
-	void sort_vectors()
-	{
-		for( auto& symbol_list : symbol_lists ) {
-			std::sort( symbol_list.begin(), symbol_list.end() );
-			symbol_list.erase( std::unique( symbol_list.begin(), symbol_list.end()), symbol_list.end() );
-		}
-		sorted = true;
-	}
-
-	std::string get_label( uint16_t address ) const
-	{
-		assert( sorted );
-
-		static constexpr std::array<const char *,eSymbolKind::COUNT> prefixes{ "DATA", "FUNC", "LABEL", "TABLE" };
-
-		for( size_t kind = 0; kind < eSymbolKind::COUNT; ++ kind ) {
-
-			auto it = std::lower_bound( symbol_lists[kind].begin(), symbol_lists[kind].end(), address );
-			if( (it != symbol_lists[kind].end()) && (*it == address) )
-				return std::string(prefixes[kind]) + std::to_string( std::distance( symbol_lists[kind].begin(), it) );
-		}
-
-		return {};
-	}
-
-
-	std::vector<uint16_t> get_index_list( ) { return symbol_lists[INDEXED]; };
-
-private:
-	using ListArray = std::array<std::vector<uint16_t>, eSymbolKind::COUNT>;
-
-	bool sorted = false;
-	ListArray symbol_lists;
-
-};
-
 struct IRProgram
 {
     uint16_t origin = 0x200;
     std::vector<ASMElement> elements;
-    SymbolTable symbols;
 };

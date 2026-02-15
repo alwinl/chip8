@@ -26,6 +26,8 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 	BinImage image { 0x00, 0xE0, 0x12, 0x02, 0xF4, 0x29, 0x12, 0x34, 0x56, 0x78 };
 
     IRProgram ir;
+	SymbolTable symbols;
+
     ir.origin = 0x200;
 
     ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_clear() } );
@@ -33,16 +35,16 @@ TEST(ASMEmitterTest, manual_visual_inspection)
     ir.elements.push_back( InstructionElement{ 0x204, Instruction::make_sprite_for( Reg {4} ) } );
     ir.elements.push_back( DataElement{ 0x206, { 0x12, 0x34, 0x56, 0x78 } } );
 
-	ir.symbols.add( DecodedSymbol { 0x202, eSymbolKind::JUMP } );
-	ir.symbols.add( DecodedSymbol { 0x204, eSymbolKind::I_TARGET } );
-	ir.symbols.sort_vectors();
+	symbols.add( DecodedSymbol { 0x202, eSymbolKind::JUMP } );
+	symbols.add( DecodedSymbol { 0x204, eSymbolKind::I_TARGET } );
+	symbols.sort_vectors();
 
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
 		ASMEmitter emitter;
 		emitter.configure( { "Test program" } );
 
-		emitter.emit( std::cout, ir, image, ASMEmitter::OutputMode::Listing );
+		emitter.emit( std::cout, ir, image, symbols, ASMEmitter::OutputMode::Listing );
 
 		std::cout << "=============================\n";
 	}
@@ -51,7 +53,7 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 		ASMEmitter emitter;
 		emitter.configure( { "Test program (assembly)" } );
 
-		emitter.emit(std::cout, ir, image, ASMEmitter::OutputMode::Assembly );
+		emitter.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Assembly );
 
 		std::cout << "=============================\n";
 	}
@@ -62,6 +64,8 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     BinImage image;  // dummy binary for optional byte printing
 
     IRProgram ir;
+	SymbolTable symbols = {};
+
     ir.origin = 0x200;
 
     uint16_t addr = ir.origin;
@@ -115,20 +119,20 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     addr += 4;
 
     // Add labels for some instructions to see labeling
-    ir.symbols.add(DecodedSymbol{0x202, eSymbolKind::JUMP});
-    ir.symbols.add(DecodedSymbol{0x220, eSymbolKind::I_TARGET});
-    ir.symbols.sort_vectors();
+    symbols.add(DecodedSymbol{0x202, eSymbolKind::JUMP});
+    symbols.add(DecodedSymbol{0x220, eSymbolKind::I_TARGET});
+    symbols.sort_vectors();
 
     // Emit full and clean versions
     std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
     ASMEmitter emitter;
     emitter.configure({ "All opcodes test" });
-    emitter.emit(std::cout, ir, image, ASMEmitter::OutputMode::Listing);
+    emitter.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Listing);
     std::cout << "=============================\n";
 
     std::cout << "\n===== ASM EMITTER OUTPUT (clean) =====\n";
     ASMEmitter emitter_clean;
     emitter_clean.configure({ "All opcodes test (assembly)" });
-    emitter_clean.emit(std::cout, ir, image, ASMEmitter::OutputMode::Assembly);
+    emitter_clean.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Assembly);
     std::cout << "=============================\n";
 }

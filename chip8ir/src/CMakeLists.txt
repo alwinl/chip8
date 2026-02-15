@@ -24,6 +24,7 @@ add_library(
 
 	ir/chip8ir.cc
 	ir/cfg_emitter.cc
+	ir/symbol_table.cc
 
 	assembler/cmdlineparser.cc
 	assembler/assembler.cc

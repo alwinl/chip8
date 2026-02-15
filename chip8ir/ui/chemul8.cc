@@ -38,7 +38,7 @@ int main( int argc, char ** argv )
 		std::ifstream is( args.get_program(), std::ios::binary );
 		BinImage image = load_binary( is );
 
-		IRProgram ir = disassembler.build_ir( image );
+		auto [ir, symbols] = disassembler.build_ir( image );
 
         Emulator emulator;
         emulator.configure( args );
