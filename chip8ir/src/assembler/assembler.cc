@@ -17,9 +17,46 @@
  * MA 02110-1301, USA.
  */
 
+
 #include "assembler/assembler.h"
 
-IRProgram Assembler::build_ir( ASMSource source )
+#include "assembler/tokeniser.h"
+#include "assembler/parser.h"
+
+AssemblyResult Assembler::build_ir( ASMSource source )
 {
-	return IRProgram {};
+	IRProgram ir;
+	SymbolTable symbols;
+
+    ASMTokens tokens = ASMTokeniser().tokenise(source);
+    ASTProgram program = ASMParser().parse_asm_tokens(tokens);
+
+	process_pass1( ir, symbols, program );
+	process_pass2( ir, symbols, program );
+
+	return { ir, symbols };
 }
+
+void Assembler::process_pass1( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program )
+{
+	uint16_t address = 0;
+
+	for( const ASTElement& element : program ) {
+		if( element.label ) {
+			const std::string& name = element.label->name;
+			// if( symbols.contains( name ) )
+
+		}
+		// element.body
+
+	}
+}
+
+void Assembler::process_pass2( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program )
+{
+	for( const ASTElement& element : program ) {
+
+	}
+}
+
+        // std::visit( [&]( const auto& v ) { process_element( ir, symbols, line, label, body ); }, element );

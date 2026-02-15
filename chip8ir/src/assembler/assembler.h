@@ -21,8 +21,16 @@
 
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
+#include "ir/symbol_table.h"
 
 #include "assembler/cmdlineparser.h"
+#include "assembler/ast.h"
+
+struct AssemblyResult
+{
+	IRProgram ir;
+	SymbolTable symbols;
+};
 
 class Assembler
 {
@@ -31,5 +39,10 @@ public:
 
 	void configure( const ChasmCmdLineParser& cmd ) {};
 
-	IRProgram build_ir( ASMSource source );
+	AssemblyResult build_ir( ASMSource source );
+
+private:
+	void process_pass1( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program );
+	void process_pass2( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program );
+
 };

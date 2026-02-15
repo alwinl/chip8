@@ -41,7 +41,7 @@ int main( int argc, char ** argv )
 		std::ifstream asm_file( args.get_source_name() );
 		ASMSource source = ASMSourceLoader().load( asm_file );
 
-		IRProgram ir = assembler.build_ir( source );
+		auto [ir, symbols] = assembler.build_ir( source );
 
 		std::ofstream os( args.get_binary_name(), std::ios::binary );
 		BinaryEmitter::emit( os, ir );
