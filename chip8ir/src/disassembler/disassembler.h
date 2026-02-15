@@ -25,50 +25,7 @@
 #include "ir/chip8formats.h"
 #include "ir/symbol_table.h"
 
-class DisasmMemory
-{
-public:
-    DisasmMemory() = default;
-
-	void bind( const BinImage& img, uint16_t start_at = 0x200 )
-	{
-		image_ = &img;
-		origin = start_at;
-		instruction_flag.assign( img.size(), false );
-	}
-
-	void unbind()
-	{
-		image_ = nullptr;
-		origin = 0;
-		instruction_flag.clear();
-	}
-
-    void mark_instruction( uint16_t addr )
-	{
-		assert( contains( addr ) );
-		assert( contains( addr + 1 ) );
-
-		instruction_flag[addr - origin] = true;
-		instruction_flag[addr - origin + 1] = true;
-	}
-
-    uint8_t get_byte( uint16_t addr ) const { assert( contains( addr ) ); return (*image_)[addr - origin]; };
-	uint16_t get_word( uint16_t address) { return ( get_byte(address) << 8 ) | get_byte( address + 1 ); };
-
-    uint16_t start() const { return origin; }
-    uint16_t end() const { return image_ ? origin + image_->size() : 0; }
-
-    bool is_instruction( uint16_t addr ) const { return (contains( addr ) && contains( addr  + 1 )) ? instruction_flag[addr - origin] : false; };
-	bool is_data( uint16_t addr ) const  { return contains( addr ) ? !instruction_flag[addr - origin] : false; };
-
-    bool contains( uint16_t addr ) const { return( (addr >= origin) && ( addr - origin < image_->size() ) ); }
-
-private:
-    uint16_t origin = 0;
-	const BinImage* image_ = nullptr;
-    std::vector<uint8_t> instruction_flag;
-};
+#include "disassembler/memory.h"
 
 struct DisassemblyResult
 {
@@ -94,4 +51,5 @@ private:
 
 	void collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
 	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
+	void sort_elements( IRProgram& ir );
 };

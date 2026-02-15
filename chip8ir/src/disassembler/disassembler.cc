@@ -28,24 +28,14 @@ DisassemblyResult Disassembler::build_ir( const BinImage &binary )
 {
 	IRProgram ir {};
 	SymbolTable symbols = {};
+	DisasmMemory memory;
 
 	ir.origin = configuration.origin;
-
-	DisasmMemory memory;
-	memory.bind( binary, ir.origin );
+	memory.bind( binary, configuration.origin );
 
 	collect_instructions( ir, memory, symbols );
-
 	collect_data_bytes( ir, memory, symbols );
-
-    std::sort( ir.elements.begin(), ir.elements.end(),
-        [](const ASMElement& a, const ASMElement& b)
-		{
-            return std::visit(
-				[]( auto& lhs, auto& rhs )
-					{ return lhs.address < rhs.address; }
-				, a, b );
-        });
+	sort_elements( ir );
 
 	return { ir, symbols };
 }
@@ -136,4 +126,16 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Symb
     }
 
 	flush();
+}
+
+void Disassembler::sort_elements( IRProgram& ir )
+{
+    std::sort( ir.elements.begin(), ir.elements.end(),
+        [](const ASMElement& a, const ASMElement& b)
+		{
+            return std::visit(
+				[]( auto& lhs, auto& rhs )
+					{ return lhs.address < rhs.address; }
+				, a, b );
+        });
 }
