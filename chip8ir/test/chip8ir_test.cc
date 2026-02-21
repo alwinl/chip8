@@ -278,8 +278,8 @@ TEST_F(Chip8IRTest, InstructionEqualityAndStream)
     constexpr size_t opcode_count = (size_t)Opcode::LD_REGS + 1;
     static std::array<std::string, opcode_count> mnemonics = {
 		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "LD", "ADD", "OR", "AND",
-		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I",
+		"SNE", "SE", "LD", "ADD", "LD", "OR", "AND",
+		"XOR", "ADD", "SUB", "SHR", "SUBN", "SHL", "SNE", "LD I",
 		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
 		"LD ST", "ST K", "ST DT", "ADD I",
 		"LD F", "LD B", "ST [I]", "LD [I]"

@@ -31,9 +31,9 @@
 
 enum class Opcode
 {
-	NOP, CLS, RET, JP, CALL, SE,
-	SNE, LD, ADD, OR, AND,
-	XOR, SUB, SHR, SUBN, SHL, LD_I,
+	NOP, CLS, RET, JP, CALL, SE_Imm,
+	SNE_Imm, SE_Reg, LD_Imm, ADD_Imm, LD_Reg, OR, AND,
+	XOR, ADD_Reg, SUB, SHR, SUBN, SHL, SNE_Reg, LD_I,
 	JP_V0, RND, DRW, SKP, SKNP, LD_DT,
 	LD_ST, ST_KEY, ST_DT, ADD_I,
 	LD_SPRITE, BCD, ST_REGS, LD_REGS
@@ -65,21 +65,21 @@ public:
 	static Instruction make_return()                           {                                         return Instruction( Opcode::RET,       { } ); }
 	static Instruction make_jump( Addr addr )                  { assert( addr.value < 0x1000 );          return Instruction( Opcode::JP,        { addr } ); }
 	static Instruction make_call( Addr addr )                  { assert( addr.value < 0x1000 );          return Instruction( Opcode::CALL,      { addr } ); }
-	static Instruction make_skip_eq( Reg x, Imm byte )         { assert( x.index < 16 );                 return Instruction( Opcode::SE,        { x, byte } ); }
-	static Instruction make_skip_neq( Reg x, Imm byte )        { assert( x.index < 16 );                 return Instruction( Opcode::SNE,       { x, byte } ); }
-	static Instruction make_skip_eq( Reg x, Reg y )            { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SE,        { x, y } ); }
-	static Instruction make_ld( Reg x, Imm byte )              { assert( x.index < 16);                  return Instruction( Opcode::LD,        { x, byte } ); }
-	static Instruction make_add( Reg x, Imm byte )             { assert( x.index < 16);                  return Instruction( Opcode::ADD,       { x, byte } ); }
-	static Instruction make_ld( Reg x, Reg y )                 { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::LD,        { x, y } ); }
+	static Instruction make_skip_eq( Reg x, Imm byte )         { assert( x.index < 16 );                 return Instruction( Opcode::SE_Imm,    { x, byte } ); }
+	static Instruction make_skip_neq( Reg x, Imm byte )        { assert( x.index < 16 );                 return Instruction( Opcode::SNE_Imm,   { x, byte } ); }
+	static Instruction make_skip_eq( Reg x, Reg y )            { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SE_Reg,    { x, y } ); }
+	static Instruction make_ld( Reg x, Imm byte )              { assert( x.index < 16);                  return Instruction( Opcode::LD_Imm,    { x, byte } ); }
+	static Instruction make_add( Reg x, Imm byte )             { assert( x.index < 16);                  return Instruction( Opcode::ADD_Imm,   { x, byte } ); }
+	static Instruction make_ld( Reg x, Reg y )                 { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::LD_Reg,    { x, y } ); }
 	static Instruction make_or( Reg x, Reg y )                 { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::OR,        { x, y } ); }
 	static Instruction make_and( Reg x, Reg y )                { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::AND,       { x, y } ); }
 	static Instruction make_xor( Reg x, Reg y )                { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::XOR,       { x, y } ); }
-	static Instruction make_add( Reg x, Reg y )                { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::ADD,       { x, y } ); }
+	static Instruction make_add( Reg x, Reg y )                { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::ADD_Reg,   { x, y } ); }
 	static Instruction make_sub( Reg x, Reg y )                { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SUB,       { x, y } ); }
 	static Instruction make_shift_right( Reg x, Reg y )        { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SHR,       { x, y } ); }
 	static Instruction make_subn( Reg x, Reg y )               { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SUBN,      { x, y } ); }
 	static Instruction make_shift_left( Reg x, Reg y )         { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SHL,       { x, y } ); }
-	static Instruction make_skip_neq( Reg x, Reg y )           { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SNE,       { x, y } ); }
+	static Instruction make_skip_neq( Reg x, Reg y )           { assert( x.index < 16 && y.index < 16 ); return Instruction( Opcode::SNE_Reg,   { x, y } ); }
 	static Instruction make_ld_i( Addr addr )                  { assert( addr.value < 0x1000 );          return Instruction( Opcode::LD_I,      { addr } ); }
 	static Instruction make_jump_indexed( Addr addr )          { assert( addr.value < 0x1000 );          return Instruction( Opcode::JP_V0,     { addr } ); }
 	static Instruction make_rnd( Reg x, Imm byte )             { assert( x.index < 16 );                 return Instruction( Opcode::RND,       { x, byte } ); }

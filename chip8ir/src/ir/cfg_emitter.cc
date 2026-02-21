@@ -78,13 +78,15 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 			case Opcode::RET:
 				break;
 
-			case Opcode::SE:
+			case Opcode::SE_Imm:
+			case Opcode::SE_Reg:
 			case Opcode::SKP:
 				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "false" } );
 				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 4), "true" } );
 				break;
 
-			case Opcode::SNE:
+			case Opcode::SNE_Imm:
+			case Opcode::SNE_Reg:
 			case Opcode::SKNP:
 				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "false" } );
 				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 4), "true" } );

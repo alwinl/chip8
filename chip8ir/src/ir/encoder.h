@@ -27,5 +27,9 @@ class BinaryEncoder
 public:
 	BinaryEncoder() = default;
 
-	static BinImage encode( const IRProgram& ir );
+	BinImage encode( const IRProgram& ir );
+
+private:
+	void encode_element( const InstructionElement& instruction, BinImage& image );
+	void encode_element( const DataElement& data, BinImage& image );
 };
