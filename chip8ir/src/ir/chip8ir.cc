@@ -24,6 +24,63 @@
 #include <variant>
 #include <iomanip>
 
+bool operator==( const IRProgram& a, const IRProgram& b )
+{
+	if( a.origin != b.origin )
+		return false;
+
+	if( a.elements.size() != b.elements.size() )
+		return false;
+
+	for( size_t i = 0; i < a.elements.size(); ++i )
+		if( a.elements[i] != b.elements[i] )
+			return false;
+
+	return true;
+}
+
+bool operator==( const ASMElement& a, const ASMElement& b )
+{
+    return std::visit(
+		[]( auto&& lhs, auto&& rhs ) -> bool
+		{
+			using L = std::decay_t<decltype(lhs)>;
+			using R = std::decay_t<decltype(rhs)>;
+
+			if constexpr (!std::is_same_v<L,R>)
+				return false;
+			else
+				return lhs == rhs;
+		}, a, b
+	);
+}
+
+bool operator==( const DataElement& a, const DataElement& b )
+{
+	if( a.address != b.address )
+		return false;
+
+	if( a.byte_run.size() != b.byte_run.size() )
+		return false;
+
+	for( size_t i = 0; i < a.byte_run.size(); ++i )
+		if( a.byte_run[i] != b.byte_run[i] )
+			return false;
+
+	return true;
+}
+
+bool operator==( const InstructionElement& a, const InstructionElement& b )
+{
+	if( a.address != b.address )
+		return false;
+
+	if( a.instruction != b.instruction )
+		return false;
+
+	return true;
+}
+
 bool operator==(const Instruction& a, const Instruction& b)
 {
     if( a.opcode_ != b.opcode_ )
@@ -57,6 +114,68 @@ bool operator==( const Operand& a, const Operand& b )
     	}, a, b
 	);
 }
+
+
+std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
+{
+	os << "\n{\n";
+	os << "    \"origin\":\"" << ir.origin << "\",\n";
+	os << "    \"elements\":[\n";
+
+	bool first = true;
+
+	for( const auto& element : ir.elements ) {
+		os << "        ";
+
+		std::visit( [&]( auto&& element ) {
+			os << element;
+		}, element );
+
+		os << ",\n";
+	}
+
+	os << "    ]\n";
+	os << "}";
+
+	return os;
+}
+
+// std::ostream& operator<<(std::ostream& os, const ASMElement& element)
+// {
+// }
+
+std::ostream& operator<<(std::ostream& os, const DataElement& data_element)
+{
+	os << "{ \"address\": \""
+		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +data_element.address
+	<< "\", ";
+
+	bool first = true;
+	for( const char byte : data_element.byte_run ) {
+		if( first )
+			first = false;
+		else
+			os << ", ";
+		os << "0x" << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << +byte;
+	}
+	os << "}";
+
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const InstructionElement& instr_element)
+{
+	os << "{ \"address\": \""
+		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +instr_element.address
+	<< "\", ";
+
+	os << instr_element.instruction;
+
+	os << "}";
+
+	return os;
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 {

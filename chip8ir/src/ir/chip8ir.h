@@ -115,13 +115,6 @@ private:
 	}
 };
 
-bool operator==(const Instruction& a, const Instruction& b);
-bool operator==( const Operand& a, const Operand& b );
-
-std::ostream& operator<<(std::ostream& os, const Instruction& instr);
-std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
-std::ostream& operator<<(std::ostream& os, const Operand& op);
-
 struct DataElement
 {
 	uint16_t address;
@@ -141,3 +134,17 @@ struct IRProgram
     uint16_t origin = 0x200;
     std::vector<ASMElement> elements;
 };
+
+bool operator==( const IRProgram& a, const IRProgram& b );
+bool operator==( const ASMElement& a, const ASMElement& b );
+bool operator==( const DataElement& a, const DataElement& b );
+bool operator==( const InstructionElement& a, const InstructionElement& b );
+bool operator==( const Instruction& a, const Instruction& b );
+bool operator==( const Operand& a, const Operand& b );
+
+std::ostream& operator<<(std::ostream& os, const IRProgram& ir);
+std::ostream& operator<<(std::ostream& os, const DataElement& data_element);
+std::ostream& operator<<(std::ostream& os, const InstructionElement& instr_element);
+std::ostream& operator<<(std::ostream& os, const Instruction& instr);
+std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
+std::ostream& operator<<(std::ostream& os, const Operand& op);
