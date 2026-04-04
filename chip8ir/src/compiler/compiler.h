@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include "compiler/cmdlineparser.h"
-
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
+#include "ir/ir_bundle.h"
+
+#include "compiler/cmdlineparser.h"
 
 class Compiler
 {
@@ -31,5 +32,5 @@ public:
 
 	void configure( const ChicomCmdLineParser& cmd ) {};
 
-	IRProgram build_ir( const C8CSource& source ) { return IRProgram {}; };
+	IRBundle build_ir( const C8CSource& source );
 };

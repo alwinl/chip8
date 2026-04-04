@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * asm_symbol_table.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,25 +17,23 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include "assembler/symbol_table.h"
 
-#include <string>
-#include <vector>
-#include <cstdint>
-
-#include "../vendor/cxxopts/cxxopts.hpp"
-
-class ChemulCmdLineParser
+void ASMSymbolTable::define_label( std::string name, uint16_t address )
 {
-public:
-	ChemulCmdLineParser() = default;
+}
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+void ASMSymbolTable::define_constant( std::string name, uint16_t address )
+{
 
-	std::string get_program();
-	uint16_t get_origin() const;
+}
 
-private:
-    cxxopts::ParseResult result;
-};
+uint16_t ASMSymbolTable::get_value( std::string name )
+{
+	return 0;
+}
+
+std::string ASMSymbolTable::get_label( uint16_t address ) const
+{
+	return "";
+}

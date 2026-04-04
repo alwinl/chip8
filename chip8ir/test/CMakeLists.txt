@@ -20,18 +20,35 @@
 include(GoogleTest)
 
 add_executable(
-	chip8ir_test
+	ir_test
 
-	chip8ir_test.cc
-	disasmmemory_test.cc
-	decoder_test.cc
-	symbols_test.cc
-	disassembler_integration_test.cc
-	asm_emitter_test.cc
-	cfg_emitter_test.cc
-	asm_tokeniser_test.cc
-	asm_parser_test.cc
-	asm_parser_integration.cc
+	ir/asm_emitter_test.cc
+	ir/binary_emitter_test.cc
+	ir/cfg_emitter_test.cc
+	ir/chip8ir_test.cc
+	ir/decoder_test.cc
+	ir/encoder_test.cc
+	ir/integration_test.cc
 )
 
-target_link_libraries( chip8ir_test PRIVATE gtest gtest_main chip8::ir )
+target_link_libraries( ir_test PRIVATE gtest gtest_main chip8::ir )
+
+add_executable(
+	assembler_test
+
+	assembler/asm_tokeniser_test.cc
+	assembler/asm_parser_test.cc
+	assembler/asm_parser_integration.cc
+)
+
+target_link_libraries( assembler_test PRIVATE gtest gtest_main chip8::ir )
+
+add_executable(
+	disassembler_test
+
+	disassembler/symbols_test.cc
+	disassembler/memory_test.cc
+	disassembler/integration_test.cc
+)
+
+target_link_libraries( disassembler_test PRIVATE gtest gtest_main chip8::ir )

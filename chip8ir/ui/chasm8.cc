@@ -23,14 +23,14 @@
 #include "ir/binary_emitter.h"
 #include "ir/asm_emitter.h"
 #include "ir/encoder.h"
-#include "assembler/cmdlineparser.h"
+#include "ir/ir_bundle.h"
+
 #include "assembler/assembler.h"
 #include "assembler/loader.h"
 
 int main( int argc, char ** argv )
 {
 	try {
-
 		ChasmCmdLineParser args;
 
 		if( ! args.parse_args( argc, argv ) )
@@ -42,18 +42,17 @@ int main( int argc, char ** argv )
 		std::ifstream asm_file( args.get_source_name() );
 		ASMSource source = ASMSourceLoader().load( asm_file );
 
-		auto [ir, symbols] = assembler.build_ir( source );
+		IRBundle bundle = assembler.build_ir( source );
 
-		BinImage bin_image = BinaryEncoder().encode(ir);
+		BinImage bin_image = BinaryEncoder().encode(bundle.ir);
 
 		std::ofstream os( args.get_binary_name(), std::ios::binary );
 		save_binary( os, bin_image );
 
 		if( !args.get_listing_name().empty() ) {
 			std::ofstream listing_os( args.get_listing_name() );
-			ASMEmitter().emit( listing_os, ir, bin_image, symbols, ASMEmitter::OutputMode::Listing  );
+			ASMEmitter().emit( listing_os, bundle, bin_image, ASMEmitter::OutputMode::Listing  );
 		}
-
 	}
 
 	catch( const std::exception &e ) {

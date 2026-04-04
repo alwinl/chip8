@@ -1,5 +1,5 @@
 /*
- * symbol_table.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * binary_emitter_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,37 +17,16 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include <gtest/gtest.h>
 
-#include <cstdint>
-#include <optional>
-#include <string>
-#include <vector>
-#include <array>
-
-enum eSymbolKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
-
-struct DecodedSymbol
+class BinaryEmitterTest : public ::testing::Test
 {
-	uint16_t address;
-	eSymbolKind kind;
+protected:
+	void SetUp() override {}
+	void TearDown() override {}
 };
 
-class SymbolTable
+TEST_F(BinaryEmitterTest, TestName)
 {
-public:
-	SymbolTable() = default;
 
-	void add( std::optional<DecodedSymbol> symbol );
-
-	void sort_vectors();
-
-	std::string get_label( uint16_t address ) const;
-	std::vector<uint16_t> get_index_list( ) { return symbol_lists[INDEXED]; };
-
-private:
-	using ListArray = std::array<std::vector<uint16_t>, eSymbolKind::COUNT>;
-
-	bool sorted = false;
-	ListArray symbol_lists;
-};
+}

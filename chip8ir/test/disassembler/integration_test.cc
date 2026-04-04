@@ -1,5 +1,5 @@
 /*
- * disassembler_integration_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * integration_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 #include "disassembler/disassembler.h"
 
-class DisassemblerIntegrationTest : public ::testing::Test
+class IntegrationTest : public ::testing::Test
 {
 protected:
     Disassembler dis;
@@ -30,7 +30,7 @@ protected:
     }
 };
 
-TEST_F(DisassemblerIntegrationTest, straight_line_with_data)
+TEST_F(IntegrationTest, straight_line_with_data)
 {
     BinImage bin = {
         0x60, 0x01,
@@ -60,7 +60,7 @@ TEST_F(DisassemblerIntegrationTest, straight_line_with_data)
     EXPECT_EQ(d->byte_run.size(), 4);
 }
 
-TEST_F(DisassemblerIntegrationTest, conditional_skip)
+TEST_F(IntegrationTest, conditional_skip)
 {
     BinImage bin = {
         0x30, 0x00,
@@ -86,7 +86,7 @@ TEST_F(DisassemblerIntegrationTest, conditional_skip)
     EXPECT_EQ(i2->address, 0x204);
 }
 
-TEST_F(DisassemblerIntegrationTest, jump_skips_data)
+TEST_F(IntegrationTest, jump_skips_data)
 {
     BinImage bin = {
         0x12, 0x06,
@@ -113,7 +113,7 @@ TEST_F(DisassemblerIntegrationTest, jump_skips_data)
     EXPECT_EQ(i1->address, 0x206);
 }
 
-TEST_F(DisassemblerIntegrationTest, no_overlapping_elements)
+TEST_F(IntegrationTest, no_overlapping_elements)
 {
     BinImage bin = {
         0x12, 0x06,
@@ -139,7 +139,7 @@ TEST_F(DisassemblerIntegrationTest, no_overlapping_elements)
     }
 }
 
-TEST_F(DisassemblerIntegrationTest, invalid_opcode_terminates_code_path)
+TEST_F(IntegrationTest, invalid_opcode_terminates_code_path)
 {
     BinImage bin = {
         0x60, 0x01,

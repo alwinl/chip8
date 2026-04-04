@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include "emulator/cmdlineparser.h"
-
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
+
+#include "emulator/cmdlineparser.h"
+
 class Emulator
 {
 public:

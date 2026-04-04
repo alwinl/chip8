@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * asm_symbol_table.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +19,23 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
 #include <cstdint>
+#include <string>
 
-#include "../vendor/cxxopts/cxxopts.hpp"
+#include "ir/label_resolver.h"
 
-class ChemulCmdLineParser
+class ASMSymbolTable : public ILabelResolver
 {
 public:
-	ChemulCmdLineParser() = default;
+	ASMSymbolTable() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+	void define_label( std::string name, uint16_t address );
+	void define_constant( std::string name, uint16_t address );
 
-	std::string get_program();
-	uint16_t get_origin() const;
+	uint16_t get_value( std::string name );
+
+	std::string get_label( uint16_t address ) const;
 
 private:
-    cxxopts::ParseResult result;
+
 };

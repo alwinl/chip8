@@ -24,8 +24,8 @@
 
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
-#include "ir/symbol_table.h"
-
+#include "ir/ir_bundle.h"
+// #include "ir/label_resolver.h"
 class ASMEmitter
 {
 public:
@@ -36,16 +36,15 @@ public:
 
 	ASMEmitter() = default;
 
-	void emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, const SymbolTable& symbols, OutputMode mode );
+	void emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode );
 
 	void configure( Config config ) { configuration = std::move(config); };
 
 private:
 	struct EmitContext {
 		std::ostream& os;
-		const IRProgram& ir;
+		const IRBundle& bundle;
 		const BinImage& bin_image;
-		const SymbolTable& symbols;
 		OutputMode mode;
 	};
 

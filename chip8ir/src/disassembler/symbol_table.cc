@@ -17,19 +17,24 @@
  * MA 02110-1301, USA.
  */
 
-#include "ir/symbol_table.h"
+#include "disassembler/symbol_table.h"
 
 #include <algorithm>
 #include <cassert>
 #include <memory>
 
-void SymbolTable::add( std::optional<DecodedSymbol> symbol )
+void DisasmSymbolTable::add( std::optional<DecodedSymbol> symbol )
 {
 	if( symbol )
 		symbol_lists[symbol->kind].push_back( symbol->address );
 }
 
-void SymbolTable::sort_vectors()
+void DisasmSymbolTable::add( DecodedSymbol symbol )
+{
+	symbol_lists[symbol.kind].push_back( symbol.address );
+}
+
+void DisasmSymbolTable::sort_vectors()
 {
 	for( auto& symbol_list : symbol_lists ) {
 		std::sort( symbol_list.begin(), symbol_list.end() );
@@ -38,7 +43,7 @@ void SymbolTable::sort_vectors()
 	sorted = true;
 }
 
-std::string SymbolTable::get_label( uint16_t address ) const
+std::string DisasmSymbolTable::get_label( uint16_t address ) const
 {
 	assert( sorted );
 

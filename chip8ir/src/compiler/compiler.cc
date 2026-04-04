@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * compiler.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,25 +17,18 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include "compiler/compiler.h"
 
-#include <string>
-#include <vector>
-#include <cstdint>
+#include "ir/label_resolver.h"
 
-#include "../vendor/cxxopts/cxxopts.hpp"
-
-class ChemulCmdLineParser
+class CompilerSymbols : public ILabelResolver
 {
 public:
-	ChemulCmdLineParser() = default;
+	std::string get_label( uint16_t address ) const { return ""; }
+};
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
 
-	std::string get_program();
-	uint16_t get_origin() const;
-
-private:
-    cxxopts::ParseResult result;
+IRBundle Compiler::build_ir( const C8CSource& source )
+{
+	return { IRProgram {}, std::make_unique<CompilerSymbols>() };
 };

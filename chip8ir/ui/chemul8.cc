@@ -21,8 +21,10 @@
 #include <fstream>
 
 #include "ir/binary_loader.h"
+#include "ir/ir_bundle.h"
+
 #include "disassembler/disassembler.h"
-#include "emulator/cmdlineparser.h"
+
 #include "emulator/emulator.h"
 
 int main( int argc, char ** argv )
@@ -34,16 +36,17 @@ int main( int argc, char ** argv )
 			return 1;
 
 		Disassembler disassembler;
+		disassembler.configure( {args.get_origin()} );
 
 		std::ifstream is( args.get_program(), std::ios::binary );
 		BinImage image = load_binary( is );
 
-		auto [ir, symbols] = disassembler.build_ir( image );
+		IRBundle bundle = disassembler.build_ir( image );
 
         Emulator emulator;
         emulator.configure( args );
 
-        emulator.run( image, ir );
+        emulator.run( image, bundle.ir );
     }
 
 	catch (const std::exception &e) {

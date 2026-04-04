@@ -67,7 +67,6 @@ struct IRProgram <<IR>>
 {
     +origin : uint16_t
     +elements : std::vector<ASMElement>
-    +symbols : SymbolTable
 }
 
 IRProgram *-- ASMElement
@@ -77,8 +76,9 @@ struct DecodeResult
 {
 	instruction : Instruction
 	next_addresses : AddressList
-	target : std::optional<DecodedSymbol>
 	valid : bool
+	role : AddressRole
+	referenced_address : uint16_t
 }
 
 class Decoder
@@ -96,7 +96,7 @@ BinImage .> "vector<uint8_t>"
 class Disassembler
 {
 	+configure( Config config )
-	+build_ir( const BinImage& binary ) : IRProgram
+	+build_ir( const BinImage& binary ) : { IRProgram, ILabelResolver}
 }
 
 Disassembler *-- DisasmMemory

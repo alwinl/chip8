@@ -17,34 +17,42 @@
  * MA 02110-1301, USA.
  */
 
+#include <cassert>
 #include <variant>
 #include <stack>
 #include <unordered_set>
 
+#include "disassembler/symbol_table.h"
 #include "disassembler/disassembler.h"
 #include "ir/decoder.h"
 
-DisassemblyResult Disassembler::build_ir( const BinImage &binary )
+IRBundle Disassembler::build_ir( const BinImage &binary )
 {
-	IRProgram ir {};
-	SymbolTable symbols = {};
+	IRBundle bundle { {}, std::make_unique<DisasmSymbolTable>() };
+
+	// IRProgram ir {};
+	// DisamSymbolTable symbols = {};
 	DisasmMemory memory;
 
-	ir.origin = configuration.origin;
+
+
+	bundle.ir.origin = configuration.origin;
 	memory.bind( binary, configuration.origin );
 
-	collect_instructions( ir, memory, symbols );
-	collect_data_bytes( ir, memory, symbols );
-	sort_elements( ir );
+	collect_instructions( bundle, memory );
+	collect_data_bytes( bundle, memory );
+	sort_elements( bundle );
 
-	return { ir, symbols };
+	return bundle;
 }
 
-void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols )
+void Disassembler::collect_instructions( IRBundle& bundle, DisasmMemory& memory )
 {
 	std::stack<uint16_t> address_stack;
 	std::unordered_set<uint16_t> decoded_instructions;
 	Decoder decoder;
+
+	DisasmSymbolTable * symbols = dynamic_cast<DisasmSymbolTable *>(bundle.resolver.get() );
 
 	address_stack.push( configuration.origin );	// Push the start address
 
@@ -68,19 +76,23 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Sy
 
 			memory.mark_instruction( address );
 
-			ir.elements.push_back( InstructionElement { address, result.instruction } );
+			bundle.ir.elements.push_back( InstructionElement { address, result.instruction } );
 
 			for( auto next_address : result.next_addresses )
 				address_stack.push( next_address );
 
-			symbols.add( result.target );
+			switch( result.role ) {
+			case AddressRole::None: break;
+			case AddressRole::JumpTarget:       symbols->add( { result.referenced_address, eSymbolKind::JUMP       } ); break;
+			case AddressRole::SubroutineTarget: symbols->add( { result.referenced_address, eSymbolKind::SUBROUTINE } ); break;
+			case AddressRole::ILoadTarget:      symbols->add( { result.referenced_address, eSymbolKind::I_TARGET   } ); break;
+			case AddressRole::IndexedBase:      symbols->add( { result.referenced_address, eSymbolKind::INDEXED    } ); break;
+			}
 		}
 
-		symbols.sort_vectors();
+		for( auto table_address : symbols->get_index_list() ) {
 
-		for( auto table_address : symbols.get_index_list() ) {
-
-			while( memory.contains(table_address) && symbols.get_label(table_address).empty() ) {
+			while( memory.contains(table_address) && symbols->get_label(table_address).empty() ) {
 
 				address_stack.push( table_address );
 				table_address += 2;
@@ -89,7 +101,7 @@ void Disassembler::collect_instructions( IRProgram& ir, DisasmMemory& memory, Sy
 	}
 }
 
-void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols )
+void Disassembler::collect_data_bytes( IRBundle& bundle, DisasmMemory& memory )
 {
     std::vector<uint8_t> datarun;
     uint16_t run_start = 0;
@@ -100,7 +112,7 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Symb
 	auto flush = [&]()
 	{
 		if( !datarun.empty() ) {
-			ir.elements.push_back( DataElement { run_start, datarun } );
+			bundle.ir.elements.push_back( DataElement { run_start, datarun } );
 			datarun.clear();
 		}
 	};
@@ -113,7 +125,7 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Symb
         if( memory.is_data(addr) ) {		// If byte is NOT part of an instruction → it's data
 
             // If this byte is a jump target → end previous run
-            if( ! symbols.get_label( addr ).empty() )
+            if( ! bundle.resolver->get_label( addr ).empty() )
 				flush();
 
             if( datarun.empty() )
@@ -128,9 +140,9 @@ void Disassembler::collect_data_bytes( IRProgram& ir, DisasmMemory& memory, Symb
 	flush();
 }
 
-void Disassembler::sort_elements( IRProgram& ir )
+void Disassembler::sort_elements( IRBundle& bundle )
 {
-    std::sort( ir.elements.begin(), ir.elements.end(),
+    std::sort( bundle.ir.elements.begin(), bundle.ir.elements.end(),
         [](const ASMElement& a, const ASMElement& b)
 		{
             return std::visit(

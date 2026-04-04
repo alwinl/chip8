@@ -21,19 +21,18 @@
 
 #include "ir/asm_emitter.h"
 
-void ASMEmitter::emit( std::ostream& os, const IRProgram& ir, const BinImage& bin_image, const SymbolTable& symbols, OutputMode mode )
+void ASMEmitter::emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode )
 {
 	EmitContext ctx = {
 		.os = os,
-		.ir = ir,
+		.bundle = bundle,
 		.bin_image = bin_image,
-		.symbols = symbols,
 		.mode = mode
 	};
 
 	emit_header( ctx, configuration.bin_name );
 
-	for( const auto& element : ir.elements )
+	for( const auto& element : bundle.ir.elements )
         std::visit( [&]( const auto& v ) { emit_element( ctx, v ); }, element );
 }
 
@@ -44,7 +43,7 @@ void ASMEmitter::emit_header( const EmitContext& ctx, std::string name )
 	ctx.os << ";\n\n";
 	ctx.os << "\t.ORG ";
 
-	emit_address( ctx, ctx.ir.origin );
+	emit_address( ctx, ctx.bundle.ir.origin );
 
 	ctx.os << "\n\n";
 }
@@ -104,8 +103,8 @@ void ASMEmitter::emit_address( const EmitContext& ctx, uint16_t address )
 
 void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t address )
 {
-	uint8_t high_byte = ctx.bin_image[ address - ctx.ir.origin ];
-	uint8_t low_byte  = ctx.bin_image[ address - ctx.ir.origin + 1 ];
+	uint8_t high_byte = ctx.bin_image[ address - ctx.bundle.ir.origin ];
+	uint8_t low_byte  = ctx.bin_image[ address - ctx.bundle.ir.origin + 1 ];
 
 	ctx.os << std::hex << std::uppercase
 		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
@@ -116,7 +115,7 @@ void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t address )
 
 void ASMEmitter::emit_label( const EmitContext& ctx, uint16_t address )
 {
-	std::string label = ctx.symbols.get_label( address );
+	std::string label = ctx.bundle.resolver->get_label( address );
 
 	if( !label.empty() )
 		label += ":";
@@ -164,7 +163,7 @@ void ASMEmitter::emit_operand( const EmitContext& ctx, const Operand& op )
 			ctx.os << "V" << std::uppercase << std::hex << +v.index;
 
 		else if constexpr( std::is_same_v<T, Addr> ) {
-			std::string target = ctx.symbols.get_label( v.value );
+			std::string target = ctx.bundle.resolver->get_label( v.value );
 			if( target.empty() )
 				ctx.os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
 			else

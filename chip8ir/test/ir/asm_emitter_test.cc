@@ -19,13 +19,27 @@
 #include <gtest/gtest.h>
 
 #include "ir/asm_emitter.h"
+#include <map>
+
+class ASMEmitterTestResolver : public ILabelResolver
+{
+public:
+	void add( uint16_t address, std::string name )
+		{ symbols.insert( std::make_pair( address, name) ); }
+
+	std::string get_label( uint16_t address ) const
+		{ return symbols.find( address) != symbols.end() ? symbols.at(address) : ""; }
+
+private:
+	std::map<uint16_t,std::string> symbols;
+};
 
 TEST(ASMEmitterTest, manual_visual_inspection)
 {
 	BinImage image { 0x00, 0xE0, 0x12, 0x02, 0xF4, 0x29, 0x12, 0x34, 0x56, 0x78 };
 
     IRProgram ir;
-	SymbolTable symbols;
+	ASMEmitterTestResolver resolver;
 
     ir.origin = 0x200;
 
@@ -34,16 +48,17 @@ TEST(ASMEmitterTest, manual_visual_inspection)
     ir.elements.push_back( InstructionElement{ 0x204, Instruction::make_sprite_for( Reg {4} ) } );
     ir.elements.push_back( DataElement{ 0x206, { 0x12, 0x34, 0x56, 0x78 } } );
 
-	symbols.add( DecodedSymbol { 0x202, eSymbolKind::JUMP } );
-	symbols.add( DecodedSymbol { 0x204, eSymbolKind::I_TARGET } );
-	symbols.sort_vectors();
+	resolver.add( 0x202, "LABEL0" );
+	resolver.add( 0x204, "DATA0" );
+
+	IRBundle bundle { ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
 
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
 		ASMEmitter emitter;
 		emitter.configure( { "Test program" } );
 
-		emitter.emit( std::cout, ir, image, symbols, ASMEmitter::OutputMode::Listing );
+		emitter.emit( std::cout, bundle, image, ASMEmitter::OutputMode::Listing );
 
 		std::cout << "=============================\n";
 	}
@@ -52,7 +67,7 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 		ASMEmitter emitter;
 		emitter.configure( { "Test program (assembly)" } );
 
-		emitter.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Assembly );
+		emitter.emit(std::cout, bundle, image, ASMEmitter::OutputMode::Assembly );
 
 		std::cout << "=============================\n";
 	}
@@ -63,7 +78,7 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     BinImage image;  // dummy binary for optional byte printing
 
     IRProgram ir;
-	SymbolTable symbols = {};
+	ASMEmitterTestResolver resolver;
 
     ir.origin = 0x200;
 
@@ -118,20 +133,21 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     addr += 4;
 
     // Add labels for some instructions to see labeling
-    symbols.add(DecodedSymbol{0x202, eSymbolKind::JUMP});
-    symbols.add(DecodedSymbol{0x220, eSymbolKind::I_TARGET});
-    symbols.sort_vectors();
+	resolver.add( 0x202, "LABEL0" );
+	resolver.add( 0x220, "DATA0" );
+
+	IRBundle bundle { ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
 
     // Emit full and clean versions
     std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
     ASMEmitter emitter;
     emitter.configure({ "All opcodes test" });
-    emitter.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Listing);
+    emitter.emit(std::cout, bundle, image, ASMEmitter::OutputMode::Listing);
     std::cout << "=============================\n";
 
     std::cout << "\n===== ASM EMITTER OUTPUT (clean) =====\n";
     ASMEmitter emitter_clean;
     emitter_clean.configure({ "All opcodes test (assembly)" });
-    emitter_clean.emit(std::cout, ir, image, symbols, ASMEmitter::OutputMode::Assembly);
+    emitter_clean.emit(std::cout, bundle, image, ASMEmitter::OutputMode::Assembly);
     std::cout << "=============================\n";
 }

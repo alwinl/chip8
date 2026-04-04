@@ -83,3 +83,5 @@ std::string ChemulCmdLineParser::get_program()
 {
 	return result["romfile"].as<std::string>();
 }
+
+uint16_t ChemulCmdLineParser::get_origin() const { return 0x200; }

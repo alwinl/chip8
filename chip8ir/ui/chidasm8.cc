@@ -23,13 +23,14 @@
 #include "ir/binary_loader.h"
 #include "ir/asm_emitter.h"
 #include "ir/cfg_emitter.h"
+#include "ir/ir_bundle.h"
+
 #include "disassembler/cmdlineparser.h"
 #include "disassembler/disassembler.h"
 
 int main( int argc, char ** argv )
 {
     try {
-
         ChidasmCmdLineParser args;
 
         if( !args.parse_args( argc, argv ) )
@@ -41,30 +42,29 @@ int main( int argc, char ** argv )
 		std::ifstream is( args.get_source_name(), std::ios::binary );
 		BinImage image = load_binary( is );
 
-		auto [ir, symbols] = disassembler.build_ir( image );
+		IRBundle bundle = disassembler.build_ir( image );
 
 		std::ofstream os( args.get_output_name() );
 		ASMEmitter emitter;
 
 		emitter.configure( {args.get_program_name()} );
-		emitter.emit( os, ir, image, symbols, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+		emitter.emit( os, bundle, image, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
 
 		if( !args.get_dot_name().empty() || !args.get_uml_name().empty() ) {
 			CFGEmitter cfg_emitter;
 
 			if( !args.get_uml_name().empty() ) {
 				std::ofstream plantuml_file(args.get_uml_name());
-				cfg_emitter.emit(plantuml_file, ir, CFGEmitter::OutputMode::PlantUML);
+				cfg_emitter.emit(plantuml_file, bundle.ir, CFGEmitter::OutputMode::PlantUML);
 				plantuml_file.close();
 			}
 
 			if( !args.get_dot_name().empty() ) {
 				std::ofstream dot_file(args.get_dot_name());
-				cfg_emitter.emit(dot_file, ir, CFGEmitter::OutputMode::Dot);
+				cfg_emitter.emit(dot_file, bundle.ir, CFGEmitter::OutputMode::Dot);
 				dot_file.close();
 			}
 		}
-
     }
 
 	catch (const std::exception &e) {

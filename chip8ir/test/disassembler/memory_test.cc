@@ -1,5 +1,5 @@
 /*
- * disasmmemory_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * memory_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 #include <gtest/gtest.h>
 
-#include "disassembler/disassembler.h"
+#include "disassembler/memory.h"
 
-class DisasmMemoryTest : public ::testing::Test
+class MemoryTest : public ::testing::Test
 {
 protected:
 	DisasmMemory memory;
@@ -30,7 +30,7 @@ protected:
 	void TearDown() override {}
 };
 
-TEST_F(DisasmMemoryTest, TestBoundaries)
+TEST_F(MemoryTest, TestBoundaries)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
@@ -40,7 +40,7 @@ TEST_F(DisasmMemoryTest, TestBoundaries)
 	EXPECT_EQ( memory.start() + 4, memory.end() );
 }
 
-TEST_F(DisasmMemoryTest, TestLimits)
+TEST_F(MemoryTest, TestLimits)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
@@ -52,7 +52,7 @@ TEST_F(DisasmMemoryTest, TestLimits)
 	EXPECT_FALSE( memory.contains( 0x204 ) );
 }
 
-TEST_F(DisasmMemoryTest, GetBytes)
+TEST_F(MemoryTest, GetBytes)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
@@ -64,7 +64,7 @@ TEST_F(DisasmMemoryTest, GetBytes)
 	EXPECT_EQ( memory.get_byte( 0x203 ), 0x04 );
 }
 
-TEST_F(DisasmMemoryTest, GetWords)
+TEST_F(MemoryTest, GetWords)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
@@ -75,7 +75,7 @@ TEST_F(DisasmMemoryTest, GetWords)
 	EXPECT_EQ( memory.get_word( 0x202 ), 0x0304 );
 }
 
-TEST_F(DisasmMemoryTest, CheckValidInstructionMark)
+TEST_F(MemoryTest, CheckValidInstructionMark)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06
@@ -89,7 +89,7 @@ TEST_F(DisasmMemoryTest, CheckValidInstructionMark)
 	EXPECT_FALSE( memory.is_instruction( 0x204) );
 }
 
-TEST_F(DisasmMemoryTest, CheckUnalignedInstructionMark)
+TEST_F(MemoryTest, CheckUnalignedInstructionMark)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06

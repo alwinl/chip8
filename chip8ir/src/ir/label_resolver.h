@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * label_resolver.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,22 +20,12 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <cstdint>
 
-#include "../vendor/cxxopts/cxxopts.hpp"
-
-class ChemulCmdLineParser
+class ILabelResolver
 {
 public:
-	ChemulCmdLineParser() = default;
+	virtual ~ILabelResolver() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
-
-	std::string get_program();
-	uint16_t get_origin() const;
-
-private:
-    cxxopts::ParseResult result;
+	virtual std::string get_label( uint16_t address ) const = 0;
 };

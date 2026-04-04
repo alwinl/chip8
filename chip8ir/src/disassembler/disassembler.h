@@ -19,19 +19,11 @@
 
 #pragma once
 
-#include <cassert>
-
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
-#include "ir/symbol_table.h"
+#include "ir/ir_bundle.h"
 
 #include "disassembler/memory.h"
-
-struct DisassemblyResult
-{
-	IRProgram ir;
-	SymbolTable symbols;
-};
 
 class Disassembler
 {
@@ -44,12 +36,12 @@ public:
 
 	void configure( Config config ) { configuration = std::move(config); };
 
-	DisassemblyResult build_ir( const BinImage& binary );
+	IRBundle build_ir( const BinImage& binary );
 
 private:
 	Config configuration;
 
-	void collect_instructions( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
-	void collect_data_bytes( IRProgram& ir, DisasmMemory& memory, SymbolTable& symbols );
-	void sort_elements( IRProgram& ir );
+	void collect_instructions( IRBundle& bundle, DisasmMemory& memory );
+	void collect_data_bytes( IRBundle& bundle, DisasmMemory& memory );
+	void sort_elements( IRBundle& bundle );
 };

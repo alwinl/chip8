@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * ir_bundle.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +19,13 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <cstdint>
+#include "ir/chip8ir.h"
+#include "ir/label_resolver.h"
 
-#include "../vendor/cxxopts/cxxopts.hpp"
+#include <memory>
 
-class ChemulCmdLineParser
+struct IRBundle
 {
-public:
-	ChemulCmdLineParser() = default;
-
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
-
-	std::string get_program();
-	uint16_t get_origin() const;
-
-private:
-    cxxopts::ParseResult result;
+    IRProgram ir;
+    std::unique_ptr<ILabelResolver> resolver;
 };

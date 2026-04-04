@@ -22,7 +22,7 @@
 #include "assembler/tokeniser.h"
 #include "ir/chip8formats.h"
 
-class ASMTokeniserTestTest : public ::testing::Test
+class ASMTokeniserTest : public ::testing::Test
 {
 protected:
 	ASMTokeniser tokeniser;
@@ -32,7 +32,7 @@ protected:
 	void TearDown() override {}
 };
 
-TEST_F(ASMTokeniserTestTest, EmptyInput)
+TEST_F(ASMTokeniserTest, EmptyInput)
 {
 	ASMTokens tokens = tokeniser.tokenise( ASMSource {} );
 
@@ -40,7 +40,7 @@ TEST_F(ASMTokeniserTestTest, EmptyInput)
     EXPECT_EQ(tokens[0].type, ASMToken::Type::END_OF_INPUT);
 }
 
-TEST_F(ASMTokeniserTestTest, LabelOnly)
+TEST_F(ASMTokeniserTest, LabelOnly)
 {
 	source.push_back( ASMLine { "start:", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
@@ -53,7 +53,7 @@ TEST_F(ASMTokeniserTestTest, LabelOnly)
     EXPECT_EQ(tokens.back().type, ASMToken::Type::END_OF_INPUT);
 }
 
-TEST_F(ASMTokeniserTestTest, InstructionWithArguments)
+TEST_F(ASMTokeniserTest, InstructionWithArguments)
 {
 	source.push_back( ASMLine { "LD V0, 10", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
@@ -73,7 +73,7 @@ TEST_F(ASMTokeniserTestTest, InstructionWithArguments)
     EXPECT_EQ(tokens[3].lexeme, "10");
 }
 
-TEST_F(ASMTokeniserTestTest, Directive)
+TEST_F(ASMTokeniserTest, Directive)
 {
 	source.push_back( ASMLine { ".DB 0xFF, 0x01", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
@@ -86,7 +86,7 @@ TEST_F(ASMTokeniserTestTest, Directive)
     EXPECT_EQ(tokens[3].lexeme, "0x01");
 }
 
-TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
+TEST_F(ASMTokeniserTest, CommentIsTokenised)
 {
 	source.push_back( ASMLine { "LD V0, 1 ; comment here", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );
@@ -99,7 +99,7 @@ TEST_F(ASMTokeniserTestTest, CommentIsTokenised)
     EXPECT_TRUE(found_comment);
 }
 
-TEST_F(ASMTokeniserTestTest, Operators)
+TEST_F(ASMTokeniserTest, Operators)
 {
 	source.push_back( ASMLine { "+-*/", 1 } );
 	ASMTokens tokens = tokeniser.tokenise( source );

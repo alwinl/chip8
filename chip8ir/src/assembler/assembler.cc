@@ -22,41 +22,110 @@
 
 #include "assembler/tokeniser.h"
 #include "assembler/parser.h"
+#include "assembler/symbol_table.h"
 
-AssemblyResult Assembler::build_ir( ASMSource source )
+
+IRBundle Assembler::build_ir( ASMSource source )
 {
-	IRProgram ir;
-	SymbolTable symbols;
-
     ASMTokens tokens = ASMTokeniser().tokenise(source);
     ASTProgram program = ASMParser().parse_asm_tokens(tokens);
 
-	process_pass1( ir, symbols, program );
-	process_pass2( ir, symbols, program );
+	IRBundle bundle { {}, std::make_unique<ASMSymbolTable>() };
 
-	return { ir, symbols };
+	process_pass1( bundle, program );
+	process_pass2( bundle, program );
+
+	return bundle;
 }
 
-void Assembler::process_pass1( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program )
+void Assembler::process_pass1( IRBundle& bundle, const ASTProgram& program )
 {
+	ASMSymbolTable* symbols = dynamic_cast<ASMSymbolTable*>( bundle.resolver.get() );
 	uint16_t address = 0;
 
-	for( const ASTElement& element : program ) {
-		if( element.label ) {
-			const std::string& name = element.label->name;
-			// if( symbols.contains( name ) )
+	for( const ASTElement& element : program )
+	{
+		if( element.label )
+			symbols->define_label( element.label->name, address );
 
-		}
-		// element.body
+		std::visit( [&]( auto&& body )
+		{
+			using T = std::decay_t<decltype(body)>;
 
+			if constexpr ( std::is_same_v<T, ASTInstruction> )
+			{
+				address += 2;
+			}
+			else if constexpr ( std::is_same_v<T, ASTDirective> )
+			{
+				if( body.name == ".DB" )
+					address += body.args.size();
+				if( body.name == ".ORG" )
+					address = evaluate_expression( bundle, body.args[0] );
+			}
+			else if constexpr ( std::is_same_v<T, ASTEqu> )
+			{
+				symbols->define_constant( body.name, evaluate_expression( bundle, body.value ) );
+			}
+
+		}, element.body );
 	}
 }
 
-void Assembler::process_pass2( IRProgram& ir, SymbolTable& symbols, const ASTProgram& program )
+void Assembler::process_pass2( IRBundle& bundle, const ASTProgram& program )
 {
 	for( const ASTElement& element : program ) {
 
+		std::visit( [&]( auto&& body )
+		{
+			using T = std::decay_t<decltype(body)>;
+
+			if constexpr ( std::is_same_v<T, ASTInstruction> )
+			{
+			}
+			else if constexpr ( std::is_same_v<T, ASTDirective> )
+			{
+			}
+			else if constexpr ( std::is_same_v<T, ASTEqu> )
+			{
+			}
+
+		}, element.body );
+
 	}
 }
 
-        // std::visit( [&]( const auto& v ) { process_element( ir, symbols, line, label, body ); }, element );
+uint16_t Assembler::evaluate_expression( IRBundle& bundle, const ASTExpression& expr )
+{
+	ASMSymbolTable* symbols = dynamic_cast<ASMSymbolTable*>( bundle.resolver.get() );
+
+	return std::visit( [&]( auto&& expression ) -> uint16_t
+	{
+		using T = std::decay_t<decltype(expression)>;
+
+		if constexpr ( std::is_same_v<T, NumberExpr> )
+		{
+			return expression.value;
+		}
+		else if constexpr ( std::is_same_v<T, IdentifierExpr> )
+		{
+			return symbols->get_value( expression.text );
+		}
+		else if constexpr ( std::is_same_v<T, ASTBinaryExpr> )
+		{
+			auto lhs = evaluate_expression( bundle, *expression.lhs.get() );
+			auto rhs = evaluate_expression( bundle, *expression.rhs.get() );
+
+			switch( expression.op ) {
+			case '+': return lhs + rhs;
+			case '-': return lhs - rhs;
+			case '*': return lhs * rhs;
+			case '/': return rhs!= 0 ? lhs / rhs : 0;
+			}
+
+			return 0;
+		}
+		return 0;
+
+	}, expr.expression );
+}

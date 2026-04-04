@@ -1,5 +1,5 @@
 /*
- * cmdlineparser.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * symbol_table.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +19,38 @@
 
 #pragma once
 
+#include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
-#include <cstdint>
+#include <array>
 
-#include "../vendor/cxxopts/cxxopts.hpp"
+#include "ir/label_resolver.h"
 
-class ChemulCmdLineParser
+enum eSymbolKind { I_TARGET, SUBROUTINE, JUMP, INDEXED, COUNT };
+
+struct DecodedSymbol
+{
+	uint16_t address;
+	eSymbolKind kind;
+};
+
+class DisasmSymbolTable : public ILabelResolver
 {
 public:
-	ChemulCmdLineParser() = default;
+	DisasmSymbolTable() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+	void add( std::optional<DecodedSymbol> symbol );
+	void add( DecodedSymbol symbol );
 
-	std::string get_program();
-	uint16_t get_origin() const;
+	void sort_vectors();
+
+	std::string get_label( uint16_t address ) const;
+	std::vector<uint16_t> get_index_list( ) { return symbol_lists[INDEXED]; };
 
 private:
-    cxxopts::ParseResult result;
+	using ListArray = std::array<std::vector<uint16_t>, eSymbolKind::COUNT>;
+
+	bool sorted = false;
+	ListArray symbol_lists;
 };

@@ -22,16 +22,28 @@
 #include <array>
 
 #include "ir/chip8ir.h"
-#include "ir/symbol_table.h"
+// #include "ir/symbol_table.h"
 
 using AddressList = std::vector<uint16_t>;
+
+enum class AddressRole
+{
+    None,
+    JumpTarget,
+    SubroutineTarget,
+    ILoadTarget,
+    IndexedBase
+};
 
 struct DecodeResult
 {
 	Instruction instruction;
 	AddressList next_addresses;
-	std::optional<DecodedSymbol> target;
+
 	bool valid = true;
+
+    AddressRole role = AddressRole::None;
+	uint16_t referenced_address = 0;
 };
 
 class Decoder
