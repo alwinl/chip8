@@ -21,19 +21,27 @@
 
 void ASMSymbolTable::define_label( std::string name, uint16_t address )
 {
+	symbol_map.insert( std::make_pair( address, name ));
+	value_map.insert( std::make_pair( name, address ));
 }
 
-void ASMSymbolTable::define_constant( std::string name, uint16_t address )
+void ASMSymbolTable::define_constant( std::string name, uint16_t value )
 {
-
+	value_map.insert( std::make_pair( name, value ));
 }
 
 uint16_t ASMSymbolTable::get_value( std::string name )
 {
-	return 0;
+	if( value_map.find( name) == value_map.end() )
+		return -1;
+
+	return value_map.at( name );
 }
 
 std::string ASMSymbolTable::get_label( uint16_t address ) const
 {
-	return "";
+	if( symbol_map.find( address) == symbol_map.end() )
+		return "";
+
+	return symbol_map.at( address );
 }

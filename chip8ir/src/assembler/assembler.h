@@ -40,5 +40,15 @@ private:
 	void process_pass1( IRBundle& bundle, const ASTProgram& program );
 	void process_pass2( IRBundle& bundle, const ASTProgram& program );
 
-	uint16_t evaluate_expression( IRBundle& bundle, const ASTExpression& expr );
+	// uint16_t evaluate_expression( const IRBundle& bundle, const ASTExpression& expr );
+	// Instruction build_instruction( const ASTInstruction& ast_inst, const IRBundle& bundle );
+
+	// Reg parse_reg( const IRBundle &bundle, const ASTExpression& expr );
+	// Addr parse_addr( const IRBundle &bundle, const ASTExpression& expr );
+	// Imm parse_imm( const IRBundle &bundle, const ASTExpression& expr );
+	// Nibble parse_nibble( const IRBundle &bundle, const ASTExpression& expr );
+	// Key parse_key( const IRBundle &bundle, const ASTExpression& expr );
+	// RegCount parse_regcount( const IRBundle &bundle, const ASTExpression& expr );
+
+	// bool is_register( const ASTExpression& expr );
 };

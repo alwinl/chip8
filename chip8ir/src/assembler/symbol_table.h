@@ -21,8 +21,10 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include "ir/label_resolver.h"
+
 
 class ASMSymbolTable : public ILabelResolver
 {
@@ -30,12 +32,12 @@ public:
 	ASMSymbolTable() = default;
 
 	void define_label( std::string name, uint16_t address );
-	void define_constant( std::string name, uint16_t address );
+	void define_constant( std::string name, uint16_t value );
 
 	uint16_t get_value( std::string name );
-
 	std::string get_label( uint16_t address ) const;
 
 private:
-
+	std::unordered_map<uint16_t, std::string> symbol_map;
+	std::unordered_map<std::string, uint16_t> value_map;
 };

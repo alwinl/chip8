@@ -51,6 +51,7 @@ TEST_F(ASMParserTest, SingleLabel)
 
 	EXPECT_TRUE( program[0].label.has_value() );
 	EXPECT_EQ( program[0].label.value().name, "start" );
+	EXPECT_TRUE( std::holds_alternative<ASTEmpty>(program[0].body) );
 }
 
 TEST_F(ASMParserTest, SingleMnemonic)

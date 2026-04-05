@@ -65,6 +65,7 @@ R"(start:
 		EXPECT_TRUE( program[0].label.has_value() );
 		EXPECT_EQ( program[0].label.value().name, "start" );
 		EXPECT_EQ( program[0].line, 1 );
+		EXPECT_TRUE( std::holds_alternative<ASTEmpty>(program[0].body) );
 	}
 	{
 		EXPECT_FALSE( program[1].label.has_value() );
@@ -174,6 +175,7 @@ R"(start:          ; label comment
     // Label
     EXPECT_TRUE(program[0].label.has_value());
     EXPECT_EQ(program[0].label.value().name, "start");
+	EXPECT_TRUE( std::holds_alternative<ASTEmpty>(program[0].body) );
 
     // LD instruction
     auto ld_ptr = std::get_if<ASTInstruction>(&program[1].body);

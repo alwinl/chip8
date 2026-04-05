@@ -81,8 +81,12 @@ struct ASTEqu
 	ASTExpression value;
 };
 
+struct ASTEmpty
+{
+};
+
 using LabelType = std::optional<ASTLabel>;
-using BodyType = std::variant< ASTInstruction, ASTDirective, ASTEqu >;
+using BodyType = std::variant< ASTInstruction, ASTDirective, ASTEqu, ASTEmpty >;
 
 struct ASTElement
 {

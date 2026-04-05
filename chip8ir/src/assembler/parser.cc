@@ -41,7 +41,7 @@ ASTElement ASMParser::parse_line()
 {
 	auto make_upper = [](unsigned char c){ return std::toupper(c); };
 
-    ASTElement element {};
+    ASTElement element { .body = ASTEmpty{} };
 
     element.line = peek().line;
 
@@ -70,7 +70,6 @@ ASTElement ASMParser::parse_line()
 
 			if( match( ASMToken::Type::ASSIGNMENT ) ) {
 				consume( ASMToken::Type::ASSIGNMENT, "", "Expected assignment");
-				std::transform( token.lexeme.begin(), token.lexeme.end(), token.lexeme.begin(), make_upper );
 				element.body = ASTEqu { token.lexeme, token.column, std::move(parse_expression()) };
 			} else {
 				std::transform( token.lexeme.begin(), token.lexeme.end(), token.lexeme.begin(), make_upper );
