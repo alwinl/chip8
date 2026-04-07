@@ -1,5 +1,5 @@
 /*
- * assembler.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * dispatcher.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,21 +20,14 @@
 #pragma once
 
 #include <unordered_map>
+#include <functional>
 
-#include "ir/chip8ir.h"
-#include "ir/chip8formats.h"
-#include "ir/ir_bundle.h"
-
-#include "assembler/cmdlineparser.h"
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 
-class Assembler
-{
-public:
-	Assembler() = default;
+#include "ir/chip8ir.h"
 
-	void configure( const ChasmCmdLineParser& cmd ) {};
 
-	IRBundle build_ir( ASMSource source );
-};
+using Dispatcher = std::unordered_map< std::string, std::function<Instruction( const ASTInstruction&, ASMSymbolTable& )> >;
+
+const Dispatcher& get_dispatcher();

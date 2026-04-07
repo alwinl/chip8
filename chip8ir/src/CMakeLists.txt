@@ -35,6 +35,7 @@ add_library(
 	assembler/symbol_table.cc
 	assembler/expression.cc
 	assembler/loader.cc
+	assembler/dispatcher.cc
 
 	disassembler/disassembler.cc
 	disassembler/cmdlineparser.cc

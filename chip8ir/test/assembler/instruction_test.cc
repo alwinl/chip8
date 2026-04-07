@@ -18,9 +18,11 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 #include "assembler/assembler.h"
+#include "assembler/dispatcher.h"
 
 #include "ir/chip8ir.h"
 
