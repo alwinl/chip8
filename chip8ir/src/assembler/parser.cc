@@ -164,7 +164,6 @@ ASTExpression ASMParser::parse_primary()
 {
 	if( match(ASMToken::Type::NUMBER) )
 	{
-
 		int col = cursor->column;
         std::string lexeme = consume( ASMToken::Type::NUMBER, "", "Expected number" ).lexeme;
 
