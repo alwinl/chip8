@@ -25,7 +25,6 @@
 class ASMParserIntegrationTest : public ::testing::Test
 {
 protected:
-	ASMSourceLoader loader;
 	ASMParser parser;
 
 	void SetUp() override {}
@@ -54,7 +53,7 @@ R"(start:
 
 	std::stringstream is( input );
 
-	ASMSource source = loader.load( is );
+	ASMSource source = load_assembly_source( is );
 	ASMTokens tokens = tokenise_assembly( source );
 	ASTProgram program = parser.parse_asm_tokens( tokens );
 
@@ -111,7 +110,7 @@ R"(.DW 0x10, 0x20, 0x30
 
     std::stringstream is(input);
 
-    ASMSource source = loader.load(is);
+    ASMSource source = load_assembly_source(is);
     ASMTokens tokens = tokenise_assembly(source);
     ASTProgram program = parser.parse_asm_tokens(tokens);
 
@@ -137,7 +136,7 @@ Y_POS EQU 0x20
 
     std::stringstream is(input);
 
-    ASMSource source = loader.load(is);
+    ASMSource source = load_assembly_source(is);
     ASMTokens tokens = tokenise_assembly(source);
     ASTProgram program = parser.parse_asm_tokens(tokens);
 
@@ -165,7 +164,7 @@ R"(start:          ; label comment
 
     std::stringstream is(input);
 
-    ASMSource source = loader.load(is);
+    ASMSource source = load_assembly_source(is);
     ASMTokens tokens = tokenise_assembly(source);
     ASTProgram program = parser.parse_asm_tokens(tokens);
 
@@ -202,7 +201,7 @@ R"(LD V0, 10+5*2
 
     std::stringstream is(input);
 
-    ASMSource source = loader.load(is);
+    ASMSource source = load_assembly_source(is);
     ASMTokens tokens = tokenise_assembly(source);
     ASTProgram program = parser.parse_asm_tokens(tokens);
 

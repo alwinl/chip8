@@ -26,7 +26,7 @@
 ASMSource make_source(const std::string& text)
 {
     std::istringstream is(text);
-    return ASMSourceLoader().load(is);
+    return load_assembly_source(is);
 }
 
 class AssemblerIntegrationTest : public ::testing::Test {

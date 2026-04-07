@@ -20,19 +20,7 @@
 #pragma once
 
 #include <istream>
-#include <string>
-#include <cassert>
 
 #include "ir/chip8formats.h"
 
-class ASMSourceLoader
-{
-public:
-	ASMSourceLoader() = default;
-
-	ASMSource load( std::istream& is );
-
-private:
-	bool strip_trailing_cr( std::string &line );
-	bool strip_comments( std::string &line );
-};
+ASMSource load_assembly_source( std::istream& is );
