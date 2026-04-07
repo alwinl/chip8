@@ -52,6 +52,9 @@ ASTElement ASMParser::parse_line()
 		auto& label = element.label.emplace();
 		label.name = token.lexeme;
 		label.column = token.column;
+
+		if( label.name.back() == ':' )
+			label.name.pop_back();
 	}
 
     if( !end_of_current_line(element.line) )
