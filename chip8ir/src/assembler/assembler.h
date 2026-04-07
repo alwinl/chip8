@@ -19,13 +19,17 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
 #include "ir/ir_bundle.h"
 
 #include "assembler/cmdlineparser.h"
 #include "assembler/ast.h"
+#include "assembler/symbol_table.h"
 
+using Dispatcher = std::unordered_map<std::string, std::function<Instruction( const ASTInstruction &, ASMSymbolTable& )>>;
 
 class Assembler
 {
@@ -35,20 +39,19 @@ public:
 	void configure( const ChasmCmdLineParser& cmd ) {};
 
 	IRBundle build_ir( ASMSource source );
-
-private:
-	void process_pass1( IRBundle& bundle, const ASTProgram& program );
-	void process_pass2( IRBundle& bundle, const ASTProgram& program );
-
-	// uint16_t evaluate_expression( const IRBundle& bundle, const ASTExpression& expr );
-	// Instruction build_instruction( const ASTInstruction& ast_inst, const IRBundle& bundle );
-
-	// Reg parse_reg( const IRBundle &bundle, const ASTExpression& expr );
-	// Addr parse_addr( const IRBundle &bundle, const ASTExpression& expr );
-	// Imm parse_imm( const IRBundle &bundle, const ASTExpression& expr );
-	// Nibble parse_nibble( const IRBundle &bundle, const ASTExpression& expr );
-	// Key parse_key( const IRBundle &bundle, const ASTExpression& expr );
-	// RegCount parse_regcount( const IRBundle &bundle, const ASTExpression& expr );
-
-	// bool is_register( const ASTExpression& expr );
 };
+
+
+uint16_t evaluate_expression( const NumberExpr& expr, const ASMSymbolTable& symbols );
+uint16_t evaluate_expression( const IdentifierExpr& expr, const ASMSymbolTable& symbols );
+uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols );
+uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& symbols );
+
+Reg parse_reg( const ASTExpression& expr );
+Addr parse_addr( const ASTExpression& expr, const ASMSymbolTable &symbols );
+Imm parse_imm( const ASTExpression& expr, const ASMSymbolTable &symbols );
+Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols );
+Key parse_key( const ASTExpression& expr, const ASMSymbolTable &symbols );
+RegCount parse_regcount( const ASTExpression& expr, const ASMSymbolTable &symbols );
+
+const Dispatcher& get_dispatcher();

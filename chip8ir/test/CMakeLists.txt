@@ -40,6 +40,8 @@ add_executable(
 	assembler/asm_parser_test.cc
 	assembler/asm_parser_integration.cc
 	assembler/asm_integration_test.cc
+	assembler/expression_test.cc
+	assembler/instruction_test.cc
 )
 
 target_link_libraries( assembler_test PRIVATE gtest gtest_main chip8::ir )

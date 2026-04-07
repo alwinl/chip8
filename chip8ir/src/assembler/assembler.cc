@@ -17,47 +17,49 @@
  * MA 02110-1301, USA.
  */
 
-
 #include "assembler/assembler.h"
 
 #include "assembler/tokeniser.h"
 #include "assembler/parser.h"
 #include "assembler/symbol_table.h"
 
-uint16_t evaluate_expression( const IRBundle& bundle, const ASTExpression& expr )
+template<typename T>
+uint16_t evaluate_expression( const T&, const ASMSymbolTable& )
 {
-	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
-
-	return std::visit( [&]( auto&& expression ) -> uint16_t
-	{
-		using T = std::decay_t<decltype(expression)>;
-
-		if constexpr ( std::is_same_v<T, NumberExpr> )
-		{
-			return expression.value;
-		}
-		else if constexpr ( std::is_same_v<T, IdentifierExpr> )
-		{
-			return symbols.get_value( expression.text );
-		}
-		else if constexpr ( std::is_same_v<T, ASTBinaryExpr> )
-		{
-			auto lhs = evaluate_expression( bundle, *expression.lhs.get() );
-			auto rhs = evaluate_expression( bundle, *expression.rhs.get() );
-
-			switch( expression.op ) {
-			case '+': return lhs + rhs;
-			case '-': return lhs - rhs;
-			case '*': return lhs * rhs;
-			case '/': return rhs!= 0 ? lhs / rhs : 0;
-			}
-
-			return 0;
-		}
-		return 0;
-
-	}, expr.expression );
+    static_assert(std::is_same_v<T, void>, "Unhandled expression type");
+    return 0;
 }
+
+uint16_t evaluate_expression( const NumberExpr& expr, const ASMSymbolTable& symbols )
+{
+	return expr.value;
+}
+
+uint16_t evaluate_expression( const IdentifierExpr& expr, const ASMSymbolTable& symbols )
+{
+	return symbols.get_value( expr.text );
+}
+
+uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols )
+{
+	return std::visit( [&]( auto&& expression ) -> uint16_t { return evaluate_expression( expression, symbols ); }, expr.expression );
+}
+
+uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& symbols )
+{
+	auto lhs = evaluate_expression( *expr.lhs, symbols );
+	auto rhs = evaluate_expression( *expr.rhs, symbols );
+
+	switch( expr.op ) {
+	case '+': return lhs + rhs;
+	case '-': return lhs - rhs;
+	case '*': return lhs * rhs;
+	case '/': return rhs!= 0 ? lhs / rhs : 0;
+	}
+
+	return 0;
+}
+
 
 bool is_register( const ASTExpression& expr )
 {
@@ -77,7 +79,8 @@ bool is_identifier( const ASTExpression& expr, std::string content )
     return !id.empty() && content == id;
 }
 
-Reg parse_reg( const IRBundle &bundle, const ASTExpression& expr )
+
+Reg parse_reg( const ASTExpression& expr )
 {
     if (!std::holds_alternative<IdentifierExpr>(expr.expression))
         throw std::runtime_error("Expected register");
@@ -95,166 +98,240 @@ Reg parse_reg( const IRBundle &bundle, const ASTExpression& expr )
     return Reg{ static_cast<uint8_t>(index) };
 }
 
-Addr parse_addr( const IRBundle &bundle, const ASTExpression& expr )
+Addr parse_addr( const ASTExpression& expr, const ASMSymbolTable &symbols )
 {
-	return Addr{ evaluate_expression( bundle, expr) };
+	return Addr{ evaluate_expression( expr, symbols ) };
 }
 
-Imm parse_imm( const IRBundle &bundle, const ASTExpression& expr )
+Imm parse_imm( const ASTExpression& expr, const ASMSymbolTable &symbols )
 {
-    return Imm{ static_cast<uint8_t>( evaluate_expression( bundle, expr) ) };
+    return Imm{ static_cast<uint8_t>( evaluate_expression( expr, symbols) ) };
 }
 
-Nibble parse_nibble( const IRBundle &bundle, const ASTExpression& expr )
+Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols )
 {
-    auto val = evaluate_expression(bundle, expr);
+    auto val = evaluate_expression( expr, symbols );
     if (val > 0xF)
 		throw std::runtime_error("Nibble out of range");
 
     return Nibble{ static_cast<uint8_t>(val) };
 }
 
-Key parse_key( const IRBundle &bundle, const ASTExpression& expr )
+Key parse_key( const ASTExpression& expr, const ASMSymbolTable &symbols )
 {
-    auto val = evaluate_expression(bundle, expr);
+    auto val = evaluate_expression(expr, symbols);
     if (val > 0xF)
 		throw std::runtime_error("Key out of range");
 
     return Key{ static_cast<uint8_t>(val) };
 }
 
-RegCount parse_regcount( const IRBundle &bundle, const ASTExpression& expr )
+RegCount parse_regcount( const ASTExpression& expr, const ASMSymbolTable &symbols )
 {
-    auto val = evaluate_expression(bundle, expr);
+    auto val = evaluate_expression( expr, symbols );
     if (val > 0xF)
 		throw std::runtime_error("RegCount out of range");
 
     return RegCount{ static_cast<uint8_t>(val) };
 }
 
-const auto& get_dispatcher()
+const Dispatcher& get_dispatcher()
 {
-	static const std::unordered_map<std::string, std::function<Instruction(const IRBundle &, const ASTInstruction &)>> dispatcher =
+	static const Dispatcher dispatcher =
 	{
-		{ "NOP",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "NOP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return Instruction::make_nop();
 		} },
 
-		{ "CLS",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "CLS",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return Instruction::make_clear();
 		} },
 
-		{ "RET",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "RET",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return Instruction::make_return();
 		} },
 
-		{ "CALL", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_call( parse_addr( bundle, ast_inst.operands[0] ));
+		{ "CALL", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_call( parse_addr( ast_inst.operands[0], symbols ));
 		} },
 
-		{ "OR",   []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_or( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "OR",   []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_or( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "AND",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_and( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "AND",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_and( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "XOR",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_xor( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "XOR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_xor( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "SUB",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_sub( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "SUB",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_sub( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "SHR",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_shift_right( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "SHR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_shift_right( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "SUBN", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_subn( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "SUBN", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_subn( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "SHL",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_shift_left( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ));
+		{ "SHL",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_shift_left( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 		} },
 
-		{ "RND",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_rnd( parse_reg( bundle, ast_inst.operands[0] ), parse_imm( bundle, ast_inst.operands[1] ) );
+		{ "RND",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_rnd( parse_reg( ast_inst.operands[0] ), parse_imm( ast_inst.operands[1], symbols ) );
 		} },
 
-		{ "DRW",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_drw( parse_reg( bundle, ast_inst.operands[0] ),  parse_reg( bundle, ast_inst.operands[1] ), parse_nibble( bundle, ast_inst.operands[2] ));
+		{ "DRW",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_drw( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ), parse_nibble( ast_inst.operands[2], symbols ));
 		} },
 
-		{ "SKP",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_skip_if_key( parse_key( bundle, ast_inst.operands[0] ) );
+		{ "SKP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_skip_if_key( parse_key( ast_inst.operands[0], symbols ) );
 		} },
 
-		{ "SKNP", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			return Instruction::make_skip_not_key( parse_key( bundle, ast_inst.operands[0] ) );
+		{ "SKNP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			return Instruction::make_skip_not_key( parse_key( ast_inst.operands[0], symbols ) );
 		} },
 
-		{ "SNE",  []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "SNE",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return ( is_register( ast_inst.operands[1] ) ) ?
-				Instruction::make_skip_neq( parse_reg( bundle, ast_inst.operands[0] ), parse_reg( bundle, ast_inst.operands[1] ) ) :
-				Instruction::make_skip_neq( parse_reg( bundle, ast_inst.operands[0] ), parse_imm( bundle, ast_inst.operands[1] ) );
+				Instruction::make_skip_neq( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ) ) :
+				Instruction::make_skip_neq( parse_reg( ast_inst.operands[0] ), parse_imm( ast_inst.operands[1], symbols ) );
 		} },
 
-		{ "SE", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "SE", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return ( is_register( ast_inst.operands[1] ) ) ?
-				Instruction::make_skip_eq( parse_reg( bundle, ast_inst.operands[0] ), parse_reg( bundle, ast_inst.operands[1] ) ) :
-				Instruction::make_skip_eq( parse_reg( bundle, ast_inst.operands[0] ), parse_imm( bundle, ast_inst.operands[1] ) );
+				Instruction::make_skip_eq( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ) ) :
+				Instruction::make_skip_eq( parse_reg( ast_inst.operands[0] ), parse_imm( ast_inst.operands[1], symbols ) );
 		} },
 
-		{ "JP", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "JP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			if( is_register( ast_inst.operands[0] ) ) {
 
 				if( !is_identifier(ast_inst.operands[0], "V0") )
 					throw std::runtime_error("JP indexed must use V0");
 
-				return Instruction::make_jump_indexed( parse_addr( bundle, ast_inst.operands[1] ));
+				return Instruction::make_jump_indexed( parse_addr( ast_inst.operands[1], symbols ));
 			}
 
 			if( ast_inst.operands.size() != 1 )
 				throw std::runtime_error("Error in JP statement");
 
-			return Instruction::make_jump( parse_addr( bundle, ast_inst.operands[0] ));
+			return Instruction::make_jump( parse_addr( ast_inst.operands[0], symbols ));
 		} },
 
-		{ "ADD", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
-			if( is_identifier( ast_inst.operands[0], "I" ) ) return Instruction::make_add_i( parse_reg( bundle, ast_inst.operands[1] ) );
+		{ "ADD", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			if( is_identifier( ast_inst.operands[0], "I" ) ) return Instruction::make_add_i( parse_reg( ast_inst.operands[1] ) );
 
 			return ( is_register( ast_inst.operands[1] ) ) ?
-				Instruction::make_add( parse_reg( bundle, ast_inst.operands[0] ), parse_reg( bundle, ast_inst.operands[1] ) ) :
-				Instruction::make_add( parse_reg( bundle, ast_inst.operands[0] ), parse_imm( bundle, ast_inst.operands[1] ));
+				Instruction::make_add( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ) ) :
+				Instruction::make_add( parse_reg( ast_inst.operands[0] ), parse_imm( ast_inst.operands[1], symbols ));
 		} },
-		{ "LD", []( const IRBundle &bundle, const ASTInstruction &ast_inst ) {
+		{ "LD", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 
 			if( is_register( ast_inst.operands[0] ) ) {
 
-				if( is_identifier( ast_inst.operands[1], "K" ) ) return Instruction::make_store_key( parse_reg(bundle, ast_inst.operands[0]) );
-				if( is_identifier( ast_inst.operands[1], "DT" ) ) return Instruction::make_store_delay_timer( parse_reg(bundle, ast_inst.operands[0]) );
-				if( is_identifier( ast_inst.operands[1], "[I]" ) ) return Instruction::make_load_regs( parse_regcount(bundle, ast_inst.operands[0]) );
+				if( is_identifier( ast_inst.operands[1], "K" ) ) return Instruction::make_store_key( parse_reg( ast_inst.operands[0]) );
+				if( is_identifier( ast_inst.operands[1], "DT" ) ) return Instruction::make_store_delay_timer( parse_reg( ast_inst.operands[0]) );
+				if( is_identifier( ast_inst.operands[1], "[I]" ) ) return Instruction::make_load_regs( parse_regcount( ast_inst.operands[0], symbols) );
 
 				return( is_register( ast_inst.operands[1] ) ) ?
-					Instruction::make_ld( parse_reg(bundle, ast_inst.operands[0]), parse_reg(bundle, ast_inst.operands[1]) ) :
-					Instruction::make_ld( parse_reg(bundle, ast_inst.operands[0]), parse_imm(bundle, ast_inst.operands[1]) );
+					Instruction::make_ld( parse_reg( ast_inst.operands[0]), parse_reg( ast_inst.operands[1]) ) :
+					Instruction::make_ld( parse_reg( ast_inst.operands[0]), parse_imm( ast_inst.operands[1], symbols) );
 			}
 
-			if( is_identifier( ast_inst.operands[0], "DT" ) ) return Instruction::make_load_delay_timer( parse_reg(bundle, ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "ST" ) ) return Instruction::make_load_sound_timer( parse_reg(bundle, ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "F" ) ) return Instruction::make_sprite_for( parse_reg(bundle, ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "B" ) ) return Instruction::make_bcd( parse_reg(bundle, ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "[I]" ) ) return Instruction::make_save_regs( parse_regcount(bundle, ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "I" ) ) return Instruction::make_ld_i( parse_addr(bundle, ast_inst.operands[1]) );
+			if( is_identifier( ast_inst.operands[0], "DT" ) ) return Instruction::make_load_delay_timer( parse_reg( ast_inst.operands[1]) );
+			if( is_identifier( ast_inst.operands[0], "ST" ) ) return Instruction::make_load_sound_timer( parse_reg( ast_inst.operands[1]) );
+			if( is_identifier( ast_inst.operands[0], "F" ) ) return Instruction::make_sprite_for( parse_reg( ast_inst.operands[1]) );
+			if( is_identifier( ast_inst.operands[0], "B" ) ) return Instruction::make_bcd( parse_reg( ast_inst.operands[1]) );
+			if( is_identifier( ast_inst.operands[0], "[I]" ) ) return Instruction::make_save_regs( parse_regcount( ast_inst.operands[1], symbols ) );
+			if( is_identifier( ast_inst.operands[0], "I" ) ) return Instruction::make_ld_i( parse_addr( ast_inst.operands[1], symbols) );
 
 			throw std::runtime_error("Invalid LD form");
 		} },
 	};
 
 	return dispatcher;
+}
+
+uint16_t process_pass1( const ASTInstruction& instruction, uint16_t address, ASMSymbolTable& symbols )
+{
+	return address + 2;
+}
+
+uint16_t process_pass2( const ASTInstruction& instruction, uint16_t address, IRBundle& bundle )
+{
+	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
+	const auto& dispatcher = get_dispatcher();
+	auto entry = dispatcher.find( instruction.mnemonic );
+
+	if( entry == dispatcher.end() )
+		throw std::runtime_error( "Unknown mnemonic: " + instruction.mnemonic );
+
+	bundle.ir.elements.push_back( InstructionElement { address, entry->second( instruction, symbols ) } );
+
+	return address + 2;
+}
+
+uint16_t process_pass1( const ASTDirective& directive, uint16_t address, ASMSymbolTable& symbols )
+{
+	if( directive.name == ".DB" )
+		address += directive.args.size();
+
+	if( directive.name == ".ORG" )
+		address = evaluate_expression( directive.args[0], symbols );
+
+	return address;
+}
+
+uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundle& bundle )
+{
+	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
+
+	if( directive.name == ".DB" ) {
+
+		std::vector<uint8_t> byte_run;
+
+		for( size_t i = 0; i < directive.args.size(); ++i )
+			byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
+
+		bundle.ir.elements.push_back( DataElement {address, byte_run } );
+
+		address += directive.args.size();
+	}
+
+	if( directive.name == ".ORG" )
+		address = evaluate_expression( directive.args[0], symbols );
+
+	return address;
+}
+
+uint16_t process_pass1( const ASTEqu& equ, uint16_t address, ASMSymbolTable& symbols )
+{
+	symbols.define_constant( equ.name, evaluate_expression( equ.value, symbols ) );
+
+	return address;
+}
+
+uint16_t process_pass2( const ASTEqu&, uint16_t address, IRBundle& bundle )
+{
+	return address;
+}
+
+uint16_t process_pass1( const ASTEmpty&, uint16_t address, ASMSymbolTable& symbols )
+{
+	return address;
+}
+
+uint16_t process_pass2( const ASTEmpty&, uint16_t address, IRBundle& bundle )
+{
+	return address;
 }
 
 IRBundle Assembler::build_ir( ASMSource source )
@@ -264,86 +341,24 @@ IRBundle Assembler::build_ir( ASMSource source )
 
 	IRBundle bundle { {}, std::make_unique<ASMSymbolTable>() };
 
-	process_pass1( bundle, program );
-	process_pass2( bundle, program );
-
-	return bundle;
-}
-
-void Assembler::process_pass1( IRBundle& bundle, const ASTProgram& program )
-{
 	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
-	uint16_t address = 0x200;
 
-	for( const ASTElement& element : program )
-	{
-		if( element.label )
-			symbols.define_label( element.label->name, address );
-
-		std::visit( [&]( auto&& body )
-		{
-			using T = std::decay_t<decltype(body)>;
-
-			if constexpr ( std::is_same_v<T, ASTInstruction> )
-			{
-				address += 2;
-			}
-			else if constexpr ( std::is_same_v<T, ASTDirective> )
-			{
-				if( body.name == ".DB" )
-					address += body.args.size();
-				if( body.name == ".ORG" )
-					address = evaluate_expression( bundle, body.args[0] );
-			}
-			else if constexpr ( std::is_same_v<T, ASTEqu> )
-			{
-				symbols.define_constant( body.name, evaluate_expression( bundle, body.value ) );
-			}
-
-		}, element.body );
-	}
-}
-
-void Assembler::process_pass2( IRBundle& bundle, const ASTProgram& program )
-{
+	// Pass 1
 	uint16_t address = 0x200;
 
 	for( const ASTElement& element : program ) {
 
-		std::visit( [&]( auto&& body )
-		{
-			using T = std::decay_t<decltype(body)>;
+		if( element.label )
+			symbols.define_label( element.label->name, address );
 
-			if constexpr ( std::is_same_v<T, ASTInstruction> )
-			{
-				auto entry = get_dispatcher().find( body.mnemonic );
-
-				if( entry == get_dispatcher().end() )
-					throw std::runtime_error( "Unknown mnemonic: " + body.mnemonic );
-
-				bundle.ir.elements.push_back( InstructionElement { address, entry->second( bundle, body ) } );
-
-				address += 2;
-			}
-			else if constexpr ( std::is_same_v<T, ASTDirective> )
-			{
-				if( body.name == ".DB" ) {
-
-					std::vector<uint8_t> byte_run;
-
-					for( size_t i = 0; i < body.args.size(); ++i )
-						byte_run.emplace_back( evaluate_expression( bundle, body.args[i] ));
-
-					bundle.ir.elements.push_back( DataElement {address, byte_run } );
-
-					address += body.args.size();
-				}
-
-				if( body.name == ".ORG" )
-					address = evaluate_expression( bundle, body.args[0] );
-			}
-
-		}, element.body );
-
+		address = std::visit( [&]( auto&& body ) -> uint16_t { return process_pass1( body, address, symbols ); }, element.body );
 	}
+
+	// Pass 2
+	address = 0x200;
+
+	for( const ASTElement& element : program )
+		address = std::visit( [&]( auto&& body ) -> uint16_t { return process_pass2( body, address, bundle ); }, element.body );
+
+	return bundle;
 }
