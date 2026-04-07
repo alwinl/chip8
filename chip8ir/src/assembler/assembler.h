@@ -26,8 +26,6 @@
 #include "ir/ir_bundle.h"
 
 #include "assembler/cmdlineparser.h"
-#include "assembler/ast.h"
-#include "assembler/symbol_table.h"
 
 class Assembler
 {
