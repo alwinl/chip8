@@ -29,12 +29,7 @@
 IRBundle Disassembler::build_ir( const BinImage &binary )
 {
 	IRBundle bundle { {}, std::make_unique<DisasmSymbolTable>() };
-
-	// IRProgram ir {};
-	// DisamSymbolTable symbols = {};
 	DisasmMemory memory;
-
-
 
 	bundle.ir.origin = configuration.origin;
 	memory.bind( binary, configuration.origin );
@@ -99,6 +94,8 @@ void Disassembler::collect_instructions( IRBundle& bundle, DisasmMemory& memory 
 			}
 		}
 	}
+
+	symbols->sort_vectors();
 }
 
 void Disassembler::collect_data_bytes( IRBundle& bundle, DisasmMemory& memory )
