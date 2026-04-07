@@ -29,8 +29,6 @@
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 
-using Dispatcher = std::unordered_map<std::string, std::function<Instruction( const ASTInstruction &, ASMSymbolTable& )>>;
-
 class Assembler
 {
 public:
@@ -41,17 +39,6 @@ public:
 	IRBundle build_ir( ASMSource source );
 };
 
-
-uint16_t evaluate_expression( const ASTNumberExpr& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const ASTIdentifierExpr& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& symbols );
-
-Reg parse_reg( const ASTExpression& expr );
-Addr parse_addr( const ASTExpression& expr, const ASMSymbolTable &symbols );
-Imm parse_imm( const ASTExpression& expr, const ASMSymbolTable &symbols );
-Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols );
-Key parse_key( const ASTExpression& expr, const ASMSymbolTable &symbols );
-RegCount parse_regcount( const ASTExpression& expr, const ASMSymbolTable &symbols );
+using Dispatcher = std::unordered_map< std::string, std::function<Instruction( const ASTInstruction&, ASMSymbolTable& )> >;
 
 const Dispatcher& get_dispatcher();

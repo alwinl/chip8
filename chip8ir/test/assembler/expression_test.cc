@@ -22,6 +22,7 @@
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 #include "assembler/assembler.h"
+#include "assembler/expression.h"
 
 
 class ExpressionTest : public ::testing::Test {

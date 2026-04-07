@@ -33,6 +33,8 @@ add_library(
 	assembler/tokeniser.cc
 	assembler/parser.cc
 	assembler/symbol_table.cc
+	assembler/expression.cc
+	assembler/loader.cc
 
 	disassembler/disassembler.cc
 	disassembler/cmdlineparser.cc
