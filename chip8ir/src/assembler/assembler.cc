@@ -30,12 +30,12 @@ uint16_t evaluate_expression( const T&, const ASMSymbolTable& )
     return 0;
 }
 
-uint16_t evaluate_expression( const NumberExpr& expr, const ASMSymbolTable& symbols )
+uint16_t evaluate_expression( const ASTNumberExpr& expr, const ASMSymbolTable& symbols )
 {
 	return expr.value;
 }
 
-uint16_t evaluate_expression( const IdentifierExpr& expr, const ASMSymbolTable& symbols )
+uint16_t evaluate_expression( const ASTIdentifierExpr& expr, const ASMSymbolTable& symbols )
 {
 	return symbols.get_value( expr.text );
 }
@@ -63,29 +63,29 @@ uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& s
 
 bool is_register( const ASTExpression& expr )
 {
-    if( !std::holds_alternative<IdentifierExpr>(expr.expression) )
+    if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
         return false;
 
-    const auto& id = std::get<IdentifierExpr>(expr.expression).text;
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
     return !id.empty() && id[0] == 'V';
 }
 
 bool is_identifier( const ASTExpression& expr, std::string content )
 {
-    if( !std::holds_alternative<IdentifierExpr>(expr.expression) )
+    if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
         return false;
 
-    const auto& id = std::get<IdentifierExpr>(expr.expression).text;
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
     return !id.empty() && content == id;
 }
 
 
 Reg parse_reg( const ASTExpression& expr )
 {
-    if (!std::holds_alternative<IdentifierExpr>(expr.expression))
+    if (!std::holds_alternative<ASTIdentifierExpr>(expr.expression))
         throw std::runtime_error("Expected register");
 
-    const auto& id = std::get<IdentifierExpr>(expr.expression).text;
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
 
     if (id.size() < 2 || id[0] != 'V')
         throw std::runtime_error("Invalid register: " + id);

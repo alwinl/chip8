@@ -42,8 +42,8 @@ public:
 };
 
 
-uint16_t evaluate_expression( const NumberExpr& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const IdentifierExpr& expr, const ASMSymbolTable& symbols );
+uint16_t evaluate_expression( const ASTNumberExpr& expr, const ASMSymbolTable& symbols );
+uint16_t evaluate_expression( const ASTIdentifierExpr& expr, const ASMSymbolTable& symbols );
 uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols );
 uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& symbols );
 

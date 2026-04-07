@@ -37,7 +37,7 @@ TEST_F(ExpressionTest, Literal)
 {
     ASMSymbolTable symbols;
 
-    ASTExpression expr{ NumberExpr{42}, 0 };
+    ASTExpression expr{ ASTNumberExpr{42}, 0 };
 
     EXPECT_EQ(evaluate_expression(expr, symbols), 42);
 }
@@ -47,7 +47,7 @@ TEST_F(ExpressionTest, Identifier)
     ASMSymbolTable symbols;
     symbols.define_constant("FOO", 123);
 
-    ASTExpression expr{ IdentifierExpr{"FOO"}, 0 };
+    ASTExpression expr{ ASTIdentifierExpr{"FOO"}, 0 };
 
     EXPECT_EQ(evaluate_expression(expr, symbols), 123);
 }
@@ -56,8 +56,8 @@ TEST_F(ExpressionTest, BinaryAdd)
 {
     ASMSymbolTable symbols;
 
-    ASTExpression lhs{ NumberExpr{10}, 0 };
-    ASTExpression rhs{ NumberExpr{5}, 0 };
+    ASTExpression lhs{ ASTNumberExpr{10}, 0 };
+    ASTExpression rhs{ ASTNumberExpr{5}, 0 };
 
     ASTBinaryExpr bin{
         '+',
@@ -72,7 +72,7 @@ TEST_F(ExpressionTest, BinaryAdd)
 
 TEST_F(ExpressionTest, InvalidRegister)
 {
-	ASTExpression expr{ IdentifierExpr{"V99"}, 0 };
+	ASTExpression expr{ ASTIdentifierExpr{"V99"}, 0 };
 
     EXPECT_THROW(parse_reg(expr), std::runtime_error);
 }
@@ -81,8 +81,8 @@ TEST_F(ExpressionTest, DivisionByZero)
 {
     ASMSymbolTable symbols;
 
-    ASTExpression lhs{ NumberExpr{10}, 0 };
-    ASTExpression rhs{ NumberExpr{0}, 0 };
+    ASTExpression lhs{ ASTNumberExpr{10}, 0 };
+    ASTExpression rhs{ ASTNumberExpr{0}, 0 };
 
     ASTBinaryExpr bin{
         '/',

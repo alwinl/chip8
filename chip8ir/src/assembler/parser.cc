@@ -183,14 +183,14 @@ ASTExpression ASMParser::parse_primary()
 			);
 		}
 
-        return ASTExpression{ NumberExpr{ static_cast<uint32_t>(tmp) }, col };
+        return ASTExpression{ ASTNumberExpr{ static_cast<uint32_t>(tmp) }, col };
 	}
 
 	if( match(ASMToken::Type::IDENTIFIER) )
 	{
         int col = cursor->column;
         std::string lexeme = consume( ASMToken::Type::IDENTIFIER, "", "Expected identifier" ).lexeme;
-        return ASTExpression{ IdentifierExpr{ lexeme }, col };
+        return ASTExpression{ ASTIdentifierExpr{ lexeme }, col };
     }
 
     throw std::runtime_error(

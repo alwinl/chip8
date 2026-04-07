@@ -27,12 +27,12 @@
 
 class ASTExpression;
 
-struct IdentifierExpr
+struct ASTIdentifierExpr
 {
     std::string text;
 };
 
-struct NumberExpr
+struct ASTNumberExpr
 {
     uint32_t value;
 };
@@ -44,11 +44,11 @@ struct ASTBinaryExpr
     std::unique_ptr<ASTExpression> rhs;
 };
 
-using ExpressionType = std::variant<NumberExpr, IdentifierExpr, ASTBinaryExpr>;
+using ASTExpressionType = std::variant<ASTNumberExpr, ASTIdentifierExpr, ASTBinaryExpr>;
 
 struct ASTExpression
 {
-	ExpressionType expression;
+	ASTExpressionType expression;
 	int column;
 };
 
@@ -85,14 +85,13 @@ struct ASTEmpty
 {
 };
 
-using LabelType = std::optional<ASTLabel>;
-using BodyType = std::variant< ASTInstruction, ASTDirective, ASTEqu, ASTEmpty >;
+using ASTElementKind = std::variant< ASTInstruction, ASTDirective, ASTEqu, ASTEmpty >;
 
 struct ASTElement
 {
 	int line;
-    LabelType label;
-    BodyType body;
+    std::optional<ASTLabel> label;
+    ASTElementKind body;
 };
 
 using ASTProgram = std::vector<ASTElement>;

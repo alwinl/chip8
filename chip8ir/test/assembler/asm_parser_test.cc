@@ -86,7 +86,7 @@ TEST_F(ASMParserTest, SingleInstructionWithArgument)
 
 	ASSERT_EQ( instr_ptr->operands.size(), 1 );
 
-	auto operand_ptr = std::get_if<NumberExpr>(&instr_ptr->operands[0].expression);
+	auto operand_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand_ptr, nullptr);
 
 	EXPECT_EQ( operand_ptr->value, 0x300 );
@@ -113,11 +113,11 @@ TEST_F(ASMParserTest, SingleInstructionWithArguments)
 
 	ASSERT_EQ( instr_ptr->operands.size(), 2 );
 
-	auto operand1_ptr = std::get_if<IdentifierExpr>(&instr_ptr->operands[0].expression);
+	auto operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand1_ptr, nullptr);
 	EXPECT_EQ( operand1_ptr->text, "V0" );
 
-	auto operand2_ptr = std::get_if<NumberExpr>(&instr_ptr->operands[1].expression);
+	auto operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
 	ASSERT_NE(operand2_ptr, nullptr);
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
@@ -147,11 +147,11 @@ TEST_F(ASMParserTest, SingleInstructionWithLabelAndArguments)
 
 	ASSERT_EQ( instr_ptr->operands.size(), 2 );
 
-	auto operand1_ptr = std::get_if<IdentifierExpr>(&instr_ptr->operands[0].expression);
+	auto operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand1_ptr, nullptr);
 	EXPECT_EQ( operand1_ptr->text, "V0" );
 
-	auto operand2_ptr = std::get_if<NumberExpr>(&instr_ptr->operands[1].expression);
+	auto operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
 	ASSERT_NE(operand2_ptr, nullptr);
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
@@ -235,7 +235,7 @@ TEST_F(ASMParserTest, VariableDef)
 
 	EXPECT_EQ( instr_ptr->name, "X_POS" );
 
-	auto expr_ptr = std::get_if<NumberExpr>(&instr_ptr->value.expression);
+	auto expr_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->value.expression);
 	ASSERT_NE(expr_ptr, nullptr);
 	EXPECT_EQ( expr_ptr->value, 0x10 );
 }

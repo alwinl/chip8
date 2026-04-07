@@ -76,8 +76,8 @@ R"(start:
 		EXPECT_EQ( instr_ptr->mnemonic, "LD" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 2 );
-		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
-		EXPECT_EQ( get_operand<NumberExpr>(instr_ptr->operands[1])->value, 10 );
+		EXPECT_EQ( get_operand<ASTIdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
+		EXPECT_EQ( get_operand<ASTNumberExpr>(instr_ptr->operands[1])->value, 10 );
 	}
 	{
 		EXPECT_FALSE( program[2].label.has_value() );
@@ -88,8 +88,8 @@ R"(start:
 		EXPECT_EQ( instr_ptr->mnemonic, "ADD" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 2 );
-		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
-		EXPECT_EQ( get_operand<NumberExpr>(instr_ptr->operands[1])->value, 5 );
+		EXPECT_EQ( get_operand<ASTIdentifierExpr>(instr_ptr->operands[0])->text, "V0" );
+		EXPECT_EQ( get_operand<ASTNumberExpr>(instr_ptr->operands[1])->value, 5 );
 	}
 	{
 		EXPECT_FALSE( program[3].label.has_value() );
@@ -100,7 +100,7 @@ R"(start:
 		EXPECT_EQ( instr_ptr->mnemonic, "JP" );
 
 		ASSERT_EQ( instr_ptr->operands.size(), 1 );
-		EXPECT_EQ( get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "start" );
+		EXPECT_EQ( get_operand<ASTIdentifierExpr>(instr_ptr->operands[0])->text, "start" );
 	}
 }
 
@@ -124,9 +124,9 @@ R"(.DW 0x10, 0x20, 0x30
     EXPECT_EQ(dir_ptr->name, ".DW");
     ASSERT_EQ(dir_ptr->args.size(), 3);
 
-    EXPECT_EQ(get_operand<NumberExpr>(dir_ptr->args[0])->value, 0x10);
-    EXPECT_EQ(get_operand<NumberExpr>(dir_ptr->args[1])->value, 0x20);
-    EXPECT_EQ(get_operand<NumberExpr>(dir_ptr->args[2])->value, 0x30);
+    EXPECT_EQ(get_operand<ASTNumberExpr>(dir_ptr->args[0])->value, 0x10);
+    EXPECT_EQ(get_operand<ASTNumberExpr>(dir_ptr->args[1])->value, 0x20);
+    EXPECT_EQ(get_operand<ASTNumberExpr>(dir_ptr->args[2])->value, 0x30);
 }
 
 TEST_F(ASMParserIntegrationTest, VariableDefinitionEqu)
@@ -147,12 +147,12 @@ Y_POS EQU 0x20
     auto equ1 = std::get_if<ASTEqu>(&program[0].body);
     ASSERT_NE(equ1, nullptr);
     EXPECT_EQ(equ1->name, "X_POS");
-    EXPECT_EQ(get_operand<NumberExpr>(equ1->value)->value, 0x10);
+    EXPECT_EQ(get_operand<ASTNumberExpr>(equ1->value)->value, 0x10);
 
     auto equ2 = std::get_if<ASTEqu>(&program[1].body);
     ASSERT_NE(equ2, nullptr);
     EXPECT_EQ(equ2->name, "Y_POS");
-    EXPECT_EQ(get_operand<NumberExpr>(equ2->value)->value, 0x20);
+    EXPECT_EQ(get_operand<ASTNumberExpr>(equ2->value)->value, 0x20);
 }
 
 TEST_F(ASMParserIntegrationTest, CommentsAndWhitespace)
@@ -182,8 +182,8 @@ R"(start:          ; label comment
     ASSERT_NE(ld_ptr, nullptr);
     EXPECT_EQ(ld_ptr->mnemonic, "LD");
     ASSERT_EQ(ld_ptr->operands.size(), 2);
-    EXPECT_EQ(get_operand<IdentifierExpr>(ld_ptr->operands[0])->text, "V0");
-    EXPECT_EQ(get_operand<NumberExpr>(ld_ptr->operands[1])->value, 0x10);
+    EXPECT_EQ(get_operand<ASTIdentifierExpr>(ld_ptr->operands[0])->text, "V0");
+    EXPECT_EQ(get_operand<ASTNumberExpr>(ld_ptr->operands[1])->value, 0x10);
 
     // Full line comment should be skipped by tokeniser
 
@@ -192,7 +192,7 @@ R"(start:          ; label comment
     ASSERT_NE(jp_ptr, nullptr);
     EXPECT_EQ(jp_ptr->mnemonic, "JP");
     ASSERT_EQ(jp_ptr->operands.size(), 1);
-    EXPECT_EQ(get_operand<IdentifierExpr>(jp_ptr->operands[0])->text, "start");
+    EXPECT_EQ(get_operand<ASTIdentifierExpr>(jp_ptr->operands[0])->text, "start");
 }
 
 TEST_F(ASMParserIntegrationTest, SimpleExpressionOperands)
@@ -213,7 +213,7 @@ R"(LD V0, 10+5*2
     ASSERT_NE(instr_ptr, nullptr);
     ASSERT_EQ(instr_ptr->operands.size(), 2);
 
-    EXPECT_EQ(get_operand<IdentifierExpr>(instr_ptr->operands[0])->text, "V0");
+    EXPECT_EQ(get_operand<ASTIdentifierExpr>(instr_ptr->operands[0])->text, "V0");
 
     auto expr_ptr = std::get_if<ASTBinaryExpr>(&instr_ptr->operands[1].expression);
     ASSERT_NE(expr_ptr, nullptr);
@@ -222,7 +222,7 @@ R"(LD V0, 10+5*2
     EXPECT_EQ(expr_ptr->op, '+');
 
     // Left side = 10
-    auto lhs_num = std::get_if<NumberExpr>(&expr_ptr->lhs->expression);
+    auto lhs_num = std::get_if<ASTNumberExpr>(&expr_ptr->lhs->expression);
     ASSERT_NE(lhs_num, nullptr);
     EXPECT_EQ(lhs_num->value, 10);
 
@@ -230,6 +230,6 @@ R"(LD V0, 10+5*2
     auto rhs_bin = std::get_if<ASTBinaryExpr>(&expr_ptr->rhs->expression);
     ASSERT_NE(rhs_bin, nullptr);
     EXPECT_EQ(rhs_bin->op, '*');
-    EXPECT_EQ(std::get<NumberExpr>(rhs_bin->lhs->expression).value, 5);
-    EXPECT_EQ(std::get<NumberExpr>(rhs_bin->rhs->expression).value, 2);
+    EXPECT_EQ(std::get<ASTNumberExpr>(rhs_bin->lhs->expression).value, 5);
+    EXPECT_EQ(std::get<ASTNumberExpr>(rhs_bin->rhs->expression).value, 2);
 }

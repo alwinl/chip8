@@ -39,8 +39,8 @@ TEST_F(InstructionTest, LD_Immediate)
 
     ASTInstruction inst;
     inst.mnemonic = "LD";
-    inst.operands.emplace_back( ASTExpression{ IdentifierExpr{"V1"}, 0 } );
-    inst.operands.emplace_back( ASTExpression{ NumberExpr{42}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V1"}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{42}, 0 } );
 
     auto ir = get_dispatcher().at("LD")(inst, symbols);
 
@@ -53,8 +53,8 @@ TEST_F(InstructionTest, ADD_Register)
 
     ASTInstruction inst;
     inst.mnemonic = "ADD";
-    inst.operands.emplace_back( ASTExpression{ IdentifierExpr{"V1"}, 0 } );
-    inst.operands.emplace_back( ASTExpression{ IdentifierExpr{"V2"}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V1"}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V2"}, 0 } );
 
     auto ir = get_dispatcher().at("ADD")(inst, symbols);
 
@@ -67,7 +67,7 @@ TEST_F(InstructionTest, Jump)
 
     ASTInstruction inst;
     inst.mnemonic = "JP";
-    inst.operands.emplace_back( ASTExpression{ NumberExpr{0x300}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{0x300}, 0 } );
 
     auto ir = get_dispatcher().at("JP")(inst, symbols);
 
