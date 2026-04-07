@@ -22,6 +22,7 @@
 #include <regex>
 #include <unordered_map>
 #include <assert.h>
+#include <string>
 
 struct TokenMatcher
 {
@@ -43,19 +44,7 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
 };
 
-ASMTokens ASMTokeniser::tokenise( ASMSource source )
-{
-    ASMTokens tokens;
-
-	for( const auto& line : source )
-        tokenise_line( line.text, line.line_no, tokens );
-
-	tokens.push_back({ ASMToken::Type::END_OF_INPUT, "", 0, 0 });
-
-    return tokens;
-}
-
-void ASMTokeniser::tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
+void tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
 {
 	int cursor = 0;
 	auto end = input.cend();
@@ -77,7 +66,7 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, ASMToke
 			std::string lexeme = match[0];
 
 			if( ! match_entry.skip_token )
-				tokens.push_back( { match_entry.type, post_process( match_entry.type, lexeme ), line_no, cursor + 1 } );
+				tokens.push_back( { match_entry.type, lexeme, line_no, cursor + 1 } );
 
 			cursor += lexeme.size();
 			matched = true;
@@ -91,10 +80,14 @@ void ASMTokeniser::tokenise_line( const std::string& input, int line_no, ASMToke
 	}
 }
 
-std::string ASMTokeniser::post_process( ASMToken::Type type, std::string lexeme )
+ASMTokens tokenise_assembly( ASMSource source )
 {
-	if( type == ASMToken::Type::LABEL && lexeme.back() == ':' )
-        lexeme.pop_back();
+    ASMTokens tokens;
 
-    return lexeme;
+	for( const auto& line : source )
+        tokenise_line( line.text, line.line_no, tokens );
+
+	tokens.push_back({ ASMToken::Type::END_OF_INPUT, "", 0, 0 });
+
+    return tokens;
 }

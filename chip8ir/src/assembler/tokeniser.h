@@ -19,19 +19,7 @@
 
 #pragma once
 
-#include <string>
-
 #include "assembler/token.h"
 #include "ir/chip8formats.h"
 
-class ASMTokeniser
-{
-public:
-    ASMTokeniser() = default;
-
-    ASMTokens tokenise( ASMSource source );
-
-private:
-	void tokenise_line( const std::string&  input, int line_no, ASMTokens & tokens );
-    std::string post_process( ASMToken::Type type, std::string lexeme );
-};
+ASMTokens tokenise_assembly( ASMSource source );

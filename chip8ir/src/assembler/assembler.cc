@@ -101,7 +101,7 @@ uint16_t process_pass2( const ASTEmpty&, uint16_t address, IRBundle& bundle )
 
 IRBundle Assembler::build_ir( ASMSource source )
 {
-    ASMTokens tokens = ASMTokeniser().tokenise(source);
+    ASMTokens tokens = tokenise_assembly( source );
     ASTProgram program = ASMParser().parse_asm_tokens(tokens);
 
 	IRBundle bundle { {}, std::make_unique<ASMSymbolTable>() };

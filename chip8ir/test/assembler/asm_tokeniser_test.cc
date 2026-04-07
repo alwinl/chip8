@@ -25,7 +25,6 @@
 class ASMTokeniserTest : public ::testing::Test
 {
 protected:
-	ASMTokeniser tokeniser;
 	ASMSource source;
 
 	void SetUp() override {}
@@ -34,7 +33,7 @@ protected:
 
 TEST_F(ASMTokeniserTest, EmptyInput)
 {
-	ASMTokens tokens = tokeniser.tokenise( ASMSource {} );
+	ASMTokens tokens = tokenise_assembly( ASMSource {} );
 
     ASSERT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0].type, ASMToken::Type::END_OF_INPUT);
@@ -43,12 +42,12 @@ TEST_F(ASMTokeniserTest, EmptyInput)
 TEST_F(ASMTokeniserTest, LabelOnly)
 {
 	source.push_back( ASMLine { "start:", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_EQ(tokens.size(), 2);
 
     EXPECT_EQ(tokens[0].type, ASMToken::Type::LABEL);
-    EXPECT_EQ(tokens[0].lexeme, "start");
+    EXPECT_EQ(tokens[0].lexeme, "start:");
 
     EXPECT_EQ(tokens.back().type, ASMToken::Type::END_OF_INPUT);
 }
@@ -56,7 +55,7 @@ TEST_F(ASMTokeniserTest, LabelOnly)
 TEST_F(ASMTokeniserTest, InstructionWithArguments)
 {
 	source.push_back( ASMLine { "LD V0, 10", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_GE(tokens.size(), 4);
 
@@ -76,7 +75,7 @@ TEST_F(ASMTokeniserTest, InstructionWithArguments)
 TEST_F(ASMTokeniserTest, Directive)
 {
 	source.push_back( ASMLine { ".DB 0xFF, 0x01", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	ASMTokens tokens = tokenise_assembly( source );
 
     EXPECT_EQ(tokens[0].type, ASMToken::Type::DIRECTIVE);
     EXPECT_EQ(tokens[0].lexeme, ".DB");
@@ -89,7 +88,7 @@ TEST_F(ASMTokeniserTest, Directive)
 TEST_F(ASMTokeniserTest, CommentIsTokenised)
 {
 	source.push_back( ASMLine { "LD V0, 1 ; comment here", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	ASMTokens tokens = tokenise_assembly( source );
 
     bool found_comment = false;
     for (const auto& tok : tokens)
@@ -102,7 +101,7 @@ TEST_F(ASMTokeniserTest, CommentIsTokenised)
 TEST_F(ASMTokeniserTest, Operators)
 {
 	source.push_back( ASMLine { "+-*/", 1 } );
-	ASMTokens tokens = tokeniser.tokenise( source );
+	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_EQ(tokens.size(), 5);
 
