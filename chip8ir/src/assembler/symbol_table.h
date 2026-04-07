@@ -34,7 +34,7 @@ public:
 	void define_label( std::string name, uint16_t address );
 	void define_constant( std::string name, uint16_t value );
 
-	uint16_t get_value( std::string name );
+	uint16_t get_value( std::string name ) const;
 	std::string get_label( uint16_t address ) const;
 
 private:

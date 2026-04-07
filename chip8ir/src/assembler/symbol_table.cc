@@ -30,7 +30,7 @@ void ASMSymbolTable::define_constant( std::string name, uint16_t value )
 	value_map.insert( std::make_pair( name, value ));
 }
 
-uint16_t ASMSymbolTable::get_value( std::string name )
+uint16_t ASMSymbolTable::get_value( std::string name ) const
 {
 	if( value_map.find( name) == value_map.end() )
 		return -1;
