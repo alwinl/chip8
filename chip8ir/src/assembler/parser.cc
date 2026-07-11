@@ -163,6 +163,34 @@ ASTExpression ASMParser::parse_multiplicative()
 	return lhs;
 }
 
+unsigned long parse_number(const std::string& lexeme)
+{
+    if (lexeme == "#")
+        throw std::runtime_error("Invalid number: #");
+
+	std::string temp = lexeme;
+	int base = 10;
+
+	if( lexeme.starts_with("#") ) {
+		temp = lexeme.substr(1);
+		base = 16;
+	}
+
+    if (temp.starts_with("0b") || temp.starts_with("0B")) {
+        if (temp.size() <= 2)
+            throw std::runtime_error("Invalid binary literal: " + lexeme);
+        return std::stoul(temp.substr(2), nullptr, 2);
+	}
+
+    if (temp.starts_with("0x") || temp.starts_with("0X")) {
+        if (temp.size() <= 2)
+            throw std::runtime_error("Invalid binary literal: " + lexeme);
+        return std::stoul(temp.substr(2), nullptr, 16);
+	}
+
+    return std::stoul(temp, nullptr, base);
+}
+
 ASTExpression ASMParser::parse_primary()
 {
 	if( match(ASMToken::Type::NUMBER) )
@@ -172,7 +200,7 @@ ASTExpression ASMParser::parse_primary()
 
  		unsigned long tmp = 0;
 		try {
-			tmp = std::stoul( lexeme, nullptr, 0 ); // base 0 allows 0x for hex
+			tmp = parse_number( lexeme );
 		}
 		catch( const std::exception& e ) {
 			throw std::runtime_error(

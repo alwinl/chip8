@@ -37,10 +37,13 @@ std::vector<TokenMatcher> match_set =
     TokenMatcher{ std::regex(R"(^\s+)"), ASMToken::Type::WHITESPACE, true },
     TokenMatcher{ std::regex(R"(^[+/*\-])"), ASMToken::Type::OPERATOR, false },
 	TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), ASMToken::Type::ASSIGNMENT, false },
+	TokenMatcher{ std::regex(R"(^(OPTION|ALIGN|DB|DW)\b)", std::regex::icase), ASMToken::Type::DIRECTIVE, false },
     TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), ASMToken::Type::LABEL, false },
 	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::DIRECTIVE, false },
+	TokenMatcher{ std::regex(R"(^\[[A-Za-z_][A-Za-z_0-9]*\])"), ASMToken::Type::IDENTIFIER, false },
 	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::IDENTIFIER, false },
-    TokenMatcher{ std::regex(R"(^(0x[0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },
+	TokenMatcher{ std::regex(R"(^#(0[bB][01]+|0[xX][0-9A-Fa-f]+|[0-9A-Fa-f]+))"), ASMToken::Type::NUMBER, false },	// # prefixed (hex-style)
+	TokenMatcher{ std::regex(R"(^(0[bB][01]+|0[xX][0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },	// normal numbers
     TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
 };
 

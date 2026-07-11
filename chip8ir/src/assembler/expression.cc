@@ -83,13 +83,21 @@ Reg parse_reg( const ASTExpression& expr )
 
     const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
 
-    if (id.size() < 2 || id[0] != 'V')
+    if (id.size() != 2 || id[0] != 'V')
         throw std::runtime_error("Invalid register: " + id);
 
-    int index = std::stoi(id.substr(1));
+	char c = id[1];
 
-    if (index < 0 || index > 15)
-        throw std::runtime_error("Register out of range");
+    int index = 0;
+
+    if (c >= '0' && c <= '9')
+        index = c - '0';
+    else if (c >= 'A' && c <= 'F')
+        index = 10 + (c - 'A');
+    else if (c >= 'a' && c <= 'f')
+        index = 10 + (c - 'a');
+    else
+        throw std::runtime_error("Invalid register: " + id);
 
     return Reg{ static_cast<uint8_t>(index) };
 }
