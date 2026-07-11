@@ -7,8 +7,6 @@ struct Operand <<variant>>
 	+Addr     : struct { uint16_t value }
 	+Imm      : struct { uint8_t value  }
 	+Nibble   : struct { uint8_t value  }
-	+Key      : struct { uint8_t index  }
-	+RegCount : struct { uint8_t count  }
 }
 
 class Instruction <<IR>>
