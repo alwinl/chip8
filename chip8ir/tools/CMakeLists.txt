@@ -17,3 +17,4 @@
 # MA 02110-1301, USA.
 #
 
+add_executable(ShiftRegister shift_register.cc)
