@@ -115,8 +115,8 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     push_instruction( Instruction::make_jump_indexed(Addr{0x400}), { 0xB4, 0x00 });
     push_instruction( Instruction::make_rnd(Reg{1}, Imm{0xAA}), { 0xC1, 0xAA });
     push_instruction( Instruction::make_drw(Reg{2}, Reg{3}, Nibble{0xF}), { 0xD2, 0x3F });
-    push_instruction( Instruction::make_skip_if_key(Key{0x5}), { 0xE5, 0x9E });
-    push_instruction( Instruction::make_skip_not_key(Key{0x6}), { 0xE5, 0xA1 });
+    push_instruction( Instruction::make_skip_if_key(Reg{0x5}), { 0xE5, 0x9E });
+    push_instruction( Instruction::make_skip_not_key(Reg{0x6}), { 0xE5, 0xA1 });
     push_instruction( Instruction::make_load_delay_timer(Reg{0}), { 0xF0, 0x15 });
     push_instruction( Instruction::make_load_sound_timer(Reg{1}), { 0xF1, 0x18 });
     push_instruction( Instruction::make_store_key(Reg{2}), { 0xF2, 0x0A });
@@ -124,8 +124,8 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     push_instruction( Instruction::make_add_i(Reg{4}), { 0xF4, 0x1E });
     push_instruction( Instruction::make_sprite_for(Reg{5}), { 0xF5, 0x29 });
     push_instruction( Instruction::make_bcd(Reg{6}), { 0xF6, 0x33 });
-    push_instruction( Instruction::make_save_regs(RegCount{3}), { 0xF3, 0x55 });
-    push_instruction( Instruction::make_load_regs(RegCount{2}), { 0xF2, 0x65 });
+    push_instruction( Instruction::make_save_regs(Reg{3}), { 0xF3, 0x55 });
+    push_instruction( Instruction::make_load_regs(Reg{2}), { 0xF2, 0x65 });
 
     // Add some sample data bytes
     ir.elements.push_back(DataElement{addr, {0xDE, 0xAD, 0xBE, 0xEF}});

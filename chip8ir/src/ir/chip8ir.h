@@ -45,17 +45,13 @@ struct Reg      { uint8_t index;  }; // V0–VF
 struct Addr     { uint16_t value; }; // 0x000–0xFFF
 struct Imm      { uint8_t value;  }; // NN
 struct Nibble   { uint8_t value;  }; // N (sprite height)
-struct Key      { uint8_t index;  }; // key id
-struct RegCount { uint8_t count;  }; // 0 - 15
 
 inline bool operator==( const Reg& a, const Reg& b )           { return a.index == b.index; }
 inline bool operator==( const Addr& a, const Addr& b )         { return a.value == b.value; }
 inline bool operator==( const Imm a, const Imm& b )            { return a.value == b.value; }
 inline bool operator==( const Nibble& a, const Nibble& b )     { return a.value == b.value; }
-inline bool operator==( const Key& a, const Key& b )           { return a.index == b.index; }
-inline bool operator==( const RegCount& a, const RegCount& b ) { return a.count == b.count; }
 
-using Operand = std::variant< Reg, Addr, Imm, Nibble, Key, RegCount >;
+using Operand = std::variant< Reg, Addr, Imm, Nibble >;
 
 class Instruction
 {
@@ -85,8 +81,8 @@ public:
 	static Instruction make_rnd( Reg x, Imm byte )             { assert( x.index < 16 );                 return Instruction( Opcode::RND,       { x, byte } ); }
 	static Instruction make_drw( Reg x, Reg y, Nibble nibble ) { assert( x.index < 16 && y.index < 16 && nibble.value < 16 );
 		                                                                                                 return Instruction( Opcode::DRW,       { x, y, nibble } ); }
-	static Instruction make_skip_if_key( Key key )             { assert( key.index < 16 );               return Instruction( Opcode::SKP,       { key } ); }
-	static Instruction make_skip_not_key( Key key )            { assert( key.index < 16 );               return Instruction( Opcode::SKNP,      { key } ); }
+	static Instruction make_skip_if_key( Reg x )               { assert( x.index < 16 );                 return Instruction( Opcode::SKP,       { x } ); }
+	static Instruction make_skip_not_key( Reg x )              { assert( x.index < 16 );                 return Instruction( Opcode::SKNP,      { x } ); }
 	static Instruction make_load_delay_timer( Reg x )          { assert( x.index < 16 );                 return Instruction( Opcode::LD_DT,     { x } ); }
 	static Instruction make_load_sound_timer( Reg x )          { assert( x.index < 16 );                 return Instruction( Opcode::LD_ST,     { x } ); }
 	static Instruction make_store_key( Reg x )                 { assert( x.index < 16 );                 return Instruction( Opcode::ST_KEY,    { x } ); }
@@ -94,8 +90,8 @@ public:
 	static Instruction make_add_i( Reg x )                     { assert( x.index < 16 );                 return Instruction( Opcode::ADD_I,     { x } ); }
 	static Instruction make_sprite_for( Reg x )                { assert( x.index < 16 );                 return Instruction( Opcode::LD_SPRITE, { x } ); }
 	static Instruction make_bcd( Reg x )                       { assert( x.index < 16 );                 return Instruction( Opcode::BCD,       { x } ); }
-	static Instruction make_save_regs( RegCount rc )           { assert( rc.count < 16 );                return Instruction( Opcode::ST_REGS,   { rc } ); }
-	static Instruction make_load_regs( RegCount rc )           { assert( rc.count < 16 );                return Instruction( Opcode::LD_REGS,   { rc } ); }
+	static Instruction make_save_regs( Reg x )                 { assert( x.index < 16 );                 return Instruction( Opcode::ST_REGS,   { x } ); }
+	static Instruction make_load_regs( Reg x )                 { assert( x.index < 16 );                 return Instruction( Opcode::LD_REGS,   { x } ); }
 
 
 	Opcode opcode() const { return opcode_; }

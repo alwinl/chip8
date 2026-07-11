@@ -155,7 +155,6 @@ DecodeResult Decoder::decode_DRW( uint16_t address, uint16_t opcode )
 DecodeResult Decoder::decode_Misc( uint16_t address, uint16_t opcode )
 {
 	Reg reg_x { uint8_t((opcode >> 8) & 0xF) };
-	RegCount rc { uint8_t((opcode >> 8) & 0xF) };
 	uint16_t next_address( address + 2 );
 
 	switch( opcode & 0xFF ) {
@@ -189,11 +188,11 @@ DecodeResult Decoder::decode_Misc( uint16_t address, uint16_t opcode )
 
 	/* opcodes Fx34 .. Fx54 not defined */
 	case 0x55: // Fx55 - LD [I], Vx : Store registers V0 through Vx in memory starting at location I
-		return { Instruction::make_save_regs( rc ), AddressList{ next_address } };
+		return { Instruction::make_save_regs( reg_x ), AddressList{ next_address } };
 
 	/* opcodes Fx56 .. Fx64 not defined */
 	case 0x65: // Fx65 - LD Vx, [I] : Read registers V0 through Vx from memory starting at location I
-		return { Instruction::make_load_regs( rc ), AddressList{ next_address } };
+		return { Instruction::make_load_regs( reg_x ), AddressList{ next_address } };
 
 	/* opcodes Fx66 .. FxFF not defined */
 	default:
@@ -254,18 +253,18 @@ DecodeResult Decoder::decode_SNE( uint16_t address, uint16_t opcode )
 
 DecodeResult Decoder::decode_Key( uint16_t address, uint16_t opcode )
 {
-	Key key { uint8_t((opcode >> 8) & 0xF) };
+	Reg reg_x { uint8_t((opcode >> 8) & 0xF) };
 	uint16_t next_address = address + 2;
 	uint16_t skip_address = address + 4;
 
 	switch( opcode & 0xFF ) {
 	/* opcodes Ex00 .. Ex9D not defined */
 	case 0x9E: // Ex9E - SKP Vx : Skip next instruction if key with the value of Vx is pressed
-		return { Instruction::make_skip_if_key( key ), AddressList{ next_address, skip_address } };
+		return { Instruction::make_skip_if_key( reg_x ), AddressList{ next_address, skip_address } };
 
 	/* opcodes Ex9F .. ExA0 not defined */
 	case 0xA1: // ExA1 - SKNP Vx : Skip next instruction if key with the value of Vx is not pressed.
-		return { Instruction::make_skip_not_key( key ), AddressList{ next_address, skip_address } };
+		return { Instruction::make_skip_not_key( reg_x ), AddressList{ next_address, skip_address } };
 
 	/* opcodes ExA2 .. ExFF not defined */
 	default:

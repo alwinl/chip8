@@ -112,21 +112,3 @@ Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols )
 
     return Nibble{ static_cast<uint8_t>(val) };
 }
-
-Key parse_key( const ASTExpression& expr, const ASMSymbolTable &symbols )
-{
-    auto val = evaluate_expression(expr, symbols);
-    if (val > 0xF)
-		throw std::runtime_error("Key out of range");
-
-    return Key{ static_cast<uint8_t>(val) };
-}
-
-RegCount parse_regcount( const ASTExpression& expr, const ASMSymbolTable &symbols )
-{
-    auto val = evaluate_expression( expr, symbols );
-    if (val > 0xF)
-		throw std::runtime_error("RegCount out of range");
-
-    return RegCount{ static_cast<uint8_t>(val) };
-}

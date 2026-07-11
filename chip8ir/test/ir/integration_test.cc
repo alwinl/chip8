@@ -55,8 +55,8 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtrip)
 		Instruction::make_ld(Reg{2}, Imm{0xAA}),
 		Instruction::make_add(Reg{2}, Reg{7}),
 		Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5}),
-		Instruction::make_skip_if_key(Key{4}),
-		Instruction::make_save_regs(RegCount{8}),
+		Instruction::make_skip_if_key(Reg{4}),
+		Instruction::make_save_regs(Reg{8}),
 	};
 
 	for (const auto& instr : cases)
@@ -86,8 +86,8 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
 	ir.elements.push_back( InstructionElement{ 0x208, Instruction::make_ld(Reg{2}, Imm{0xAA}) } );
 	ir.elements.push_back( InstructionElement{ 0x20A, Instruction::make_add(Reg{2}, Reg{7}) });
 	ir.elements.push_back( InstructionElement{ 0x20C, Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5})});
-	ir.elements.push_back( InstructionElement{ 0x20E, Instruction::make_skip_if_key(Key{4})});
-	ir.elements.push_back( InstructionElement{ 0x210, Instruction::make_save_regs(RegCount{8})});
+	ir.elements.push_back( InstructionElement{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
+	ir.elements.push_back( InstructionElement{ 0x210, Instruction::make_save_regs(Reg{8})});
 
 	auto image = encoder.encode(ir);
 

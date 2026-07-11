@@ -176,11 +176,5 @@ void ASMEmitter::emit_operand( const EmitContext& ctx, const Operand& op )
 		else if constexpr( std::is_same_v<T, Nibble> )
 			ctx.os << "0x" << std::uppercase << std::hex << +v.value;
 
-		else if constexpr( std::is_same_v<T, Key> )
-			ctx.os << "K" << std::uppercase << std::hex << +v.index;
-
-		else if constexpr( std::is_same_v<T, RegCount> )
-			ctx.os << "V0-V" << std::uppercase << std::hex << +v.count;
-
-    }, op);
+	}, op);
 }

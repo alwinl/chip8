@@ -98,8 +98,8 @@ TEST_F(DecoderTest, decode_drawing_and_keys)
 	};
 
     expect( 0xD45F, "Opcode: DRW Operands: [V4, V5, 0xF]" );
-    expect( 0xE99E, "Opcode: SKP Operands: [K9]" );
-    expect( 0xE8A1, "Opcode: SKNP Operands: [K8]" );
+    expect( 0xE99E, "Opcode: SKP Operands: [V9]" );
+    expect( 0xE8A1, "Opcode: SKNP Operands: [V8]" );
 }
 
 TEST_F(DecoderTest, decode_fx_instructions)
@@ -120,8 +120,8 @@ TEST_F(DecoderTest, decode_fx_instructions)
     expect( 0xF21E, "Opcode: ADD I Operands: [V2]" );
     expect( 0xF229, "Opcode: LD F Operands: [V2]" );
     expect( 0xF233, "Opcode: LD B Operands: [V2]" );
-    expect( 0xF255, "Opcode: ST [I] Operands: [V0-V2]" );
-    expect( 0xF265, "Opcode: LD [I] Operands: [V0-V2]" );
+    expect( 0xF255, "Opcode: ST [I] Operands: [V2]" );
+    expect( 0xF265, "Opcode: LD [I] Operands: [V2]" );
 }
 
 TEST_F(DecoderTest, decode_invalids)

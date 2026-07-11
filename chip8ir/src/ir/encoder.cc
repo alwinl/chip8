@@ -112,14 +112,14 @@ void BinaryEncoder::encode_element( const InstructionElement& element, BinImage&
 	case Opcode::SKP:
 	case Opcode::SKNP:
 		assert( operands.size() == 1 );
-		result |= (std::get<Key>(operands[0]).index << 8);
+		result |= (std::get<Reg>(operands[0]).index << 8);
 		break;
 
 	// 1 operand; register count
 	case Opcode::ST_REGS:
 	case Opcode::LD_REGS:
 		assert( operands.size() == 1 );
-		result |= (std::get<RegCount>(operands[0]).count << 8);
+		result |= (std::get<Reg>(operands[0]).index << 8);
 		break;
 
 	// 2 operands; x register and immediate

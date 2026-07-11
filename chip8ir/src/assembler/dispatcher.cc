@@ -77,11 +77,11 @@ const Dispatcher& get_dispatcher()
 		} },
 
 		{ "SKP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
-			return Instruction::make_skip_if_key( parse_key( ast_inst.operands[0], symbols ) );
+			return Instruction::make_skip_if_key( parse_reg( ast_inst.operands[0] ) );
 		} },
 
 		{ "SKNP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
-			return Instruction::make_skip_not_key( parse_key( ast_inst.operands[0], symbols ) );
+			return Instruction::make_skip_not_key( parse_reg( ast_inst.operands[0] ) );
 		} },
 
 		{ "SNE",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
@@ -124,7 +124,7 @@ const Dispatcher& get_dispatcher()
 
 				if( is_identifier( ast_inst.operands[1], "K" ) ) return Instruction::make_store_key( parse_reg( ast_inst.operands[0]) );
 				if( is_identifier( ast_inst.operands[1], "DT" ) ) return Instruction::make_store_delay_timer( parse_reg( ast_inst.operands[0]) );
-				if( is_identifier( ast_inst.operands[1], "[I]" ) ) return Instruction::make_load_regs( parse_regcount( ast_inst.operands[0], symbols) );
+				if( is_identifier( ast_inst.operands[1], "[I]" ) ) return Instruction::make_load_regs( parse_reg( ast_inst.operands[0]) );
 
 				return( is_register( ast_inst.operands[1] ) ) ?
 					Instruction::make_ld( parse_reg( ast_inst.operands[0]), parse_reg( ast_inst.operands[1]) ) :
@@ -135,7 +135,7 @@ const Dispatcher& get_dispatcher()
 			if( is_identifier( ast_inst.operands[0], "ST" ) ) return Instruction::make_load_sound_timer( parse_reg( ast_inst.operands[1]) );
 			if( is_identifier( ast_inst.operands[0], "F" ) ) return Instruction::make_sprite_for( parse_reg( ast_inst.operands[1]) );
 			if( is_identifier( ast_inst.operands[0], "B" ) ) return Instruction::make_bcd( parse_reg( ast_inst.operands[1]) );
-			if( is_identifier( ast_inst.operands[0], "[I]" ) ) return Instruction::make_save_regs( parse_regcount( ast_inst.operands[1], symbols ) );
+			if( is_identifier( ast_inst.operands[0], "[I]" ) ) return Instruction::make_save_regs( parse_reg( ast_inst.operands[1] ) );
 			if( is_identifier( ast_inst.operands[0], "I" ) ) return Instruction::make_ld_i( parse_addr( ast_inst.operands[1], symbols) );
 
 			throw std::runtime_error("Invalid LD form");

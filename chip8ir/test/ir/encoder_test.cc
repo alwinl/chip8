@@ -145,7 +145,7 @@ TEST_F(EncoderTest, IgnoresElementAddresses)
 
 TEST_F(EncoderTest, Encodes_SKP)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_skip_if_key(Key{3}) } );
+    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_skip_if_key(Reg{3}) } );
 
     auto image = encoder.encode(ir);
 

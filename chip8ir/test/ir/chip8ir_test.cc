@@ -39,7 +39,7 @@ TEST_F(Chip8IRTest, Construction)
     auto instr_ld  = Instruction::make_ld( Reg {1}, Imm {0x42});
     auto instr_add = Instruction::make_add( Reg {1}, Imm {0x42});
     auto instr_drw = Instruction::make_drw( Reg {0}, Reg {1}, Nibble {5} );
-    auto instr_skp = Instruction::make_skip_if_key( Key {2} );
+    auto instr_skp = Instruction::make_skip_if_key( Reg {2} );
 
     // Check operand counts
     EXPECT_EQ(instr_cls.operands().size(), 0);
@@ -84,8 +84,6 @@ TEST_F(Chip8IRTest, FullOpcodeCoverage)
     Imm imm42{42};
     Addr addr200{0x200};
     Nibble nib5{5};
-    Key key2{2};
-    RegCount rc3{3};
 
     // List of all instructions to test
     std::vector<Instruction> instructions = {
@@ -112,8 +110,8 @@ TEST_F(Chip8IRTest, FullOpcodeCoverage)
         Instruction::make_jump_indexed(addr200),
         Instruction::make_rnd(r0, imm42),
         Instruction::make_drw(r0, r1, nib5),
-        Instruction::make_skip_if_key(key2),
-        Instruction::make_skip_not_key(key2),
+        Instruction::make_skip_if_key(r2),
+        Instruction::make_skip_not_key(r2),
         Instruction::make_load_delay_timer(r0),
         Instruction::make_store_key(r0),
         Instruction::make_store_delay_timer(r0),
@@ -121,8 +119,8 @@ TEST_F(Chip8IRTest, FullOpcodeCoverage)
         Instruction::make_add_i(r0),
         Instruction::make_sprite_for(r0),
         Instruction::make_bcd(r0),
-        Instruction::make_save_regs(rc3),
-        Instruction::make_load_regs(rc3)
+        Instruction::make_save_regs(r2),
+        Instruction::make_load_regs(r2)
     };
 
     for( auto& instr : instructions )
@@ -165,16 +163,12 @@ TEST_F(Chip8IRTest, OperandEqualityFuzz)
     Addr a100{100}, a200{200};
     Imm i42{42}, i99{99};
     Nibble n5{5}, n10{10};
-    Key k1{1}, k3{3};
-    RegCount rc2{2}, rc5{5};
 
     std::vector<Operand> operands = {
         r0, r1,
         a100, a200,
         i42, i99,
         n5, n10,
-        k1, k3,
-        rc2, rc5
     };
 
     // Test all pairwise combinations
@@ -199,10 +193,8 @@ TEST_F(Chip8IRTest, InstructionEqualityAndStream)
     Addr a100{100}, a200{200};
     Imm i42{42}, i99{99};
     Nibble n5{5}, n10{10};
-    Key k1{1}, k3{3};
-    RegCount rc2{2}, rc5{5};
 
-    std::vector<Operand> operands = {r0, r1, a100, a200, i42, i99, n5, n10, k1, k3, rc2, rc5};
+    std::vector<Operand> operands = {r0, r1, a100, a200, i42, i99, n5, n10};
 
     // Build instructions with 0, 1, 2, 3 operands
     std::vector<Instruction> instructions;
@@ -220,17 +212,13 @@ TEST_F(Chip8IRTest, InstructionEqualityAndStream)
             instructions.push_back(Instruction::make_sprite_for(std::get<Reg>(op)));
             instructions.push_back(Instruction::make_bcd(std::get<Reg>(op)));
             instructions.push_back(Instruction::make_store_key(std::get<Reg>(op)));
+            instructions.push_back(Instruction::make_skip_if_key(std::get<Reg>(op)));
+            instructions.push_back(Instruction::make_skip_not_key(std::get<Reg>(op)));
         } else if (std::holds_alternative<Addr>(op)) {
             instructions.push_back(Instruction::make_jump(std::get<Addr>(op)));
             instructions.push_back(Instruction::make_call(std::get<Addr>(op)));
             instructions.push_back(Instruction::make_ld_i(std::get<Addr>(op)));
             instructions.push_back(Instruction::make_jump_indexed(std::get<Addr>(op)));
-        } else if (std::holds_alternative<Key>(op)) {
-            instructions.push_back(Instruction::make_skip_if_key(std::get<Key>(op)));
-            instructions.push_back(Instruction::make_skip_not_key(std::get<Key>(op)));
-        } else if (std::holds_alternative<RegCount>(op)) {
-            instructions.push_back(Instruction::make_save_regs(std::get<RegCount>(op)));
-            instructions.push_back(Instruction::make_load_regs(std::get<RegCount>(op)));
         }
     }
 
