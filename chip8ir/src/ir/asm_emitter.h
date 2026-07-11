@@ -25,7 +25,7 @@
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
 #include "ir/ir_bundle.h"
-// #include "ir/label_resolver.h"
+
 class ASMEmitter
 {
 public:
