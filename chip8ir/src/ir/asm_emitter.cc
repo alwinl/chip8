@@ -127,8 +127,8 @@ void ASMEmitter::emit_mnemonic( const EmitContext& ctx, const Opcode& opcode )
 {
 	static std::array<std::string, opcode_count> mnemonics = {
 		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "LD", "ADD", "OR", "AND",
-		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I,",
+		"SNE", "SE", "LD", "ADD", "LD", "OR", "AND",
+		"XOR", "ADD", "SUB", "SHR", "SUBN", "SHL", "SNE", "LD I,",
 		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
 		"LD ST,", "ST K,", "ST DT,", "ADD I,",
 		"LD F,", "LD B,", "ST [I],", "LD [I],"
