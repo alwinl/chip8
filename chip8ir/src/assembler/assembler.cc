@@ -46,10 +46,10 @@ uint16_t process_pass2( const ASTInstruction& instruction, uint16_t address, IRB
 
 uint16_t process_pass1( const ASTDirective& directive, uint16_t address, ASMSymbolTable& symbols )
 {
-	if( directive.name == ".DB" )
+	if( (directive.name == ".DB") || (directive.name == "DB") )
 		address += directive.args.size();
 
-	if( directive.name == ".ORG" )
+	if( (directive.name == ".ORG") || (directive.name == "ORG") )
 		address = evaluate_expression( directive.args[0], symbols );
 
 	return address;
@@ -59,7 +59,7 @@ uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundl
 {
 	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
 
-	if( directive.name == ".DB" ) {
+	if( (directive.name == ".DB") || (directive.name == "DB") ) {
 
 		std::vector<uint8_t> byte_run;
 
@@ -71,7 +71,7 @@ uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundl
 		address += directive.args.size();
 	}
 
-	if( directive.name == ".ORG" )
+	if( (directive.name == ".ORG") || (directive.name == "ORG") )
 		address = evaluate_expression( directive.args[0], symbols );
 
 	return address;
