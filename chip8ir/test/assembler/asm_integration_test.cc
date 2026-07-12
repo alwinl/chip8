@@ -23,12 +23,6 @@
 #include "assembler/assembler.h"
 #include "assembler/loader.h"
 
-ASMSource make_source(const std::string& text)
-{
-    std::istringstream is(text);
-    return load_assembly_source(is);
-}
-
 class AssemblerIntegrationTest : public ::testing::Test {
 protected:
 	void SetUp() override {
@@ -36,11 +30,18 @@ protected:
 	}
 	void TearDown() override {
 	}
+
+	IRBundle bundle_builder(const std::string& text)
+	{
+	    std::istringstream is(text);
+		ASMSource source = load_assembly_source(is);
+		return Assembler().build_ir(source);
+	}
 };
 
 TEST_F(AssemblerIntegrationTest, SimpleProgram)
 {
-	ASMSource source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	.ORG 0x200
 	CLS
@@ -49,11 +50,6 @@ R"(
 	LD V2, 0xAA
 )"
 	);
-
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& ir = bundle.ir;
 
     ASSERT_EQ(ir.elements.size(), 4);
 
@@ -65,7 +61,7 @@ R"(
 
 TEST_F(AssemblerIntegrationTest, LabelResolution)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 start:
 	JP target
@@ -74,11 +70,6 @@ target:
 	RET
 )"
 	);
-
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& ir = bundle.ir;
 
     const auto& jp = std::get<InstructionElement>(ir.elements[0]);
 
@@ -90,17 +81,14 @@ target:
 
 TEST_F(AssemblerIntegrationTest, ExpressionEvaluation)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	value EQU 10
 	LD V1, value + 5
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& inst = std::get<InstructionElement>(bundle.ir.elements[0]);
+	const auto& inst = std::get<InstructionElement>(ir.elements[0]);
 
     auto operands = inst.instruction.operands();
 
@@ -109,67 +97,51 @@ R"(
 
 TEST_F(AssemblerIntegrationTest, SE_RegisterVsImmediate)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	SE V1, V2
 	SE V1, 10
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& ir = bundle.ir;
-
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::SE_Reg);
+	EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::SE_Reg);
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::SE_Imm);
 }
 
 TEST_F(AssemblerIntegrationTest, JumpIndexedVsDirect)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	JP V0, 0x300
 	JP 0x400
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& ir = bundle.ir;
-
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::JP_V0);
+	EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::JP_V0);
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::JP);
 }
 
 TEST_F(AssemblerIntegrationTest, OrgDirective)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	.ORG 0x300
 	CLS
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    EXPECT_EQ(std::get<InstructionElement>(bundle.ir.elements[0]).address, 0x300);
+    EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).address, 0x300);
 }
 
 TEST_F(AssemblerIntegrationTest, DataDirective)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	.DB 1,2,3,4
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    const auto& data = std::get<DataElement>(bundle.ir.elements[0]);
+    const auto& data = std::get<DataElement>(ir.elements[0]);
 
     ASSERT_EQ(data.byte_run.size(), 4);
     EXPECT_EQ(data.byte_run[0], 1);
@@ -178,7 +150,7 @@ R"(
 
 TEST_F(AssemblerIntegrationTest, CommentsAndWhitespace)
 {
-    auto source = make_source(
+	auto [ir, _] = bundle_builder(
 R"(
 	; full line comment
 	CLS ; inline comment
@@ -186,8 +158,5 @@ R"(
 )"
 	);
 
-    Assembler assembler;
-    auto bundle = assembler.build_ir(source);
-
-    ASSERT_EQ(bundle.ir.elements.size(), 1);
+    ASSERT_EQ(ir.elements.size(), 1);
 }
