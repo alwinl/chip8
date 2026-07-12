@@ -21,30 +21,39 @@
 
 #include "assembler/tokeniser.h"
 #include "assembler/parser.h"
-#include "assembler/symbol_table.h"
 #include "assembler/expression.h"
 #include "assembler/dispatcher.h"
 
-uint16_t process_pass1( const ASTInstruction& instruction, uint16_t address, ASMSymbolTable& symbols )
+IRBundle Assembler::build_ir( ASMSource source )
+{
+    ASMTokens tokens = tokenise_assembly( source );
+    ASTProgram program = ASMParser().parse_asm_tokens(tokens);
+
+	collect_symbols( program );
+	generate_ir( program );
+
+	return { ir, std::make_unique<ASMSymbolTable>(std::move(symbols)) };
+}
+
+void Assembler::collect_symbols( const ASTProgram& program )
+{
+	uint16_t address = 0x200;
+
+	for( const ASTElement& element : program ) {
+
+		if( element.label )
+			symbols.define_label( element.label->name, address );
+
+		address = std::visit( [&]( auto&& body ) -> uint16_t { return collect_symbols( body, address ); }, element.body );
+	}
+}
+
+uint16_t Assembler::collect_symbols( const ASTInstruction& instruction, uint16_t address )
 {
 	return address + 2;
 }
 
-uint16_t process_pass2( const ASTInstruction& instruction, uint16_t address, IRBundle& bundle )
-{
-	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
-	const auto& dispatcher = get_dispatcher();
-	auto entry = dispatcher.find( instruction.mnemonic );
-
-	if( entry == dispatcher.end() )
-		throw std::runtime_error( "Unknown mnemonic: " + instruction.mnemonic );
-
-	bundle.ir.elements.push_back( InstructionElement { address, entry->second( instruction, symbols ) } );
-
-	return address + 2;
-}
-
-uint16_t process_pass1( const ASTDirective& directive, uint16_t address, ASMSymbolTable& symbols )
+uint16_t Assembler::collect_symbols( const ASTDirective& directive, uint16_t address )
 {
 	if( (directive.name == ".DB") || (directive.name == "DB") )
 		address += directive.args.size();
@@ -55,10 +64,41 @@ uint16_t process_pass1( const ASTDirective& directive, uint16_t address, ASMSymb
 	return address;
 }
 
-uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundle& bundle )
+uint16_t Assembler::collect_symbols( const ASTEqu& equ, uint16_t address )
 {
-	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
+	symbols.define_constant( equ.name, evaluate_expression( equ.value, symbols ) );
 
+	return address;
+}
+
+uint16_t Assembler::collect_symbols( const ASTEmpty&, uint16_t address )
+{
+	return address;
+}
+
+void Assembler::generate_ir( const ASTProgram& program )
+{
+	uint16_t address = 0x200;
+
+	for( const ASTElement& element : program )
+		address = std::visit( [&]( auto&& body ) -> uint16_t { return generate_ir( body, address ); }, element.body );
+}
+
+uint16_t Assembler::generate_ir( const ASTInstruction& instruction, uint16_t address )
+{
+	const auto& dispatcher = get_dispatcher();
+	auto entry = dispatcher.find( instruction.mnemonic );
+
+	if( entry == dispatcher.end() )
+		throw std::runtime_error( "Unknown mnemonic: " + instruction.mnemonic );
+
+	ir.elements.push_back( InstructionElement { address, entry->second( instruction, symbols ) } );
+
+	return address + 2;
+}
+
+uint16_t Assembler::generate_ir( const ASTDirective& directive, uint16_t address )
+{
 	if( (directive.name == ".DB") || (directive.name == "DB") ) {
 
 		std::vector<uint8_t> byte_run;
@@ -66,7 +106,7 @@ uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundl
 		for( size_t i = 0; i < directive.args.size(); ++i )
 			byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
 
-		bundle.ir.elements.push_back( DataElement {address, byte_run } );
+		ir.elements.push_back( DataElement {address, byte_run } );
 
 		address += directive.args.size();
 	}
@@ -77,53 +117,12 @@ uint16_t process_pass2( const ASTDirective& directive, uint16_t address, IRBundl
 	return address;
 }
 
-uint16_t process_pass1( const ASTEqu& equ, uint16_t address, ASMSymbolTable& symbols )
-{
-	symbols.define_constant( equ.name, evaluate_expression( equ.value, symbols ) );
-
-	return address;
-}
-
-uint16_t process_pass2( const ASTEqu&, uint16_t address, IRBundle& bundle )
+uint16_t Assembler::generate_ir( const ASTEqu&, uint16_t address )
 {
 	return address;
 }
 
-uint16_t process_pass1( const ASTEmpty&, uint16_t address, ASMSymbolTable& symbols )
+uint16_t Assembler::generate_ir( const ASTEmpty&, uint16_t address )
 {
 	return address;
-}
-
-uint16_t process_pass2( const ASTEmpty&, uint16_t address, IRBundle& bundle )
-{
-	return address;
-}
-
-IRBundle Assembler::build_ir( ASMSource source )
-{
-    ASMTokens tokens = tokenise_assembly( source );
-    ASTProgram program = ASMParser().parse_asm_tokens(tokens);
-
-	IRBundle bundle { {}, std::make_unique<ASMSymbolTable>() };
-
-	ASMSymbolTable& symbols = static_cast<ASMSymbolTable&>(*bundle.resolver);
-
-	// Pass 1
-	uint16_t address = 0x200;
-
-	for( const ASTElement& element : program ) {
-
-		if( element.label )
-			symbols.define_label( element.label->name, address );
-
-		address = std::visit( [&]( auto&& body ) -> uint16_t { return process_pass1( body, address, symbols ); }, element.body );
-	}
-
-	// Pass 2
-	address = 0x200;
-
-	for( const ASTElement& element : program )
-		address = std::visit( [&]( auto&& body ) -> uint16_t { return process_pass2( body, address, bundle ); }, element.body );
-
-	return bundle;
 }

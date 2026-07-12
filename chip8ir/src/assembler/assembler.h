@@ -20,12 +20,15 @@
 #pragma once
 
 #include <unordered_map>
+#include <cstdint>
 
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
 #include "ir/ir_bundle.h"
 
 #include "assembler/cmdlineparser.h"
+#include "assembler/symbol_table.h"
+#include "assembler/ast.h"
 
 class Assembler
 {
@@ -35,4 +38,20 @@ public:
 	void configure( const ChasmCmdLineParser& cmd ) {};
 
 	IRBundle build_ir( ASMSource source );
+
+private:
+	IRProgram ir;
+	ASMSymbolTable symbols;
+
+	void collect_symbols( const ASTProgram& program );
+	uint16_t collect_symbols( const ASTInstruction& instruction, uint16_t address );
+	uint16_t collect_symbols( const ASTDirective& directive, uint16_t address );
+	uint16_t collect_symbols( const ASTEqu& equ, uint16_t address );
+	uint16_t collect_symbols( const ASTEmpty&, uint16_t address );
+
+	void generate_ir( const ASTProgram& program );
+	uint16_t generate_ir( const ASTInstruction& instruction, uint16_t address );
+	uint16_t generate_ir( const ASTDirective& directive, uint16_t address );
+	uint16_t generate_ir( const ASTEqu&, uint16_t address );
+	uint16_t generate_ir( const ASTEmpty&, uint16_t address );
 };

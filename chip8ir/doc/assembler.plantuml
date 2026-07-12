@@ -4,19 +4,21 @@ title Assembler sequence
 actor User
 participant Assembler
 participant Tokeniser
-participant Parser
-participant IRGenerator
+participant ASMParser
 
 User -> Assembler ++: build_ir( ASMSource )
 
-Assembler -> Tokeniser ++ : tokenise( ASMSource)
-return TokenList
+Assembler -> Tokeniser ++ : tokenise_assembly( ASMSource)
+return ASMTokens
 
-Assembler -> Parser ++ : parse( TokenList )
-return ParseTree
+Assembler -> ASMParser ++ : parse_asm_tokens( ASMTokens )
+return ASTProgram
 
-Assembler -> IRGenerator ++ : generate( ParseTree )
-return IRProgram
+Assembler ->Assembler ++ : collect_symbols( ASTProgram )
+return
+
+Assembler -> Assembler ++ : generate_ir( ASTProgram )
+return
 
 return IRProgram
 
