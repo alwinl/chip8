@@ -36,10 +36,10 @@ int main( int argc, char ** argv )
 // 		ir.origin = 0x200;
 
 // 		// Add some instructions
-// 		ir.elements.push_back( InstructionElement{0x200, Instruction::make_ld( Reg{0}, Imm{5} )} );
-// 		ir.elements.push_back( InstructionElement{0x202, Instruction::make_skip_eq( Reg{0}, Imm{5} )} );
-// 		ir.elements.push_back( InstructionElement{0x204, Instruction::make_jump( Addr{ 0x208} )} );
-// 		ir.elements.push_back( InstructionElement{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
+// 		ir.elements.push_back( IRInstruction{0x200, Instruction::make_ld( Reg{0}, Imm{5} )} );
+// 		ir.elements.push_back( IRInstruction{0x202, Instruction::make_skip_eq( Reg{0}, Imm{5} )} );
+// 		ir.elements.push_back( IRInstruction{0x204, Instruction::make_jump( Addr{ 0x208} )} );
+// 		ir.elements.push_back( IRInstruction{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
 // 	}
 
 // 	void TearDown() override {

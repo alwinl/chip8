@@ -71,7 +71,7 @@ void Disassembler::collect_instructions( IRBundle& bundle, DisasmMemory& memory 
 
 			memory.mark_instruction( address );
 
-			bundle.ir.elements.push_back( InstructionElement { address, result.instruction } );
+			bundle.ir.elements.push_back( IRInstruction { address, result.instruction } );
 
 			for( auto next_address : result.next_addresses )
 				address_stack.push( next_address );
@@ -109,13 +109,13 @@ void Disassembler::collect_data_bytes( IRBundle& bundle, DisasmMemory& memory )
 	auto flush = [&]()
 	{
 		if( !datarun.empty() ) {
-			bundle.ir.elements.push_back( DataElement { run_start, datarun } );
+			bundle.ir.elements.push_back( IRDataBlock { run_start, datarun } );
 			datarun.clear();
 		}
 	};
 
 	// The raw bytes that have not been marked as instruction bytes are thus data bytes
-	// Chunk them together into DataElement objects
+	// Chunk them together into IRDataBlock objects
 
     for( uint16_t addr = start; addr < end; ++addr ) {
 

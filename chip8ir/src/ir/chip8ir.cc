@@ -55,7 +55,7 @@ bool operator==( const IRElement& a, const IRElement& b )
 	);
 }
 
-bool operator==( const DataElement& a, const DataElement& b )
+bool operator==( const IRDataBlock& a, const IRDataBlock& b )
 {
 	if( a.address != b.address )
 		return false;
@@ -70,7 +70,7 @@ bool operator==( const DataElement& a, const DataElement& b )
 	return true;
 }
 
-bool operator==( const InstructionElement& a, const InstructionElement& b )
+bool operator==( const IRInstruction& a, const IRInstruction& b )
 {
 	if( a.address != b.address )
 		return false;
@@ -81,39 +81,6 @@ bool operator==( const InstructionElement& a, const InstructionElement& b )
 	return true;
 }
 
-bool operator==(const Instruction& a, const Instruction& b)
-{
-    if( a.opcode_ != b.opcode_ )
-        return false;
-
-    if( a.operand_count_ != b.operand_count_ )
-        return false;
-
-    for( size_t i = 0; i < a.operand_count_; ++i )
-		if( !(a.operands_[i] == b.operands_[i]) )
-			return false;
-
-    return true;
-}
-
-bool operator==( const Operand& a, const Operand& b )
-{
-    if( a.index() != b.index() )
-		return false;
-
-    return std::visit(
-		[]( auto&& lhs, auto&& rhs ) -> bool
-		{
-			using L = std::decay_t<decltype(lhs)>;
-			using R = std::decay_t<decltype(rhs)>;
-
-			if constexpr (!std::is_same_v<L,R>)
-				return false;
-			else
-				return lhs == rhs;
-    	}, a, b
-	);
-}
 
 
 std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
@@ -144,7 +111,7 @@ std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
 // {
 // }
 
-std::ostream& operator<<(std::ostream& os, const DataElement& data_element)
+std::ostream& operator<<(std::ostream& os, const IRDataBlock& data_element)
 {
 	os << "{ \"address\": \""
 		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +data_element.address
@@ -163,7 +130,7 @@ std::ostream& operator<<(std::ostream& os, const DataElement& data_element)
 	return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const InstructionElement& instr_element)
+std::ostream& operator<<(std::ostream& os, const IRInstruction& instr_element)
 {
 	os << "{ \"address\": \""
 		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +instr_element.address
@@ -174,70 +141,4 @@ std::ostream& operator<<(std::ostream& os, const InstructionElement& instr_eleme
 	os << "}";
 
 	return os;
-}
-
-
-std::ostream& operator<<(std::ostream& os, const Instruction& instr)
-{
-    os << instr.opcode() << " Operands: [";
-
-    bool first = true;
-    for( auto& op : instr.operands() )
-	{
-        if(!first)
-			os << ", ";
-		else
-			first = false;
-
-        os << op;
-    }
-
-    os << "]";
-
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Opcode& opcode )
-{
-	static std::array<std::string, opcode_count> mnemonics = {
-		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "SE", "LD", "ADD", "LD", "OR", "AND",
-		"XOR", "ADD", "SUB", "SHR", "SUBN", "SHL", "SNE", "LD I",
-		"JP V0", "RND", "DRW", "SKP", "SKNP", "LD DT",
-		"LD ST", "ST K", "ST DT", "ADD I",
-		"LD F", "LD B", "ST [I]", "LD [I]"
-	};
-
-    os << "Opcode: " << mnemonics[static_cast<int>(opcode)];
-
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Operand& op)
-{
-    std::visit( [&os](auto&& v)
-	{
-        using T = std::decay_t<decltype(v)>;
-
-		auto flags = os.flags();
-		auto fill  = os.fill();
-
-		if constexpr( std::is_same_v<T, Reg> )
-			os << "V" << std::uppercase << std::hex << +v.index;
-
-		else if constexpr( std::is_same_v<T, Addr> )
-			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
-
-		else if constexpr( std::is_same_v<T, Imm> )
-			os << "#" << std::dec << +v.value;
-
-		else if constexpr( std::is_same_v<T, Nibble> )
-			os << "0x" << std::uppercase << std::hex << +v.value;
-
-		os.fill(fill);
-		os.flags(flags);
-
-    }, op);
-
-    return os;
 }

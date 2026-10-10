@@ -62,7 +62,7 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtrip)
 	for (const auto& instr : cases)
 	{
 		IRProgram ir;
-		ir.elements.push_back( InstructionElement{ 0x200, instr });
+		ir.elements.push_back( IRInstruction{ 0x200, instr });
 
 		auto image = encoder.encode(ir);
 
@@ -80,14 +80,14 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
 {
 	IRProgram ir;
 
-	ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_clear() } );
-	ir.elements.push_back( InstructionElement{ 0x202, Instruction::make_jump(Addr{0x208}) } );
-	ir.elements.push_back( DataElement{ 0x204, { 0x01, 0x02, 0x03, 0x04 } } );
-	ir.elements.push_back( InstructionElement{ 0x208, Instruction::make_ld(Reg{2}, Imm{0xAA}) } );
-	ir.elements.push_back( InstructionElement{ 0x20A, Instruction::make_add(Reg{2}, Reg{7}) });
-	ir.elements.push_back( InstructionElement{ 0x20C, Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5})});
-	ir.elements.push_back( InstructionElement{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
-	ir.elements.push_back( InstructionElement{ 0x210, Instruction::make_save_regs(Reg{8})});
+	ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+	ir.elements.push_back( IRInstruction{ 0x202, Instruction::make_jump(Addr{0x208}) } );
+	ir.elements.push_back( IRDataBlock{ 0x204, { 0x01, 0x02, 0x03, 0x04 } } );
+	ir.elements.push_back( IRInstruction{ 0x208, Instruction::make_ld(Reg{2}, Imm{0xAA}) } );
+	ir.elements.push_back( IRInstruction{ 0x20A, Instruction::make_add(Reg{2}, Reg{7}) });
+	ir.elements.push_back( IRInstruction{ 0x20C, Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5})});
+	ir.elements.push_back( IRInstruction{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
+	ir.elements.push_back( IRInstruction{ 0x210, Instruction::make_save_regs(Reg{8})});
 
 	auto image = encoder.encode(ir);
 

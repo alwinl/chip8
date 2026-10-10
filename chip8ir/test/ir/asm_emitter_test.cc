@@ -43,10 +43,10 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 
     ir.origin = 0x200;
 
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_clear() } );
-    ir.elements.push_back( InstructionElement{ 0x202, Instruction::make_jump( Addr {0x202} ) } );
-    ir.elements.push_back( InstructionElement{ 0x204, Instruction::make_sprite_for( Reg {4} ) } );
-    ir.elements.push_back( DataElement{ 0x206, { 0x12, 0x34, 0x56, 0x78 } } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+    ir.elements.push_back( IRInstruction{ 0x202, Instruction::make_jump( Addr {0x202} ) } );
+    ir.elements.push_back( IRInstruction{ 0x204, Instruction::make_sprite_for( Reg {4} ) } );
+    ir.elements.push_back( IRDataBlock{ 0x206, { 0x12, 0x34, 0x56, 0x78 } } );
 
 	resolver.add( 0x202, "LABEL0" );
 	resolver.add( 0x204, "DATA0" );
@@ -85,7 +85,7 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     uint16_t addr = ir.origin;
 
     auto push_instruction = [&](Instruction inst, std::vector<uint8_t> dummy_bytes = {0x12,0x34}) {
-        ir.elements.push_back(InstructionElement{addr, inst});
+        ir.elements.push_back(IRInstruction{addr, inst});
         image.insert(image.end(), dummy_bytes.begin(), dummy_bytes.end());
         addr += 2;
     };
@@ -128,7 +128,7 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
     push_instruction( Instruction::make_load_regs(Reg{2}), { 0xF2, 0x65 });
 
     // Add some sample data bytes
-    ir.elements.push_back(DataElement{addr, {0xDE, 0xAD, 0xBE, 0xEF}});
+    ir.elements.push_back(IRDataBlock{addr, {0xDE, 0xAD, 0xBE, 0xEF}});
     image.insert(image.end(), {0xDE, 0xAD, 0xBE, 0xEF});
     addr += 4;
 

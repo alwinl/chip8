@@ -30,7 +30,7 @@ namespace {
 	{
 		Instruction generated = generate_instruction(instruction, symbols);
 
-		ir.elements.push_back( InstructionElement{address, std::move(generated)});
+		ir.elements.push_back( IRInstruction{address, std::move(generated)});
 
 		return address + 2;
 	}
@@ -44,7 +44,7 @@ namespace {
 			for( size_t i = 0; i < directive.args.size(); ++i )
 				byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
 
-			ir.elements.push_back( DataElement {address, byte_run } );
+			ir.elements.push_back( IRDataBlock {address, byte_run } );
 
 			address += directive.args.size();
 		}

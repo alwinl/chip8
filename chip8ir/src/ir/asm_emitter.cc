@@ -48,7 +48,7 @@ void ASMEmitter::emit_header( const EmitContext& ctx, std::string name )
 	ctx.os << "\n\n";
 }
 
-void ASMEmitter::emit_element( const EmitContext& ctx, const InstructionElement& element )
+void ASMEmitter::emit_element( const EmitContext& ctx, const IRInstruction& element )
 {
 	const Instruction& instruction = element.instruction;
 
@@ -72,7 +72,7 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const InstructionElement&
 	ctx.os << "\n";
 }
 
-void ASMEmitter::emit_element( const EmitContext& ctx, const DataElement& element )
+void ASMEmitter::emit_element( const EmitContext& ctx, const IRDataBlock& element )
 {
 	if( ctx.mode == OutputMode::Listing )
 		emit_address( ctx, element.address );

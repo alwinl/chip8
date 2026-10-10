@@ -57,7 +57,7 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 
 	for (const auto& element : ir.elements) {
 
-		if( auto* instruction_element = std::get_if<InstructionElement>( &element ) ) {
+		if( auto* instruction_element = std::get_if<IRInstruction>( &element ) ) {
 
 			CFGNode node;
 

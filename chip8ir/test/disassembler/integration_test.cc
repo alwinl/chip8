@@ -44,17 +44,17 @@ TEST_F(IntegrationTest, straight_line_with_data)
     ASSERT_EQ(ir.elements.size(), 3);
 
     // Instruction 1
-    auto* i0 = std::get_if<InstructionElement>(&ir.elements[0]);
+    auto* i0 = std::get_if<IRInstruction>(&ir.elements[0]);
     ASSERT_NE(i0, nullptr);
     EXPECT_EQ(i0->address, 0x200);
 
     // Instruction 2
-    auto* i1 = std::get_if<InstructionElement>(&ir.elements[1]);
+    auto* i1 = std::get_if<IRInstruction>(&ir.elements[1]);
     ASSERT_NE(i1, nullptr);
     EXPECT_EQ(i1->address, 0x202);
 
     // Data
-    auto* d = std::get_if<DataElement>(&ir.elements[2]);
+    auto* d = std::get_if<IRDataBlock>(&ir.elements[2]);
     ASSERT_NE(d, nullptr);
     EXPECT_EQ(d->address, 0x204);
     EXPECT_EQ(d->byte_run.size(), 4);
@@ -73,9 +73,9 @@ TEST_F(IntegrationTest, conditional_skip)
     // All three instructions must be discovered
     ASSERT_EQ(ir.elements.size(), 3);
 
-    auto* i0 = std::get_if<InstructionElement>(&ir.elements[0]);
-    auto* i1 = std::get_if<InstructionElement>(&ir.elements[1]);
-    auto* i2 = std::get_if<InstructionElement>(&ir.elements[2]);
+    auto* i0 = std::get_if<IRInstruction>(&ir.elements[0]);
+    auto* i1 = std::get_if<IRInstruction>(&ir.elements[1]);
+    auto* i2 = std::get_if<IRInstruction>(&ir.elements[2]);
 
     ASSERT_NE(i0, nullptr);
     ASSERT_NE(i1, nullptr);
@@ -99,9 +99,9 @@ TEST_F(IntegrationTest, jump_skips_data)
 
     ASSERT_EQ(ir.elements.size(), 3);
 
-    auto* i0 = std::get_if<InstructionElement>(&ir.elements[0]);
-    auto* d  = std::get_if<DataElement>(&ir.elements[1]);
-    auto* i1 = std::get_if<InstructionElement>(&ir.elements[2]);
+    auto* i0 = std::get_if<IRInstruction>(&ir.elements[0]);
+    auto* d  = std::get_if<IRDataBlock>(&ir.elements[1]);
+    auto* i1 = std::get_if<IRInstruction>(&ir.elements[2]);
 
     ASSERT_NE(i0, nullptr);
     ASSERT_NE(d, nullptr);
@@ -128,7 +128,7 @@ TEST_F(IntegrationTest, no_overlapping_elements)
 
     for (auto& el : ir.elements) {
         std::visit([&](auto& e) {
-            if constexpr (std::is_same_v<std::decay_t<decltype(e)>, InstructionElement>) {
+            if constexpr (std::is_same_v<std::decay_t<decltype(e)>, IRInstruction>) {
                 EXPECT_TRUE(covered.insert(e.address).second);
                 EXPECT_TRUE(covered.insert(e.address + 1).second);
             } else {
@@ -151,7 +151,7 @@ TEST_F(IntegrationTest, invalid_opcode_terminates_code_path)
 
     ASSERT_EQ(ir.elements.size(), 3);
 
-    EXPECT_TRUE(std::holds_alternative<InstructionElement>(ir.elements[0]));
-    EXPECT_TRUE(std::holds_alternative<InstructionElement>(ir.elements[1]));
-    EXPECT_TRUE(std::holds_alternative<DataElement>(ir.elements[2]));
+    EXPECT_TRUE(std::holds_alternative<IRInstruction>(ir.elements[0]));
+    EXPECT_TRUE(std::holds_alternative<IRInstruction>(ir.elements[1]));
+    EXPECT_TRUE(std::holds_alternative<IRDataBlock>(ir.elements[2]));
 }

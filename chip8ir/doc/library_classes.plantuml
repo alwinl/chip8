@@ -23,13 +23,13 @@ class Instruction <<IR>>
 
 Instruction *- Operand
 
-struct DataElement <<IR>>
+struct IRDataBlock <<IR>>
 {
 	+address : uint16_t
 	+byte_run : std::vector<uint8_t>
 }
 
-struct InstructionElement <<IR>>
+struct IRInstruction <<IR>>
 {
 	+address : uint16_t
 	+instruction : Instruction
@@ -37,8 +37,8 @@ struct InstructionElement <<IR>>
 
 class IRElement <<variant>>
 {
-    +InstructionElement
-    +DataElement
+    +IRInstruction
+    +IRDataBlock
 }
 
 struct DecodedSymbol
@@ -54,10 +54,10 @@ class SymbolTable <<IR>>
 	+get_label()
 }
 
-IRElement o-- DataElement
-IRElement o-- InstructionElement
+IRElement o-- IRDataBlock
+IRElement o-- IRInstruction
 
-InstructionElement *-- Instruction
+IRInstruction *-- Instruction
 
 SymbolTable <. DecodedSymbol : add()
 

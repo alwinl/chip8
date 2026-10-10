@@ -16,18 +16,18 @@ Disassembler -> Disassembler : push origin to address_stack
 Disassembler -> Disassembler ++ : collect_instructions()
 	loop while address_stack not empty : DFS over control flow graph
 		Disassembler -> Decoder ++ : decode( Address, Opcode)
-		return next_addresses InstructionElement DecodedSymbol
+		return next_addresses IRInstruction DecodedSymbol
 
 		Disassembler -> Disassembler : push(next_addresses)
 		Disassembler -> DisasmMemory : mark_instruction( Address )
 
-		Disassembler -> IRProgram  : push InstructionElement
+		Disassembler -> IRProgram  : push IRInstruction
 		Disassembler -> IRProgram : add DecodedSymbol
 	end
 return
 
 Disassembler -> Disassembler ++ : collect_data_bytes( )
-	Disassembler -> IRProgram : push DataElement
+	Disassembler -> IRProgram : push IRDataBlock
 return
 
 return IRProgram

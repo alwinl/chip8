@@ -30,6 +30,6 @@ public:
 	BinImage encode( const IRProgram& ir );
 
 private:
-	void encode_element( const InstructionElement& instruction, BinImage& image );
-	void encode_element( const DataElement& data, BinImage& image );
+	void encode_element( const IRInstruction& instruction, BinImage& image );
+	void encode_element( const IRDataBlock& data, BinImage& image );
 };

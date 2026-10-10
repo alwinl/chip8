@@ -23,6 +23,7 @@ add_library(
 	# cmdlineparser.cc
 
 	ir/chip8ir.cc
+	ir/chip8instruction.cc
 	ir/cfg_emitter.cc
 	ir/asm_emitter.cc
 	ir/decoder.cc

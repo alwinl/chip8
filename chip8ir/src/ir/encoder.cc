@@ -72,7 +72,7 @@ BinImage BinaryEncoder::encode( const IRProgram &ir )
 	return image;
 }
 
-void BinaryEncoder::encode_element( const InstructionElement& element, BinImage& image )
+void BinaryEncoder::encode_element( const IRInstruction& element, BinImage& image )
 {
 	const auto& opcode = element.instruction.opcode();
 	const auto& operands = element.instruction.operands();
@@ -167,7 +167,7 @@ void BinaryEncoder::encode_element( const InstructionElement& element, BinImage&
 	return;
 }
 
-void BinaryEncoder::encode_element( const DataElement& element, BinImage& image )
+void BinaryEncoder::encode_element( const IRDataBlock& element, BinImage& image )
 {
 	image.insert( image.end(), element.byte_run.begin(), element.byte_run.end() );
 }

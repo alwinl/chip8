@@ -41,7 +41,7 @@ protected:
 
 TEST_F( EncoderTest, EncodesCLS )
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_clear() } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
 
     auto image = encoder.encode(ir);
 
@@ -51,7 +51,7 @@ TEST_F( EncoderTest, EncodesCLS )
 
 TEST_F(EncoderTest, Encodes_JP_Address)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_jump( Addr { 0x234 }) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_jump( Addr { 0x234 }) } );
 
     auto image = encoder.encode(ir);
 
@@ -61,7 +61,7 @@ TEST_F(EncoderTest, Encodes_JP_Address)
 
 TEST_F(EncoderTest, Encodes_LD_Imm)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_ld( Reg{1}, Imm{0xAB} ) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_ld( Reg{1}, Imm{0xAB} ) } );
 
     auto image = encoder.encode(ir);
 
@@ -71,7 +71,7 @@ TEST_F(EncoderTest, Encodes_LD_Imm)
 
 TEST_F(EncoderTest, Encodes_ADD_Reg)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_add( Reg{2}, Reg{3} ) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_add( Reg{2}, Reg{3} ) } );
 
     auto image = encoder.encode(ir);
 
@@ -81,7 +81,7 @@ TEST_F(EncoderTest, Encodes_ADD_Reg)
 
 TEST_F(EncoderTest, Encodes_DRW)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_drw( Reg{1}, Reg{2}, Nibble{5} ) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_drw( Reg{1}, Reg{2}, Nibble{5} ) } );
 
     auto image = encoder.encode(ir);
 
@@ -89,9 +89,9 @@ TEST_F(EncoderTest, Encodes_DRW)
     EXPECT_EQ(make_word(image), 0xD125);
 }
 
-TEST_F(EncoderTest, Encodes_DataElement)
+TEST_F(EncoderTest, Encodes_IRDataBlock)
 {
-    ir.elements.push_back( DataElement { 0x300, { 0xDE, 0xAD, 0xBE, 0xEF } } );
+    ir.elements.push_back( IRDataBlock { 0x300, { 0xDE, 0xAD, 0xBE, 0xEF } } );
 
     auto image = encoder.encode(ir);
 
@@ -105,10 +105,10 @@ TEST_F(EncoderTest, Encodes_DataElement)
 
 TEST_F(EncoderTest, Encodes_MixedProgram)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_clear() } );
-    ir.elements.push_back( InstructionElement{ 0x202, Instruction::make_ld( Reg{1}, Imm{0x10} ) } );
-    ir.elements.push_back( InstructionElement{ 0x204, Instruction::make_jump( Addr { 0x300 }) } );
-    ir.elements.push_back( DataElement{ 0x206, { 0xAA, 0xBB } } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+    ir.elements.push_back( IRInstruction{ 0x202, Instruction::make_ld( Reg{1}, Imm{0x10} ) } );
+    ir.elements.push_back( IRInstruction{ 0x204, Instruction::make_jump( Addr { 0x300 }) } );
+    ir.elements.push_back( IRDataBlock{ 0x206, { 0xAA, 0xBB } } );
 
     auto image = encoder.encode(ir);
 
@@ -123,7 +123,7 @@ TEST_F(EncoderTest, Encodes_MixedProgram)
 
 TEST_F(EncoderTest, Encodes_MaxValues)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_skip_eq( Reg{15}, Imm{0xFF} ) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_skip_eq( Reg{15}, Imm{0xFF} ) } );
 
     auto image = encoder.encode(ir);
 
@@ -133,8 +133,8 @@ TEST_F(EncoderTest, Encodes_MaxValues)
 
 TEST_F(EncoderTest, IgnoresElementAddresses)
 {
-    ir.elements.push_back( InstructionElement{ 0x400, Instruction::make_clear() } );
-    ir.elements.push_back( InstructionElement{ 0x100, Instruction::make_return() } );
+    ir.elements.push_back( IRInstruction{ 0x400, Instruction::make_clear() } );
+    ir.elements.push_back( IRInstruction{ 0x100, Instruction::make_return() } );
 
     auto image = encoder.encode(ir);
 
@@ -145,7 +145,7 @@ TEST_F(EncoderTest, IgnoresElementAddresses)
 
 TEST_F(EncoderTest, Encodes_SKP)
 {
-    ir.elements.push_back( InstructionElement{ 0x200, Instruction::make_skip_if_key(Reg{3}) } );
+    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_skip_if_key(Reg{3}) } );
 
     auto image = encoder.encode(ir);
 

@@ -51,8 +51,8 @@ private:
 	Config configuration;
 
 	void emit_header( const EmitContext& ctx, std::string name );
-	void emit_element( const EmitContext& ctx, const InstructionElement& element );
-	void emit_element( const EmitContext& ctx, const DataElement& element );
+	void emit_element( const EmitContext& ctx, const IRInstruction& element );
+	void emit_element( const EmitContext& ctx, const IRDataBlock& element );
 	void emit_address( const EmitContext& ctx, uint16_t address );
 	void emit_opcode( const EmitContext& ctx, uint16_t address );
 	void emit_label( const EmitContext& ctx, uint16_t address );

@@ -43,10 +43,10 @@ R"(
 
     ASSERT_EQ(ir.elements.size(), 4);
 
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).address, 0x200);
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).address, 0x202);
-    EXPECT_EQ(std::get<DataElement>(ir.elements[2]).address, 0x204);
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[3]).address, 0x208);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[0]).address, 0x200);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[1]).address, 0x202);
+    EXPECT_EQ(std::get<IRDataBlock>(ir.elements[2]).address, 0x204);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[3]).address, 0x208);
 }
 
 TEST(IntAssembler, LabelResolution)
@@ -61,7 +61,7 @@ target:
 )"
 	);
 
-    const auto& jp = std::get<InstructionElement>(ir.elements[0]);
+    const auto& jp = std::get<IRInstruction>(ir.elements[0]);
 
     auto operands = jp.instruction.operands();
 
@@ -78,7 +78,7 @@ R"(
 )"
 	);
 
-	const auto& inst = std::get<InstructionElement>(ir.elements[0]);
+	const auto& inst = std::get<IRInstruction>(ir.elements[0]);
 
     auto operands = inst.instruction.operands();
 
@@ -94,8 +94,8 @@ R"(
 )"
 	);
 
-	EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::SE_Reg);
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::SE_Imm);
+	EXPECT_EQ(std::get<IRInstruction>(ir.elements[0]).instruction.opcode(), Opcode::SE_Reg);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[1]).instruction.opcode(), Opcode::SE_Imm);
 }
 
 TEST(IntAssembler, JumpIndexedVsDirect)
@@ -107,8 +107,8 @@ R"(
 )"
 	);
 
-	EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).instruction.opcode(), Opcode::JP_V0);
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::JP);
+	EXPECT_EQ(std::get<IRInstruction>(ir.elements[0]).instruction.opcode(), Opcode::JP_V0);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[1]).instruction.opcode(), Opcode::JP);
 }
 
 TEST(IntAssembler, OrgDirective)
@@ -120,7 +120,7 @@ R"(
 )"
 	);
 
-    EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).address, 0x300);
+    EXPECT_EQ(std::get<IRInstruction>(ir.elements[0]).address, 0x300);
 }
 
 TEST(IntAssembler, DataDirective)
@@ -131,7 +131,7 @@ R"(
 )"
 	);
 
-    const auto& data = std::get<DataElement>(ir.elements[0]);
+    const auto& data = std::get<IRDataBlock>(ir.elements[0]);
 
     ASSERT_EQ(data.byte_run.size(), 4);
     EXPECT_EQ(data.byte_run[0], 1);
@@ -165,6 +165,6 @@ target: NOP
 
 	Instruction expected = Instruction::make_jump( Addr{0x204} );
 
-    const auto& actual = std::get<InstructionElement>(ir.elements[0]);
+    const auto& actual = std::get<IRInstruction>(ir.elements[0]);
     EXPECT_EQ( actual.instruction, expected );
 }
