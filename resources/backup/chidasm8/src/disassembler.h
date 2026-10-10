@@ -36,7 +36,7 @@ struct DataBytes
 	std::vector<uint8_t> byte_run;
 };
 
-struct ASMElement
+struct IRElement
 {
     uint16_t address;
     std::variant<Instruction, DataBytes> value;
@@ -61,7 +61,7 @@ private:
 	CmdLineParser configuration;
 	Memory memory;
 	Targets targets;
-	std::vector<ASMElement> elements;
+	std::vector<IRElement> elements;
 
 	void collect_instructions();
 	void collect_data_bytes();

@@ -123,16 +123,16 @@ struct InstructionElement
 	Instruction instruction;
 };
 
-using ASMElement = std::variant<InstructionElement, DataElement>;
+using IRElement = std::variant<InstructionElement, DataElement>;
 
 struct IRProgram
 {
     uint16_t origin = 0x200;
-    std::vector<ASMElement> elements;
+    std::vector<IRElement> elements;
 };
 
 bool operator==( const IRProgram& a, const IRProgram& b );
-bool operator==( const ASMElement& a, const ASMElement& b );
+bool operator==( const IRElement& a, const IRElement& b );
 bool operator==( const DataElement& a, const DataElement& b );
 bool operator==( const InstructionElement& a, const InstructionElement& b );
 bool operator==( const Instruction& a, const Instruction& b );

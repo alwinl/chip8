@@ -35,7 +35,7 @@ struct InstructionElement <<IR>>
 	+instruction : Instruction
 }
 
-class ASMElement <<variant>>
+class IRElement <<variant>>
 {
     +InstructionElement
     +DataElement
@@ -54,8 +54,8 @@ class SymbolTable <<IR>>
 	+get_label()
 }
 
-ASMElement o-- DataElement
-ASMElement o-- InstructionElement
+IRElement o-- DataElement
+IRElement o-- InstructionElement
 
 InstructionElement *-- Instruction
 
@@ -64,10 +64,10 @@ SymbolTable <. DecodedSymbol : add()
 struct IRProgram <<IR>>
 {
     +origin : uint16_t
-    +elements : std::vector<ASMElement>
+    +elements : std::vector<IRElement>
 }
 
-IRProgram *-- ASMElement
+IRProgram *-- IRElement
 IRProgram *-- SymbolTable
 
 struct DecodeResult

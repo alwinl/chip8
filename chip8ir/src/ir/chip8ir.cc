@@ -39,7 +39,7 @@ bool operator==( const IRProgram& a, const IRProgram& b )
 	return true;
 }
 
-bool operator==( const ASMElement& a, const ASMElement& b )
+bool operator==( const IRElement& a, const IRElement& b )
 {
     return std::visit(
 		[]( auto&& lhs, auto&& rhs ) -> bool
@@ -140,7 +140,7 @@ std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
 	return os;
 }
 
-// std::ostream& operator<<(std::ostream& os, const ASMElement& element)
+// std::ostream& operator<<(std::ostream& os, const IRElement& element)
 // {
 // }
 

@@ -70,7 +70,7 @@ void Disassembler::disassemble()
 	collect_data_bytes( );
 
     std::sort(elements.begin(), elements.end(),
-        [](const ASMElement& a, const ASMElement& b) {
+        [](const IRElement& a, const IRElement& b) {
             return a.address < b.address;
         });
 }
@@ -97,7 +97,7 @@ void Disassembler::collect_instructions()
 
 			memory.mark_instruction( address );
 
-			elements.push_back( ASMElement { address, result.instruction } );
+			elements.push_back( IRElement { address, result.instruction } );
 
 			for( auto next_address : result.next_addresses )
 				address_stack.push( next_address );
@@ -129,7 +129,7 @@ void Disassembler::collect_data_bytes()
 	auto flush = [&]()
 	{
 		if( !datarun.empty() ) {
-			elements.push_back( ASMElement { run_start, DataBytes{ run_start, datarun } } );
+			elements.push_back( IRElement { run_start, DataBytes{ run_start, datarun } } );
 			datarun.clear();
 		}
 	};

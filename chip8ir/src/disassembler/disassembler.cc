@@ -140,7 +140,7 @@ void Disassembler::collect_data_bytes( IRBundle& bundle, DisasmMemory& memory )
 void Disassembler::sort_elements( IRBundle& bundle )
 {
     std::sort( bundle.ir.elements.begin(), bundle.ir.elements.end(),
-        [](const ASMElement& a, const ASMElement& b)
+        [](const IRElement& a, const IRElement& b)
 		{
             return std::visit(
 				[]( auto& lhs, auto& rhs )
