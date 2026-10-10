@@ -97,7 +97,6 @@ public:
 	std::span<const Operand> operands() const { return { operands_.data(), operand_count_ }; }
 
 	friend bool operator==(const Instruction& a, const Instruction& b);
-	friend std::ostream& operator<<(std::ostream& os, const Instruction& instr);
 
 private:
     Opcode opcode_;
