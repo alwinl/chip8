@@ -111,8 +111,9 @@ private:
 	}
 };
 
+// bool operator==( const Operand& a, const Operand& b );
 bool operator==( const Instruction& a, const Instruction& b );
-bool operator==( const Operand& a, const Operand& b );
 
-std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
+// std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
 std::ostream& operator<<(std::ostream& os, const Operand& op);
+std::ostream& operator<<(std::ostream& os, const Instruction& instr);

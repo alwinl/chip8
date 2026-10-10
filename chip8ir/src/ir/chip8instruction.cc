@@ -21,21 +21,6 @@
 
 #include <iomanip>
 
-bool operator==(const Instruction& a, const Instruction& b)
-{
-    if( a.opcode_ != b.opcode_ )
-        return false;
-
-    if( a.operand_count_ != b.operand_count_ )
-        return false;
-
-    for( size_t i = 0; i < a.operand_count_; ++i )
-		if( !(a.operands_[i] == b.operands_[i]) )
-			return false;
-
-    return true;
-}
-
 bool operator==( const Operand& a, const Operand& b )
 {
     if( a.index() != b.index() )
@@ -55,24 +40,19 @@ bool operator==( const Operand& a, const Operand& b )
 	);
 }
 
-std::ostream& operator<<(std::ostream& os, const Instruction& instr)
+bool operator==(const Instruction& a, const Instruction& b)
 {
-    os << instr.opcode() << " Operands: [";
+    if( a.opcode_ != b.opcode_ )
+        return false;
 
-    bool first = true;
-    for( auto& op : instr.operands() )
-	{
-        if(!first)
-			os << ", ";
-		else
-			first = false;
+    if( a.operand_count_ != b.operand_count_ )
+        return false;
 
-        os << op;
-    }
+    for( size_t i = 0; i < a.operand_count_; ++i )
+		if( !(a.operands_[i] == b.operands_[i]) )
+			return false;
 
-    os << "]";
-
-    return os;
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const Opcode& opcode )
@@ -116,6 +96,26 @@ std::ostream& operator<<(std::ostream& os, const Operand& op)
 		os.flags(flags);
 
     }, op);
+
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Instruction& instr)
+{
+    os << instr.opcode() << " Operands: [";
+
+    bool first = true;
+    for( auto& op : instr.operands() )
+	{
+        if(!first)
+			os << ", ";
+		else
+			first = false;
+
+        os << op;
+    }
+
+    os << "]";
 
     return os;
 }

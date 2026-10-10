@@ -31,16 +31,16 @@
 
 #include "chip8instruction.h"
 
-struct IRDataBlock
-{
-	uint16_t address;
-	std::vector<uint8_t> byte_run;
-};
-
 struct IRInstruction
 {
 	uint16_t address;
 	Instruction instruction;
+};
+
+struct IRDataBlock
+{
+	uint16_t address;
+	std::vector<uint8_t> byte_run;
 };
 
 using IRElement = std::variant<IRInstruction, IRDataBlock>;
@@ -52,11 +52,5 @@ struct IRProgram
 };
 
 bool operator==( const IRProgram& a, const IRProgram& b );
-bool operator==( const IRElement& a, const IRElement& b );
-bool operator==( const IRDataBlock& a, const IRDataBlock& b );
-bool operator==( const IRInstruction& a, const IRInstruction& b );
 
 std::ostream& operator<<(std::ostream& os, const IRProgram& ir);
-std::ostream& operator<<(std::ostream& os, const IRDataBlock& data_element);
-std::ostream& operator<<(std::ostream& os, const IRInstruction& instr_element);
-std::ostream& operator<<(std::ostream& os, const Instruction& instr);

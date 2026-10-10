@@ -24,16 +24,27 @@
 #include <variant>
 #include <iomanip>
 
-bool operator==( const IRProgram& a, const IRProgram& b )
+bool operator==( const IRInstruction& a, const IRInstruction& b )
 {
-	if( a.origin != b.origin )
+	if( a.address != b.address )
 		return false;
 
-	if( a.elements.size() != b.elements.size() )
+	if( a.instruction != b.instruction )
 		return false;
 
-	for( size_t i = 0; i < a.elements.size(); ++i )
-		if( a.elements[i] != b.elements[i] )
+	return true;
+}
+
+bool operator==( const IRDataBlock& a, const IRDataBlock& b )
+{
+	if( a.address != b.address )
+		return false;
+
+	if( a.byte_run.size() != b.byte_run.size() )
+		return false;
+
+	for( size_t i = 0; i < a.byte_run.size(); ++i )
+		if( a.byte_run[i] != b.byte_run[i] )
 			return false;
 
 	return true;
@@ -55,61 +66,35 @@ bool operator==( const IRElement& a, const IRElement& b )
 	);
 }
 
-bool operator==( const IRDataBlock& a, const IRDataBlock& b )
+bool operator==( const IRProgram& a, const IRProgram& b )
 {
-	if( a.address != b.address )
+	if( a.origin != b.origin )
 		return false;
 
-	if( a.byte_run.size() != b.byte_run.size() )
+	if( a.elements.size() != b.elements.size() )
 		return false;
 
-	for( size_t i = 0; i < a.byte_run.size(); ++i )
-		if( a.byte_run[i] != b.byte_run[i] )
+	for( size_t i = 0; i < a.elements.size(); ++i )
+		if( a.elements[i] != b.elements[i] )
 			return false;
 
 	return true;
 }
 
-bool operator==( const IRInstruction& a, const IRInstruction& b )
+
+
+std::ostream& operator<<(std::ostream& os, const IRInstruction& instr_element)
 {
-	if( a.address != b.address )
-		return false;
+	os << "{ \"address\": \""
+		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +instr_element.address
+	<< "\", ";
 
-	if( a.instruction != b.instruction )
-		return false;
+	os << instr_element.instruction;
 
-	return true;
-}
-
-
-
-std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
-{
-	os << "\n{\n";
-	os << "    \"origin\":\"" << ir.origin << "\",\n";
-	os << "    \"elements\":[\n";
-
-	bool first = true;
-
-	for( const auto& element : ir.elements ) {
-		os << "        ";
-
-		std::visit( [&]( auto&& element ) {
-			os << element;
-		}, element );
-
-		os << ",\n";
-	}
-
-	os << "    ]\n";
 	os << "}";
 
 	return os;
 }
-
-// std::ostream& operator<<(std::ostream& os, const IRElement& element)
-// {
-// }
 
 std::ostream& operator<<(std::ostream& os, const IRDataBlock& data_element)
 {
@@ -130,14 +115,27 @@ std::ostream& operator<<(std::ostream& os, const IRDataBlock& data_element)
 	return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const IRInstruction& instr_element)
+std::ostream& operator<<(std::ostream& os, const IRElement& element)
 {
-	os << "{ \"address\": \""
-		<< "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +instr_element.address
-	<< "\", ";
+	os << "        ";
+	std::visit( [&]( auto&& element ) { os << element; }, element );
+	os << ",\n";
 
-	os << instr_element.instruction;
+	return os;
+}
 
+std::ostream& operator<<(std::ostream& os, const IRProgram& ir)
+{
+	os << "\n{\n";
+	os << "    \"origin\":\"" << ir.origin << "\",\n";
+	os << "    \"elements\":[\n";
+
+	bool first = true;
+
+	for( const auto& element : ir.elements )
+		os << element;
+
+	os << "    ]\n";
 	os << "}";
 
 	return os;
