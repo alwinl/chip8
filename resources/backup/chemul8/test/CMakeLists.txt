@@ -16,13 +16,3 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-
-include( GoogleTest )
-
-add_executable(
-	chemul8_tests
-
-	chemul8_tests.cc
-)
-
-target_link_libraries( chemul8_tests PRIVATE gtest gtest_main )
