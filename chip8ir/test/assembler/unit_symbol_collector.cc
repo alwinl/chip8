@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "assembler/symbol_collector.h"
+#include "assembler/ir_generator.h"
 
 namespace {
 

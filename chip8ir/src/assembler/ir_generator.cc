@@ -24,6 +24,56 @@
 #include "instruction_generator.h"
 #include "expression.h"
 
+ASMSymbolTable collect_symbols( const ASTProgram& program )
+{
+	ASMSymbolTable symbols{};
+	uint16_t address = 0x200;
+
+	for( const ASTElement& element : program ) {
+
+		if( element.label )
+			symbols.define_label( element.label->name, address );
+
+		address = std::visit( [&]( auto&& body ) -> uint16_t
+		{
+			using T = std::decay_t<decltype(body)>;
+
+			if constexpr( std::is_same_v<T, ASTInstruction> ) {
+
+				return address + 2;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTDirective> ) {
+
+				if( (body.name == ".DB") || (body.name == "DB") )
+					address += body.args.size();
+
+				if( (body.name == ".ORG") || (body.name == "ORG") )
+					address = evaluate_expression( body.args[0], symbols );
+
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEqu> ) {
+
+				symbols.define_constant( body.name, evaluate_expression( body.value, symbols ) );
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEmpty> ) {
+
+				return address;
+
+			}
+			else
+				static_assert(std::is_same_v<T, void>, "Unhandled AST type");
+
+		}, element.body );
+	}
+
+	return symbols;
+}
+
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols )
 {
 	IRProgram ir{};
@@ -77,4 +127,12 @@ IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols 
 		}, element.body );
 
 	return ir;
+}
+
+IRBundle generate_ir_bundle( const ASTProgram& program )
+{
+	ASMSymbolTable symbols = collect_symbols( program );
+	IRProgram ir = generate_ir( program, symbols );
+
+	return { std::move(ir), std::make_unique<ASMSymbolTable>(std::move(symbols)) };
 }

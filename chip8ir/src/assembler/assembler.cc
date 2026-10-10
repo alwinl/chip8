@@ -22,16 +22,7 @@
 #include "assembler/loader.h"
 #include "assembler/tokeniser.h"
 #include "assembler/parser.h"
-
-#include "assembler/ast.h"
-#include "assembler/symbol_table.h"
-
-#include "assembler/expression.h"
-#include "assembler/instruction_generator.h"
-#include "assembler/symbol_collector.h"
 #include "assembler/ir_generator.h"
-
-#include "ir/chip8ir.h"
 
 namespace assembler
 {
@@ -41,9 +32,6 @@ namespace assembler
 		ASMTokens tokens = tokenise_assembly( source );
 		ASTProgram program = parse_tokens(tokens);
 
-		ASMSymbolTable symbols = collect_symbols( program );
-		IRProgram ir = generate_ir( program, symbols );
-
-		return { std::move(ir), std::make_unique<ASMSymbolTable>(std::move(symbols)) };
+		return generate_ir_bundle( program );
 	}
 }

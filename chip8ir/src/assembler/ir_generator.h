@@ -20,8 +20,12 @@
 #pragma once
 
 #include "ir/chip8ir.h"
+#include "ir/ir_bundle.h"
 
 #include <assembler/ast.h>
 #include <assembler/symbol_table.h>
 
+ASMSymbolTable collect_symbols( const ASTProgram& program );
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols );
+
+IRBundle generate_ir_bundle( const ASTProgram& program );
