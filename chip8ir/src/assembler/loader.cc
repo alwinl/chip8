@@ -44,6 +44,20 @@ bool strip_comments( std::string &line )
 	return line.empty();
 }
 
+bool strip_trailing_whitespace( std::string &line )
+{
+	assert( !line.empty() && "strip_trailing_whitespace requires non-empty line" );
+
+	size_t pos = line.length();
+
+	while( pos && (line[pos -1] == ' ' || line[pos -1] == '\t') )
+		--pos;
+
+	line.resize(pos);
+
+	return line.empty();
+}
+
 ASMSource load_assembly_source( std::istream& is )
 {
 	ASMSource source {};
@@ -54,11 +68,11 @@ ASMSource load_assembly_source( std::istream& is )
 
 		line_no++;
 
-		if( line.empty() || strip_trailing_cr( line ) || strip_comments( line ) )
+		if( line.empty() || strip_trailing_cr( line ) || strip_comments( line ) || strip_trailing_whitespace( line ) )
 			continue;
 
 		source.push_back( {line, line_no} );
 	}
 
 	return source;
-};
+}

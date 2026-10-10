@@ -1,5 +1,5 @@
 /*
- * dispatcher.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * instruction_generator.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,12 +17,81 @@
  * MA 02110-1301, USA.
  */
 
-#include "assembler/dispatcher.h"
+#include "assembler/instruction_generator.h"
 #include "assembler/expression.h"
 
-const Dispatcher& get_dispatcher()
+#include <unordered_map>
+#include <functional>
+
+using InstructionGenerator = std::unordered_map< std::string, std::function<Instruction( const ASTInstruction&, const ASMSymbolTable& )> >;
+
+bool is_register( const ASTExpression& expr )
 {
-	static const Dispatcher dispatcher =
+    if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
+        return false;
+
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
+    return !id.empty() && id[0] == 'V';
+}
+
+bool is_identifier( const ASTExpression& expr, std::string content )
+{
+    if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
+        return false;
+
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
+    return !id.empty() && content == id;
+}
+
+
+Reg parse_reg( const ASTExpression& expr )
+{
+    if (!std::holds_alternative<ASTIdentifierExpr>(expr.expression))
+        throw std::runtime_error("Expected register");
+
+    const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
+
+    if (id.size() != 2 || id[0] != 'V')
+        throw std::runtime_error("Invalid register: " + id);
+
+	char c = id[1];
+
+    int index = 0;
+
+    if (c >= '0' && c <= '9')
+        index = c - '0';
+    else if (c >= 'A' && c <= 'F')
+        index = 10 + (c - 'A');
+    else if (c >= 'a' && c <= 'f')
+        index = 10 + (c - 'a');
+    else
+        throw std::runtime_error("Invalid register: " + id);
+
+    return Reg{ static_cast<uint8_t>(index) };
+}
+
+Addr parse_addr( const ASTExpression& expr, const ASMSymbolTable &symbols )
+{
+	return Addr{ evaluate_expression( expr, symbols ) };
+}
+
+Imm parse_imm( const ASTExpression& expr, const ASMSymbolTable &symbols )
+{
+    return Imm{ static_cast<uint8_t>( evaluate_expression( expr, symbols) ) };
+}
+
+Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols )
+{
+    auto val = evaluate_expression( expr, symbols );
+    if (val > 0xF)
+		throw std::runtime_error("Nibble out of range");
+
+    return Nibble{ static_cast<uint8_t>(val) };
+}
+
+const InstructionGenerator& get_instruction_generators()
+{
+	static const InstructionGenerator generators =
 	{
 		{ "NOP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 			return Instruction::make_nop();
@@ -142,5 +211,15 @@ const Dispatcher& get_dispatcher()
 		} },
 	};
 
-	return dispatcher;
+	return generators;
+}
+
+Instruction generate_instruction( const ASTInstruction& instruction, const ASMSymbolTable& symbols )
+{
+    static auto& generators = get_instruction_generators();
+
+    if( auto entry = generators.find(instruction.mnemonic); entry != generators.end() )
+	    return entry->second(instruction, symbols);
+
+    throw std::runtime_error( "Unknown mnemonic: " + instruction.mnemonic );
 }

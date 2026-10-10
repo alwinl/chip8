@@ -1,5 +1,5 @@
 /*
- * asm_symbol_table.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * symbol_table.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,19 +25,25 @@
 
 #include "ir/label_resolver.h"
 
+#include "assembler/ast.h"
 
 class ASMSymbolTable : public ILabelResolver
 {
 public:
 	ASMSymbolTable() = default;
+	~ASMSymbolTable() = default;
 
 	void define_label( std::string name, uint16_t address );
 	void define_constant( std::string name, uint16_t value );
 
-	uint16_t get_value( std::string name ) const;
-	std::string get_label( uint16_t address ) const;
+	uint16_t get_value( const std::string& name ) const;
+	std::string get_label( uint16_t address ) const override;
 
 private:
-	std::unordered_map<uint16_t, std::string> symbol_map;
-	std::unordered_map<std::string, uint16_t> value_map;
+	std::unordered_map<uint16_t, std::string> address_label;
+	std::unordered_map<std::string, uint16_t> label_address;
+
+	std::unordered_map<std::string, uint16_t> constants;
 };
+
+ASMSymbolTable collect_symbols( const ASTProgram& program );

@@ -36,12 +36,14 @@ target_link_libraries( ir_test PRIVATE gtest gtest_main chip8::ir )
 add_executable(
 	assembler_test
 
-	assembler/asm_tokeniser_test.cc
-	assembler/asm_parser_test.cc
-	assembler/asm_parser_integration.cc
-	assembler/asm_integration_test.cc
+	assembler/unit_loader.cc
+	assembler/unit_tokeniser.cc
+	assembler/unit_parser.cc
+	assembler/int_astgeneration.cc
+	assembler/unit_symbol_table.cc
+	assembler/unit_instruction_generator.cc
+	assembler/int_assembler.cc
 	assembler/expression_test.cc
-	assembler/instruction_test.cc
 )
 
 target_link_libraries( assembler_test PRIVATE gtest gtest_main chip8::ir )

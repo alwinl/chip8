@@ -21,6 +21,36 @@
 
 #include "assembler/parser.h"
 
+class ASMParser
+{
+public:
+    ASMParser()  = default;
+
+	ASTProgram parse_asm_tokens( const ASMTokens& tokens );
+
+private:
+	const ASMTokens * tokens = nullptr;
+	ASMTokens::const_iterator cursor;
+
+	ASTElement parse_line();
+	ASTExpressions parse_expressions( int line );
+	ASTExpression parse_expression();
+	ASTExpression parse_additive();
+	ASTExpression parse_multiplicative();
+	ASTExpression parse_primary();
+
+    ASMToken consume( ASMToken::Type type, const std::string& lexeme, const std::string& message );
+	bool end_of_current_line( int start_line );
+    bool match( ASMToken::Type type, std::string lexeme = "" );
+    void forward_cursor();
+    const ASMToken& peek() { return (cursor != tokens->end()) ? *cursor : tokens->back(); }
+};
+
+ASTProgram parse_tokens( const ASMTokens& tokens )
+{
+	return ASMParser().parse_asm_tokens( tokens );
+}
+
 ASTProgram ASMParser::parse_asm_tokens( const ASMTokens& tokens )
 {
 	ASTProgram program {};

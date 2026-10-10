@@ -19,7 +19,7 @@
 
 #pragma once
 
+#include "assembler/asm.h"
 #include "assembler/token.h"
-#include "ir/chip8formats.h"
 
 ASMTokens tokenise_assembly( ASMSource source );

@@ -1,5 +1,5 @@
 /*
- * asm_tokeniser_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * unit_tokeniser.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,26 +22,23 @@
 #include "assembler/tokeniser.h"
 #include "ir/chip8formats.h"
 
-class ASMTokeniserTest : public ::testing::Test
+TEST(UnitTokeniser, EmptyInput)
 {
-protected:
-	ASMSource source;
+	ASMSource source {
+	};
 
-	void SetUp() override {}
-	void TearDown() override {}
-};
-
-TEST_F(ASMTokeniserTest, EmptyInput)
-{
-	ASMTokens tokens = tokenise_assembly( ASMSource {} );
+	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0].type, ASMToken::Type::END_OF_INPUT);
 }
 
-TEST_F(ASMTokeniserTest, LabelOnly)
+TEST(UnitTokeniser, LabelOnly)
 {
-	source.push_back( ASMLine { "start:", 1 } );
+	ASMSource source {
+		ASMLine { "start:", 1 }
+	};
+
 	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_EQ(tokens.size(), 2);
@@ -52,9 +49,12 @@ TEST_F(ASMTokeniserTest, LabelOnly)
     EXPECT_EQ(tokens.back().type, ASMToken::Type::END_OF_INPUT);
 }
 
-TEST_F(ASMTokeniserTest, InstructionWithArguments)
+TEST(UnitTokeniser, InstructionWithArguments)
 {
-	source.push_back( ASMLine { "LD V0, 10", 1 } );
+	ASMSource source {
+		ASMLine { "LD V0, 10", 1 }
+	};
+
 	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_GE(tokens.size(), 4);
@@ -72,9 +72,12 @@ TEST_F(ASMTokeniserTest, InstructionWithArguments)
     EXPECT_EQ(tokens[3].lexeme, "10");
 }
 
-TEST_F(ASMTokeniserTest, Directive)
+TEST(UnitTokeniser, Directive)
 {
-	source.push_back( ASMLine { ".DB 0xFF, 0x01", 1 } );
+	ASMSource source {
+		ASMLine { ".DB 0xFF, 0x01", 1 }
+	};
+
 	ASMTokens tokens = tokenise_assembly( source );
 
     EXPECT_EQ(tokens[0].type, ASMToken::Type::DIRECTIVE);
@@ -85,9 +88,12 @@ TEST_F(ASMTokeniserTest, Directive)
     EXPECT_EQ(tokens[3].lexeme, "0x01");
 }
 
-TEST_F(ASMTokeniserTest, CommentIsTokenised)
+TEST(UnitTokeniser, CommentIsTokenised)
 {
-	source.push_back( ASMLine { "LD V0, 1 ; comment here", 1 } );
+	ASMSource source {
+		ASMLine { "LD V0, 1 ; comment here", 1 }
+	};
+
 	ASMTokens tokens = tokenise_assembly( source );
 
     bool found_comment = false;
@@ -98,9 +104,12 @@ TEST_F(ASMTokeniserTest, CommentIsTokenised)
     EXPECT_TRUE(found_comment);
 }
 
-TEST_F(ASMTokeniserTest, Operators)
+TEST(UnitTokeniser, Operators)
 {
-	source.push_back( ASMLine { "+-*/", 1 } );
+	ASMSource source {
+		ASMLine { "+-*/", 1 }
+	};
+
 	ASMTokens tokens = tokenise_assembly( source );
 
     ASSERT_EQ(tokens.size(), 5);

@@ -22,18 +22,4 @@
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 
-#include "ir/chip8ir.h"
-
-uint16_t evaluate_expression( const ASTNumberExpr& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const ASTIdentifierExpr& expr, const ASMSymbolTable& symbols );
 uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols );
-uint16_t evaluate_expression( const ASTBinaryExpr& expr, const ASMSymbolTable& symbols );
-
-bool is_register( const ASTExpression& expr );
-bool is_identifier( const ASTExpression& expr, std::string content );
-
-Reg parse_reg( const ASTExpression& expr );
-Addr parse_addr( const ASTExpression& expr, const ASMSymbolTable &symbols );
-Imm parse_imm( const ASTExpression& expr, const ASMSymbolTable &symbols );
-Nibble parse_nibble( const ASTExpression& expr, const ASMSymbolTable &symbols );
-

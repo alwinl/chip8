@@ -24,11 +24,4 @@
 
 using BinImage = std::vector<uint8_t>;
 
-struct ASMLine
-{
-	std::string text;
-	size_t line_no;
-};
-
-using ASMSource = std::vector<ASMLine>;
 using C8CSource = std::vector<std::string>;

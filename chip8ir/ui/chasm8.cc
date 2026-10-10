@@ -25,8 +25,8 @@
 #include "ir/encoder.h"
 #include "ir/ir_bundle.h"
 
+#include "assembler/cmdlineparser.h"
 #include "assembler/assembler.h"
-#include "assembler/loader.h"
 
 int main( int argc, char ** argv )
 {
@@ -36,13 +36,8 @@ int main( int argc, char ** argv )
 		if( ! args.parse_args( argc, argv ) )
 			return 1;
 
-		Assembler assembler;
-		assembler.configure( args );
-
 		std::ifstream asm_file( args.get_source_name() );
-		ASMSource source = load_assembly_source( asm_file );
-
-		IRBundle bundle = assembler.build_ir( source );
+		IRBundle bundle = assembler::build_ir( asm_file );
 
 		BinImage bin_image = BinaryEncoder().encode(bundle.ir);
 

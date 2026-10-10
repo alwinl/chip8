@@ -1,5 +1,5 @@
 /*
- * dispatcher.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * asm.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <functional>
+#include <cstdint>
+#include <string>
+#include <vector>
 
-#include "assembler/ast.h"
-#include "assembler/symbol_table.h"
+struct ASMLine
+{
+	std::string text;
+	size_t line_no;
+};
 
-#include "ir/chip8ir.h"
+using ASMSource = std::vector<ASMLine>;
 
-
-using Dispatcher = std::unordered_map< std::string, std::function<Instruction( const ASTInstruction&, ASMSymbolTable& )> >;
-
-const Dispatcher& get_dispatcher();

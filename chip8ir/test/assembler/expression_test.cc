@@ -21,20 +21,9 @@
 
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
-#include "assembler/assembler.h"
 #include "assembler/expression.h"
 
-
-class ExpressionTest : public ::testing::Test {
-protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-};
-
-TEST_F(ExpressionTest, Literal)
+TEST(UnitExpression, Literal)
 {
     ASMSymbolTable symbols;
 
@@ -43,7 +32,7 @@ TEST_F(ExpressionTest, Literal)
     EXPECT_EQ(evaluate_expression(expr, symbols), 42);
 }
 
-TEST_F(ExpressionTest, Identifier)
+TEST(UnitExpression, Identifier)
 {
     ASMSymbolTable symbols;
     symbols.define_constant("FOO", 123);
@@ -53,7 +42,7 @@ TEST_F(ExpressionTest, Identifier)
     EXPECT_EQ(evaluate_expression(expr, symbols), 123);
 }
 
-TEST_F(ExpressionTest, BinaryAdd)
+TEST(UnitExpression, BinaryAdd)
 {
     ASMSymbolTable symbols;
 
@@ -71,14 +60,7 @@ TEST_F(ExpressionTest, BinaryAdd)
     EXPECT_EQ(evaluate_expression(expr, symbols), 15);
 }
 
-TEST_F(ExpressionTest, InvalidRegister)
-{
-	ASTExpression expr{ ASTIdentifierExpr{"V99"}, 0 };
-
-    EXPECT_THROW(parse_reg(expr), std::runtime_error);
-}
-
-TEST_F(ExpressionTest, DivisionByZero)
+TEST(UnitExpression, DivisionByZero)
 {
     ASMSymbolTable symbols;
 

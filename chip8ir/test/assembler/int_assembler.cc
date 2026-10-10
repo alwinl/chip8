@@ -23,23 +23,13 @@
 #include "assembler/assembler.h"
 #include "assembler/loader.h"
 
-class AssemblerIntegrationTest : public ::testing::Test {
-protected:
-	void SetUp() override {
+IRBundle bundle_builder(const std::string& text)
+{
+	std::istringstream is(text);
+	return assembler::build_ir(is);
+}
 
-	}
-	void TearDown() override {
-	}
-
-	IRBundle bundle_builder(const std::string& text)
-	{
-	    std::istringstream is(text);
-		ASMSource source = load_assembly_source(is);
-		return Assembler().build_ir(source);
-	}
-};
-
-TEST_F(AssemblerIntegrationTest, SimpleProgram)
+TEST(IntAssembler, SimpleProgram)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -59,7 +49,7 @@ R"(
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[3]).address, 0x208);
 }
 
-TEST_F(AssemblerIntegrationTest, LabelResolution)
+TEST(IntAssembler, LabelResolution)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -79,7 +69,7 @@ target:
     EXPECT_EQ(std::get<Addr>(operands[0]).value, 0x204);
 }
 
-TEST_F(AssemblerIntegrationTest, ExpressionEvaluation)
+TEST(IntAssembler, ExpressionEvaluation)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -95,7 +85,7 @@ R"(
     EXPECT_EQ(std::get<Imm>(operands[1]).value, 15);
 }
 
-TEST_F(AssemblerIntegrationTest, SE_RegisterVsImmediate)
+TEST(IntAssembler, SE_RegisterVsImmediate)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -108,7 +98,7 @@ R"(
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::SE_Imm);
 }
 
-TEST_F(AssemblerIntegrationTest, JumpIndexedVsDirect)
+TEST(IntAssembler, JumpIndexedVsDirect)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -121,7 +111,7 @@ R"(
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[1]).instruction.opcode(), Opcode::JP);
 }
 
-TEST_F(AssemblerIntegrationTest, OrgDirective)
+TEST(IntAssembler, OrgDirective)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -133,7 +123,7 @@ R"(
     EXPECT_EQ(std::get<InstructionElement>(ir.elements[0]).address, 0x300);
 }
 
-TEST_F(AssemblerIntegrationTest, DataDirective)
+TEST(IntAssembler, DataDirective)
 {
 	auto [ir, _] = bundle_builder(
 R"(
@@ -148,7 +138,7 @@ R"(
     EXPECT_EQ(data.byte_run[3], 4);
 }
 
-TEST_F(AssemblerIntegrationTest, CommentsAndWhitespace)
+TEST(IntAssembler, CommentsAndWhitespace)
 {
 	auto [ir, _] = bundle_builder(
 R"(

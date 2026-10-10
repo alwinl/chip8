@@ -28,20 +28,22 @@ add_library(
 	ir/decoder.cc
 	ir/encoder.cc
 
-	assembler/assembler.cc
-	assembler/cmdlineparser.cc
+	assembler/loader.cc
 	assembler/tokeniser.cc
 	assembler/parser.cc
-	assembler/symbol_table.cc
 	assembler/expression.cc
-	assembler/loader.cc
-	assembler/dispatcher.cc
+	assembler/instruction_generator.cc
+	assembler/ir_generator.cc
+	assembler/symbol_table.cc
+	assembler/assembler.cc
+	assembler/cmdlineparser.cc
 
 	disassembler/disassembler.cc
 	disassembler/cmdlineparser.cc
 	disassembler/symbol_table.cc
 
 	emulator/cmdlineparser.cc
+	emulator/chip8.cc
 
 	compiler/compiler.cc
 	compiler/cmdlineparser.cc

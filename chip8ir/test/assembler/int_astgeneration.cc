@@ -1,5 +1,5 @@
 /*
- * asm_parser_integration.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * int_astgeneration.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@
 #include <assembler/tokeniser.h>
 #include <assembler/parser.h>
 
-class ASMParserIntegrationTest : public ::testing::Test
+ASTProgram ast_builder( const std::string& input )
 {
-protected:
-	ASMParser parser;
+	std::stringstream is( input );
 
-	void SetUp() override {}
-	void TearDown() override {}
-};
+	return parse_tokens(
+			tokenise_assembly(
+				load_assembly_source( is )
+			)
+	);
+}
 
 // Helper for operand assertions
 template<typename T>
@@ -42,7 +44,7 @@ T* get_operand( ASTExpression& expr )
     return ptr;
 }
 
-TEST_F(ASMParserIntegrationTest, FourLiner)
+TEST(IntASTGeneration, FourLiner)
 {
 	std::string input =
 R"(start:
@@ -51,11 +53,7 @@ R"(start:
     JP start
 )";
 
-	std::stringstream is( input );
-
-	ASMSource source = load_assembly_source( is );
-	ASMTokens tokens = tokenise_assembly( source );
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = ast_builder( input );
 
 	ASSERT_EQ( program.size(), 4 );
 
@@ -102,17 +100,13 @@ R"(start:
 	}
 }
 
-TEST_F(ASMParserIntegrationTest, DirectiveWithOperands)
+TEST(IntASTGeneration, DirectiveWithOperands)
 {
     std::string input =
 R"(.DW 0x10, 0x20, 0x30
 )";
 
-    std::stringstream is(input);
-
-    ASMSource source = load_assembly_source(is);
-    ASMTokens tokens = tokenise_assembly(source);
-    ASTProgram program = parser.parse_asm_tokens(tokens);
+	ASTProgram program = ast_builder( input );
 
     ASSERT_EQ(program.size(), 1);
 
@@ -127,18 +121,14 @@ R"(.DW 0x10, 0x20, 0x30
     EXPECT_EQ(get_operand<ASTNumberExpr>(dir_ptr->args[2])->value, 0x30);
 }
 
-TEST_F(ASMParserIntegrationTest, VariableDefinitionEqu)
+TEST(IntASTGeneration, VariableDefinitionEqu)
 {
     std::string input =
 R"(X_POS EQU 0x10
 Y_POS EQU 0x20
 )";
 
-    std::stringstream is(input);
-
-    ASMSource source = load_assembly_source(is);
-    ASMTokens tokens = tokenise_assembly(source);
-    ASTProgram program = parser.parse_asm_tokens(tokens);
+	ASTProgram program = ast_builder( input );
 
     ASSERT_EQ(program.size(), 2);
 
@@ -153,7 +143,7 @@ Y_POS EQU 0x20
     EXPECT_EQ(get_operand<ASTNumberExpr>(equ2->value)->value, 0x20);
 }
 
-TEST_F(ASMParserIntegrationTest, CommentsAndWhitespace)
+TEST(IntASTGeneration, CommentsAndWhitespace)
 {
     std::string input =
 R"(start:          ; label comment
@@ -162,11 +152,7 @@ R"(start:          ; label comment
     JP start
 )";
 
-    std::stringstream is(input);
-
-    ASMSource source = load_assembly_source(is);
-    ASMTokens tokens = tokenise_assembly(source);
-    ASTProgram program = parser.parse_asm_tokens(tokens);
+	ASTProgram program = ast_builder( input );
 
     ASSERT_EQ(program.size(), 3);
 
@@ -193,17 +179,13 @@ R"(start:          ; label comment
     EXPECT_EQ(get_operand<ASTIdentifierExpr>(jp_ptr->operands[0])->text, "start");
 }
 
-TEST_F(ASMParserIntegrationTest, SimpleExpressionOperands)
+TEST(IntASTGeneration, SimpleExpressionOperands)
 {
     std::string input =
 R"(LD V0, 10+5*2
 )";
 
-    std::stringstream is(input);
-
-    ASMSource source = load_assembly_source(is);
-    ASMTokens tokens = tokenise_assembly(source);
-    ASTProgram program = parser.parse_asm_tokens(tokens);
+	ASTProgram program = ast_builder( input );
 
     ASSERT_EQ(program.size(), 1);
 

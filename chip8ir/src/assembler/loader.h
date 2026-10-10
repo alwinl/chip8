@@ -1,5 +1,5 @@
 /*
- * asm_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,6 @@
 
 #include <istream>
 
-#include "ir/chip8formats.h"
+#include "assembler/asm.h"
 
 ASMSource load_assembly_source( std::istream& is );

@@ -1,5 +1,5 @@
 /*
- * instruction_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * unit_instruction_generator.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,11 @@
 #include "assembler/ast.h"
 #include "assembler/symbol_table.h"
 #include "assembler/assembler.h"
-#include "assembler/dispatcher.h"
+#include "assembler/instruction_generator.h"
 
 #include "ir/chip8ir.h"
 
-class InstructionTest : public ::testing::Test {
-protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-};
-
-TEST_F(InstructionTest, LD_Immediate)
+TEST(UnitInstruction, LD_Immediate)
 {
     ASMSymbolTable symbols;
 
@@ -44,12 +35,13 @@ TEST_F(InstructionTest, LD_Immediate)
     inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V1"}, 0 } );
     inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{42}, 0 } );
 
-    auto ir = get_dispatcher().at("LD")(inst, symbols);
-
-    EXPECT_EQ(ir.opcode(), Opcode::LD_Imm);
+	EXPECT_NO_THROW({
+		Instruction ir = generate_instruction(inst, symbols);
+		EXPECT_EQ(ir.opcode(), Opcode::LD_Imm);
+	});
 }
 
-TEST_F(InstructionTest, ADD_Register)
+TEST(UnitInstruction, ADD_Register)
 {
     ASMSymbolTable symbols;
 
@@ -58,12 +50,13 @@ TEST_F(InstructionTest, ADD_Register)
     inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V1"}, 0 } );
     inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V2"}, 0 } );
 
-    auto ir = get_dispatcher().at("ADD")(inst, symbols);
-
-    EXPECT_EQ(ir.opcode(), Opcode::ADD_Reg);
+	EXPECT_NO_THROW({
+		Instruction ir = generate_instruction(inst, symbols);
+		EXPECT_EQ(ir.opcode(), Opcode::ADD_Reg);
+	});
 }
 
-TEST_F(InstructionTest, Jump)
+TEST(UnitInstruction, Jump)
 {
     ASMSymbolTable symbols;
 
@@ -71,7 +64,37 @@ TEST_F(InstructionTest, Jump)
     inst.mnemonic = "JP";
     inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{0x300}, 0 } );
 
-    auto ir = get_dispatcher().at("JP")(inst, symbols);
-
-    EXPECT_EQ(ir.opcode(), Opcode::JP);
+	EXPECT_NO_THROW({
+		Instruction ir = generate_instruction(inst, symbols);
+		EXPECT_EQ(ir.opcode(), Opcode::JP);
+	});
 }
+
+TEST(UnitInstruction, UnknownMnemonic)
+{
+    ASMSymbolTable symbols;
+
+    ASTInstruction inst;
+    inst.mnemonic = "UNKNOWN";
+
+    EXPECT_THROW(
+        generate_instruction(inst, symbols),
+        std::runtime_error
+    );
+}
+
+TEST(UnitInstruction, InvalidRegister)
+{
+    ASMSymbolTable symbols;
+
+    ASTInstruction inst;
+    inst.mnemonic = "OR";
+    inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V99"}, 0 } );
+    inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V99"}, 0 } );
+
+    EXPECT_THROW(
+        generate_instruction(inst, symbols),
+        std::runtime_error
+    );
+}
+

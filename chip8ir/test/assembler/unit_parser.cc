@@ -1,5 +1,5 @@
 /*
- * asm_parser_test.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * unit_parser.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,31 +21,25 @@
 
 #include "assembler/parser.h"
 
-class ASMParserTest : public ::testing::Test
+TEST(UnitParser, NoTokens)
 {
-protected:
-	ASMParser parser;
-	ASMTokens tokens;
+	ASMTokens tokens{
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	void SetUp() override {}
-	void TearDown() override {}
-};
-
-TEST_F(ASMParserTest, NoTokens)
-{
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
-
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	EXPECT_EQ( program.size(), 0 );
 }
 
-TEST_F(ASMParserTest, SingleLabel)
+TEST(UnitParser, SingleLabel)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::LABEL, "start", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -54,12 +48,14 @@ TEST_F(ASMParserTest, SingleLabel)
 	EXPECT_TRUE( std::holds_alternative<ASTEmpty>(program[0].body) );
 }
 
-TEST_F(ASMParserTest, SingleMnemonic)
+TEST(UnitParser, SingleMnemonic)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "CLS", 1, 4 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::IDENTIFIER, "CLS", 1, 4 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -69,13 +65,15 @@ TEST_F(ASMParserTest, SingleMnemonic)
 	EXPECT_EQ( instr_ptr->mnemonic, "CLS" );
 }
 
-TEST_F(ASMParserTest, SingleInstructionWithArgument)
+TEST(UnitParser, SingleInstructionWithArgument)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "JP", 1, 4 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "0x300", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::IDENTIFIER, "JP", 1, 4 },
+		ASMToken { ASMToken::Type::NUMBER, "0x300", 1, 7 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -92,15 +90,17 @@ TEST_F(ASMParserTest, SingleInstructionWithArgument)
 	EXPECT_EQ( operand_ptr->value, 0x300 );
 }
 
-TEST_F(ASMParserTest, SingleInstructionWithArguments)
+TEST(UnitParser, SingleInstructionWithArguments)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 } );
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::COMMA, ",", 1, 9 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "10", 1, 11 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 },
+		ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 },
+		ASMToken { ASMToken::Type::COMMA, ",", 1, 9 },
+		ASMToken { ASMToken::Type::NUMBER, "10", 1, 11 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -122,16 +122,18 @@ TEST_F(ASMParserTest, SingleInstructionWithArguments)
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
 
-TEST_F(ASMParserTest, SingleInstructionWithLabelAndArguments)
+TEST(UnitParser, SingleInstructionWithLabelAndArguments)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::LABEL, "start", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 } );
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::COMMA, ",", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "10", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
+		ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 },
+		ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 },
+		ASMToken { ASMToken::Type::COMMA, ",", 1, 7 },
+		ASMToken { ASMToken::Type::NUMBER, "10", 1, 7 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -156,12 +158,14 @@ TEST_F(ASMParserTest, SingleInstructionWithLabelAndArguments)
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
 
-TEST_F(ASMParserTest, Directive)
+TEST(UnitParser, Directive)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -172,13 +176,15 @@ TEST_F(ASMParserTest, Directive)
 	EXPECT_TRUE( instr_ptr->args.empty() );
 }
 
-TEST_F(ASMParserTest, DirectiveWithLabel)
+TEST(UnitParser, DirectiveWithLabel)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::LABEL, "start", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
+		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -192,18 +198,20 @@ TEST_F(ASMParserTest, DirectiveWithLabel)
 	EXPECT_TRUE( instr_ptr->args.empty() );
 }
 
-TEST_F(ASMParserTest, DirectiveWithLabelAndArgs)
+TEST(UnitParser, DirectiveWithLabelAndArgs)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::LABEL, "start", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::COMMA, ",", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "0x20", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::COMMA, ",", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "0x30", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
+		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
+		ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 },
+		ASMToken { ASMToken::Type::COMMA, ",", 1, 7 },
+		ASMToken { ASMToken::Type::NUMBER, "0x20", 1, 7 },
+		ASMToken { ASMToken::Type::COMMA, ",", 1, 7 },
+		ASMToken { ASMToken::Type::NUMBER, "0x30", 1, 7 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
@@ -217,14 +225,16 @@ TEST_F(ASMParserTest, DirectiveWithLabelAndArgs)
 	EXPECT_EQ( instr_ptr->args.size(), 3 );
 }
 
-TEST_F(ASMParserTest, VariableDef)
+TEST(UnitParser, VariableDef)
 {
-	tokens.push_back( ASMToken { ASMToken::Type::IDENTIFIER, "X_POS", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::ASSIGNMENT, "EQU", 1, 1 } );
-	tokens.push_back( ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 } );
-	tokens.push_back( ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 } );
+	ASMTokens tokens {
+		ASMToken { ASMToken::Type::IDENTIFIER, "X_POS", 1, 1 },
+		ASMToken { ASMToken::Type::ASSIGNMENT, "EQU", 1, 1 },
+		ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 },
+		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
+	};
 
-	ASTProgram program = parser.parse_asm_tokens( tokens );
+	ASTProgram program = parse_tokens( tokens );
 
 	ASSERT_EQ( program.size(), 1 );
 
