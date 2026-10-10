@@ -169,5 +169,5 @@ void BinaryEncoder::encode_element( const IRInstruction& element, BinImage& imag
 
 void BinaryEncoder::encode_element( const IRDataBlock& element, BinImage& image )
 {
-	image.insert( image.end(), element.byte_run.begin(), element.byte_run.end() );
+	image.insert( image.end(), element.bytes.begin(), element.bytes.end() );
 }

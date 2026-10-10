@@ -133,9 +133,9 @@ R"(
 
     const auto& data = std::get<IRDataBlock>(ir.elements[0]);
 
-    ASSERT_EQ(data.byte_run.size(), 4);
-    EXPECT_EQ(data.byte_run[0], 1);
-    EXPECT_EQ(data.byte_run[3], 4);
+    ASSERT_EQ(data.bytes.size(), 4);
+    EXPECT_EQ(data.bytes[0], 1);
+    EXPECT_EQ(data.bytes[3], 4);
 }
 
 TEST(IntAssembler, CommentsAndWhitespace)

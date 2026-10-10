@@ -57,7 +57,7 @@ TEST_F(IntegrationTest, straight_line_with_data)
     auto* d = std::get_if<IRDataBlock>(&ir.elements[2]);
     ASSERT_NE(d, nullptr);
     EXPECT_EQ(d->address, 0x204);
-    EXPECT_EQ(d->byte_run.size(), 4);
+    EXPECT_EQ(d->bytes.size(), 4);
 }
 
 TEST_F(IntegrationTest, conditional_skip)
@@ -109,7 +109,7 @@ TEST_F(IntegrationTest, jump_skips_data)
 
     EXPECT_EQ(i0->address, 0x200);
     EXPECT_EQ(d->address, 0x202);
-    EXPECT_EQ(d->byte_run.size(), 4);
+    EXPECT_EQ(d->bytes.size(), 4);
     EXPECT_EQ(i1->address, 0x206);
 }
 
@@ -132,7 +132,7 @@ TEST_F(IntegrationTest, no_overlapping_elements)
                 EXPECT_TRUE(covered.insert(e.address).second);
                 EXPECT_TRUE(covered.insert(e.address + 1).second);
             } else {
-                for (size_t i = 0; i < e.byte_run.size(); ++i)
+                for (size_t i = 0; i < e.bytes.size(); ++i)
                     EXPECT_TRUE(covered.insert(e.address + i).second);
             }
         }, el);

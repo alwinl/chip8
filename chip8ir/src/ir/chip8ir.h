@@ -20,14 +20,9 @@
 #pragma once
 
 #include <cstdint>
-#include <cstddef>
 #include <variant>
-#include <span>
-#include <cassert>
 #include <ostream>
-#include <algorithm>
 #include <vector>
-#include <optional>
 
 #include "chip8instruction.h"
 
@@ -40,7 +35,7 @@ struct IRInstruction
 struct IRDataBlock
 {
 	uint16_t address;
-	std::vector<uint8_t> byte_run;
+	std::vector<uint8_t> bytes;
 };
 
 using IRElement = std::variant<IRInstruction, IRDataBlock>;

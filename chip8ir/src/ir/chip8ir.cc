@@ -40,11 +40,11 @@ bool operator==( const IRDataBlock& a, const IRDataBlock& b )
 	if( a.address != b.address )
 		return false;
 
-	if( a.byte_run.size() != b.byte_run.size() )
+	if( a.bytes.size() != b.bytes.size() )
 		return false;
 
-	for( size_t i = 0; i < a.byte_run.size(); ++i )
-		if( a.byte_run[i] != b.byte_run[i] )
+	for( size_t i = 0; i < a.bytes.size(); ++i )
+		if( a.bytes[i] != b.bytes[i] )
 			return false;
 
 	return true;
@@ -103,7 +103,7 @@ std::ostream& operator<<(std::ostream& os, const IRDataBlock& data_element)
 	<< "\", ";
 
 	bool first = true;
-	for( const char byte : data_element.byte_run ) {
+	for( const char byte : data_element.bytes ) {
 		if( first )
 			first = false;
 		else

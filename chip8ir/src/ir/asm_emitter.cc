@@ -81,7 +81,7 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const IRDataBlock& elemen
 
 	ctx.os << ".DB";
 
-	for( bool first = true; const auto& byte : element.byte_run )
+	for( bool first = true; const auto& byte : element.bytes )
 	{
 		ctx.os << (first ? " " : ", " );
 		first = false;
@@ -90,7 +90,7 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const IRDataBlock& elemen
 	}
 
 	ctx.os << " ; ";
-	for( const auto& byte : element.byte_run)
+	for( const auto& byte : element.bytes)
 		ctx.os << (byte >= 0x20 && byte <= 0x7E) ? static_cast<char>( byte ) : '.';
 
 	ctx.os << "\n";

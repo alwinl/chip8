@@ -21,13 +21,12 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cassert>
 #include <variant>
 #include <span>
-#include <cassert>
 #include <ostream>
 #include <algorithm>
-#include <vector>
-#include <optional>
+#include <array>
 
 enum class Opcode
 {
@@ -98,6 +97,7 @@ public:
 	std::span<const Operand> operands() const { return { operands_.data(), operand_count_ }; }
 
 	friend bool operator==(const Instruction& a, const Instruction& b);
+	friend std::ostream& operator<<(std::ostream& os, const Instruction& instr);
 
 private:
     Opcode opcode_;

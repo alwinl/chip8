@@ -102,10 +102,10 @@ std::ostream& operator<<(std::ostream& os, const Operand& op)
 
 std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 {
-    os << instr.opcode() << " Operands: [";
+    os << instr.opcode_ << " Operands: [";
 
     bool first = true;
-    for( auto& op : instr.operands() )
+    for( auto& op : instr.operands_ )
 	{
         if(!first)
 			os << ", ";
