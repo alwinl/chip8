@@ -17,42 +17,83 @@
  * MA 02110-1301, USA.
  */
 
-#include <iostream>
-#include <fstream>
+#include <raylib.h>
 
-#include "ir/binary_loader.h"
-#include "ir/ir_bundle.h"
+#include "emulator/chip8.h"
 
-#include "disassembler/disassembler.h"
 
-#include "emulator/emulator.h"
+
+void render_screen( uint8_t *buffer, uint16_t size)
+{
+	uint16_t total_pixels = size * 8;
+
+	for( uint16_t pixel = 0; pixel < total_pixels; ++pixel ) {
+
+		Rectangle rect{ .x = 10.0F * (pixel % 64), .y = 10.0F * (pixel / 64), .width = 10.0F, .height = 10.0F };
+		bool is_set = ( buffer[pixel / 8] >> ( pixel % 8 ) ) & 0x01;
+
+		DrawRectangleRec( rect, is_set ? WHITE : BLACK );
+	}
+}
 
 int main( int argc, char ** argv )
 {
-    try {
-        ChemulCmdLineParser args;
+	Chip8 device;
 
-        if( !args.parse_args( argc, argv ) )
-			return 1;
+    InitWindow(640, 320, "Chemul8");
 
-		Disassembler disassembler;
-		disassembler.configure( {args.get_origin()} );
+    while( ! WindowShouldClose() ) {
 
-		std::ifstream is( args.get_program(), std::ios::binary );
-		BinImage image = load_binary( is );
+        BeginDrawing();
 
-		IRBundle bundle = disassembler.build_ir( image );
+        ClearBackground( BLACK );
 
-        Emulator emulator;
-        emulator.configure( args );
+		render_screen( device.get_display_buffer(), device.get_display_size() );
 
-        emulator.run( image, bundle.ir );
+        EndDrawing();
     }
 
-	catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-        return 2;
-    }
+    CloseWindow();
 
-	return 0;
 }
+
+
+// #include <iostream>
+// #include <fstream>
+
+// #include "ir/binary_loader.h"
+// #include "ir/ir_bundle.h"
+
+// #include "disassembler/disassembler.h"
+
+// #include "emulator/emulator.h"
+
+// int main( int argc, char ** argv )
+// {
+//     try {
+//         ChemulCmdLineParser args;
+
+//         if( !args.parse_args( argc, argv ) )
+// 			return 1;
+
+// 		Disassembler disassembler;
+// 		disassembler.configure( {args.get_origin()} );
+
+// 		std::ifstream is( args.get_program(), std::ios::binary );
+// 		BinImage image = load_binary( is );
+
+// 		IRBundle bundle = disassembler.build_ir( image );
+
+//         Emulator emulator;
+//         emulator.configure( args );
+
+//         emulator.run( image, bundle.ir );
+//     }
+
+// 	catch (const std::exception &e) {
+//         std::cerr << e.what() << std::endl;
+//         return 2;
+//     }
+
+// 	return 0;
+// }

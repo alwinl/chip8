@@ -41,7 +41,9 @@ add_executable (
 	chidasm8.cc
 )
 
+find_package(raylib REQUIRED)
+
 target_link_libraries( new_chasm8 PRIVATE chip8::ir )
-target_link_libraries( new_chemul8 PRIVATE chip8::ir )
+target_link_libraries( new_chemul8 PRIVATE chip8::ir raylib )
 target_link_libraries( new_chicom8 PRIVATE chip8::ir )
 target_link_libraries( new_chidasm8 PRIVATE chip8::ir )
