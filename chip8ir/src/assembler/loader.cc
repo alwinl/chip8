@@ -22,40 +22,43 @@
 #include <string>
 #include <cassert>
 
-bool strip_trailing_cr( std::string &line )
-{
-	assert( !line.empty() && "strip_trailing_cr requires non-empty line" );
+namespace {
 
-	if( line.back() == '\r' )
-		line.pop_back();
+	bool strip_trailing_cr( std::string &line )
+	{
+		assert( !line.empty() && "strip_trailing_cr requires non-empty line" );
 
-	return line.empty();
-}
+		if( line.back() == '\r' )
+			line.pop_back();
 
-bool strip_comments( std::string &line )
-{
-	assert( !line.empty() && "strip_comments requires non-empty line" );
+		return line.empty();
+	}
 
-	const size_t comment_start = line.find_first_of(';');
+	bool strip_comments( std::string &line )
+	{
+		assert( !line.empty() && "strip_comments requires non-empty line" );
 
-	if( comment_start != std::string::npos )
-		line = line.substr(0, comment_start);
+		const size_t comment_start = line.find_first_of(';');
 
-	return line.empty();
-}
+		if( comment_start != std::string::npos )
+			line = line.substr(0, comment_start);
 
-bool strip_trailing_whitespace( std::string &line )
-{
-	assert( !line.empty() && "strip_trailing_whitespace requires non-empty line" );
+		return line.empty();
+	}
 
-	size_t pos = line.length();
+	bool strip_trailing_whitespace( std::string &line )
+	{
+		assert( !line.empty() && "strip_trailing_whitespace requires non-empty line" );
 
-	while( pos && (line[pos -1] == ' ' || line[pos -1] == '\t') )
-		--pos;
+		size_t pos = line.length();
 
-	line.resize(pos);
+		while( pos && (line[pos -1] == ' ' || line[pos -1] == '\t') )
+			--pos;
 
-	return line.empty();
+		line.resize(pos);
+
+		return line.empty();
+	}
 }
 
 ASMSource load_assembly_source( std::istream& is )

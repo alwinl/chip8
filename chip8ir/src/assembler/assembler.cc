@@ -24,10 +24,11 @@
 #include "assembler/parser.h"
 
 #include "assembler/ast.h"
+#include "assembler/symbol_table.h"
 
 #include "assembler/expression.h"
 #include "assembler/instruction_generator.h"
-#include "assembler/symbol_table.h"
+#include "assembler/symbol_collector.h"
 #include "assembler/ir_generator.h"
 
 #include "ir/chip8ir.h"

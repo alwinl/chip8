@@ -24,43 +24,46 @@
 #include "instruction_generator.h"
 #include "expression.h"
 
-uint16_t generate_ir( IRProgram& ir, const ASTInstruction& instruction, uint16_t address, const ASMSymbolTable& symbols )
-{
-	Instruction generated = generate_instruction(instruction, symbols);
+namespace {
 
-    ir.elements.push_back( InstructionElement{address, std::move(generated)});
+	uint16_t generate_ir( IRProgram& ir, const ASTInstruction& instruction, uint16_t address, const ASMSymbolTable& symbols )
+	{
+		Instruction generated = generate_instruction(instruction, symbols);
 
-	return address + 2;
-}
+		ir.elements.push_back( InstructionElement{address, std::move(generated)});
 
-uint16_t generate_ir( IRProgram& ir, const ASTDirective& directive, uint16_t address, const ASMSymbolTable& symbols )
-{
-	if( (directive.name == ".DB") || (directive.name == "DB") ) {
-
-		std::vector<uint8_t> byte_run;
-
-		for( size_t i = 0; i < directive.args.size(); ++i )
-			byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
-
-		ir.elements.push_back( DataElement {address, byte_run } );
-
-		address += directive.args.size();
+		return address + 2;
 	}
 
-	if( (directive.name == ".ORG") || (directive.name == "ORG") )
-		address = evaluate_expression( directive.args[0], symbols );
+	uint16_t generate_ir( IRProgram& ir, const ASTDirective& directive, uint16_t address, const ASMSymbolTable& symbols )
+	{
+		if( (directive.name == ".DB") || (directive.name == "DB") ) {
 
-	return address;
-}
+			std::vector<uint8_t> byte_run;
 
-uint16_t generate_ir( IRProgram& ir, const ASTEqu&, uint16_t address, const ASMSymbolTable& symbols )
-{
-	return address;
-}
+			for( size_t i = 0; i < directive.args.size(); ++i )
+				byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
 
-uint16_t generate_ir( IRProgram& ir, const ASTEmpty&, uint16_t address, const ASMSymbolTable& symbols )
-{
-	return address;
+			ir.elements.push_back( DataElement {address, byte_run } );
+
+			address += directive.args.size();
+		}
+
+		if( (directive.name == ".ORG") || (directive.name == "ORG") )
+			address = evaluate_expression( directive.args[0], symbols );
+
+		return address;
+	}
+
+	uint16_t generate_ir( IRProgram& ir, const ASTEqu&, uint16_t address, const ASMSymbolTable& symbols )
+	{
+		return address;
+	}
+
+	uint16_t generate_ir( IRProgram& ir, const ASTEmpty&, uint16_t address, const ASMSymbolTable& symbols )
+	{
+		return address;
+	}
 }
 
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols )

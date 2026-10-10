@@ -24,62 +24,64 @@
 #include <assert.h>
 #include <string>
 
-struct TokenMatcher
-{
-    std::regex pattern;
-    ASMToken::Type type;
-    bool skip_token;
-};
+namespace {
+	struct TokenMatcher
+	{
+		std::regex pattern;
+		ASMToken::Type type;
+		bool skip_token;
+	};
 
-std::vector<TokenMatcher> match_set =
-{
-    TokenMatcher{ std::regex(R"(^;[^\n]*)"), ASMToken::Type::COMMENT, false},
-    TokenMatcher{ std::regex(R"(^\s+)"), ASMToken::Type::WHITESPACE, true },
-    TokenMatcher{ std::regex(R"(^[+/*\-])"), ASMToken::Type::OPERATOR, false },
-	TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), ASMToken::Type::ASSIGNMENT, false },
-	TokenMatcher{ std::regex(R"(^(OPTION|ALIGN|DB|DW)\b)", std::regex::icase), ASMToken::Type::DIRECTIVE, false },
-    TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), ASMToken::Type::LABEL, false },
-	TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::DIRECTIVE, false },
-	TokenMatcher{ std::regex(R"(^\[[A-Za-z_][A-Za-z_0-9]*\])"), ASMToken::Type::IDENTIFIER, false },
-	TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::IDENTIFIER, false },
-	TokenMatcher{ std::regex(R"(^#(0[bB][01]+|0[xX][0-9A-Fa-f]+|[0-9A-Fa-f]+))"), ASMToken::Type::NUMBER, false },	// # prefixed (hex-style)
-	TokenMatcher{ std::regex(R"(^(0[bB][01]+|0[xX][0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },	// normal numbers
-    TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
-};
+	std::vector<TokenMatcher> match_set =
+	{
+		TokenMatcher{ std::regex(R"(^;[^\n]*)"), ASMToken::Type::COMMENT, false},
+		TokenMatcher{ std::regex(R"(^\s+)"), ASMToken::Type::WHITESPACE, true },
+		TokenMatcher{ std::regex(R"(^[+/*\-])"), ASMToken::Type::OPERATOR, false },
+		TokenMatcher{ std::regex(R"(^(=|EQU)\b)", std::regex::icase), ASMToken::Type::ASSIGNMENT, false },
+		TokenMatcher{ std::regex(R"(^(OPTION|ALIGN|DB|DW)\b)", std::regex::icase), ASMToken::Type::DIRECTIVE, false },
+		TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*:)"), ASMToken::Type::LABEL, false },
+		TokenMatcher{ std::regex(R"(^\.[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::DIRECTIVE, false },
+		TokenMatcher{ std::regex(R"(^\[[A-Za-z_][A-Za-z_0-9]*\])"), ASMToken::Type::IDENTIFIER, false },
+		TokenMatcher{ std::regex(R"(^[A-Za-z_][A-Za-z_0-9]*)"), ASMToken::Type::IDENTIFIER, false },
+		TokenMatcher{ std::regex(R"(^#(0[bB][01]+|0[xX][0-9A-Fa-f]+|[0-9A-Fa-f]+))"), ASMToken::Type::NUMBER, false },	// # prefixed (hex-style)
+		TokenMatcher{ std::regex(R"(^(0[bB][01]+|0[xX][0-9A-Fa-f]+|\d+))"), ASMToken::Type::NUMBER, false },	// normal numbers
+		TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
+	};
 
-void tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
-{
-	int cursor = 0;
-	auto end = input.cend();
+	void tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
+	{
+		int cursor = 0;
+		auto end = input.cend();
 
-	while( cursor < input.size() ) {
+		while( cursor < input.size() ) {
 
-		auto begin = input.cbegin() + cursor;
-		std::smatch match;
-		bool matched = false;
+			auto begin = input.cbegin() + cursor;
+			std::smatch match;
+			bool matched = false;
 
-		for( const auto& match_entry : match_set ) {
+			for( const auto& match_entry : match_set ) {
 
-			if( ! std::regex_search( begin, end, match, match_entry.pattern) )
-				continue;
+				if( ! std::regex_search( begin, end, match, match_entry.pattern) )
+					continue;
 
-			assert( match.position() == 0 );
-			assert( match.length() > 0 );
+				assert( match.position() == 0 );
+				assert( match.length() > 0 );
 
-			std::string lexeme = match[0];
+				std::string lexeme = match[0];
 
-			if( ! match_entry.skip_token )
-				tokens.push_back( { match_entry.type, lexeme, line_no, cursor + 1 } );
+				if( ! match_entry.skip_token )
+					tokens.push_back( { match_entry.type, lexeme, line_no, cursor + 1 } );
 
-			cursor += lexeme.size();
-			matched = true;
-			break;
+				cursor += lexeme.size();
+				matched = true;
+				break;
+			}
+
+			if( !matched ) {
+				tokens.push_back( { ASMToken::Type::INVALID, std::string(1, input[cursor]), line_no, cursor + 1 } );
+				cursor++;
+			}
 		}
-
-		if( !matched ) {
-            tokens.push_back( { ASMToken::Type::INVALID, std::string(1, input[cursor]), line_no, cursor + 1 } );
-            cursor++;
-        }
 	}
 }
 

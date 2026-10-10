@@ -150,3 +150,21 @@ R"(
 
     ASSERT_EQ(ir.elements.size(), 1);
 }
+
+TEST(IntAssembler, ForwardJumpResolvesLabel)
+{
+	auto [ir, _] = bundle_builder(
+R"(
+        JP target
+        NOP
+target: NOP
+)"
+	);
+
+    ASSERT_EQ(ir.elements.size(), 3);
+
+	Instruction expected = Instruction::make_jump( Addr{0x204} );
+
+    const auto& actual = std::get<InstructionElement>(ir.elements[0]);
+    EXPECT_EQ( actual.instruction, expected );
+}
