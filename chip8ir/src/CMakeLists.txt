@@ -35,6 +35,7 @@ add_library(
 	assembler/instruction_generator.cc
 	assembler/ir_generator.cc
 	assembler/symbol_table.cc
+	assembler/symbol_collector.cc
 	assembler/assembler.cc
 	assembler/cmdlineparser.cc
 

@@ -40,10 +40,11 @@ add_executable(
 	assembler/unit_tokeniser.cc
 	assembler/unit_parser.cc
 	assembler/int_astgeneration.cc
+	assembler/unit_expression.cc
 	assembler/unit_symbol_table.cc
 	assembler/unit_instruction_generator.cc
 	assembler/int_assembler.cc
-	assembler/expression_test.cc
+	assembler/unit_symbol_collector.cc
 )
 
 target_link_libraries( assembler_test PRIVATE gtest gtest_main chip8::ir )

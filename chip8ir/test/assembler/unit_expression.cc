@@ -75,5 +75,5 @@ TEST(UnitExpression, DivisionByZero)
 
     ASTExpression expr{ std::move(bin), 0 };
 
-    EXPECT_EQ(evaluate_expression(expr, symbols), 0);
+    EXPECT_THROW( evaluate_expression(expr, symbols), std::runtime_error );
 }

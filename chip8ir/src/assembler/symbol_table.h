@@ -25,8 +25,6 @@
 
 #include "ir/label_resolver.h"
 
-#include "assembler/ast.h"
-
 class ASMSymbolTable : public ILabelResolver
 {
 public:
@@ -45,5 +43,3 @@ private:
 
 	std::unordered_map<std::string, uint16_t> constants;
 };
-
-ASMSymbolTable collect_symbols( const ASTProgram& program );

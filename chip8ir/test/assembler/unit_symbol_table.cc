@@ -87,7 +87,7 @@ TEST(UnitSymbolTable, MissingSymbolReturnsSentinel)
 {
 	ASMSymbolTable symbols;
 
-	EXPECT_EQ(symbols.get_value("missing"), UINT16_MAX);
+	EXPECT_THROW(symbols.get_value("missing"), std::runtime_error);
 }
 
 TEST(UnitSymbolTable, DuplicateLabelDoesNotOverwriteExistingDefinition)
