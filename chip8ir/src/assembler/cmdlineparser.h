@@ -25,22 +25,25 @@
 
 #include "../vendor/cxxopts/cxxopts.hpp"
 
-class ChasmCmdLineParser
+namespace assembler
 {
-public:
-	ChasmCmdLineParser() = default;
+	class CmdLineParser
+	{
+	public:
+		CmdLineParser() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+		bool parse_args( int argc, char ** argv );
+		bool parse_args( std::vector<std::string> arguments );
 
-    std::string get_source_name();
-	std::string get_binary_name();
-	std::string get_listing_name();
-    bool is_verbose() const;
-    bool show_help() const;
+		std::string get_source_name();
+		std::string get_binary_name();
+		std::string get_listing_name();
+		bool is_verbose() const;
+		bool show_help() const;
 
-private:
-    cxxopts::ParseResult result;
+	private:
+		cxxopts::ParseResult result;
 
-	const std::string get_output_prefix();
-};
+		const std::string get_output_prefix();
+	};
+}

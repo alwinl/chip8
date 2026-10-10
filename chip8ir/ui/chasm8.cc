@@ -31,7 +31,7 @@
 int main( int argc, char ** argv )
 {
 	try {
-		ChasmCmdLineParser args;
+		assembler::CmdLineParser args;
 
 		if( ! args.parse_args( argc, argv ) )
 			return 1;
