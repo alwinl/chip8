@@ -3,24 +3,30 @@ title Assembler sequence
 
 actor User
 participant Assembler
+participant Loader
 participant Tokeniser
-participant ASMParser
+participant Parser
+participant SymbolCollector
+participant IRGenerator
 
-User -> Assembler ++: build_ir( ASMSource )
+User -> Assembler ++: build_ir( stream )
+
+Assembler -> Loader ++ : load_assembly_source( stream )
+return ASMSource
 
 Assembler -> Tokeniser ++ : tokenise_assembly( ASMSource)
 return ASMTokens
 
-Assembler -> ASMParser ++ : parse_asm_tokens( ASMTokens )
+Assembler -> Parser ++ : parse_asm_tokens( ASMTokens )
 return ASTProgram
 
-Assembler ->Assembler ++ : collect_symbols( ASTProgram )
-return
+Assembler -> SymbolCollector ++ : collect_symbols( ASTProgram )
+return SymbolTable
 
-Assembler -> Assembler ++ : generate_ir( ASTProgram )
-return
-
+Assembler -> IRGenerator ++ : generate_ir( ASTProgram, SymbolTable )
 return IRProgram
+
+return IRBundle { IRProgram, SymbolTable }
 
 hide footbox
 
