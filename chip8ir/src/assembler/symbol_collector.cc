@@ -21,36 +21,7 @@
 
 #include "assembler/expression.h"
 
-namespace {
-
-	uint16_t collect_symbols( ASMSymbolTable& symbols, const ASTInstruction& instruction, uint16_t address )
-	{
-		return address + 2;
-	}
-
-	uint16_t collect_symbols( ASMSymbolTable& symbols, const ASTDirective& directive, uint16_t address )
-	{
-		if( (directive.name == ".DB") || (directive.name == "DB") )
-			address += directive.args.size();
-
-		if( (directive.name == ".ORG") || (directive.name == "ORG") )
-			address = evaluate_expression( directive.args[0], symbols );
-
-		return address;
-	}
-
-	uint16_t collect_symbols( ASMSymbolTable& symbols, const ASTEqu& equ, uint16_t address )
-	{
-		symbols.define_constant( equ.name, evaluate_expression( equ.value, symbols ) );
-
-		return address;
-	}
-
-	uint16_t collect_symbols( ASMSymbolTable& symbols, const ASTEmpty&, uint16_t address )
-	{
-		return address;
-	}
-}
+#include <cassert>
 
 ASMSymbolTable collect_symbols( const ASTProgram& program )
 {
@@ -62,7 +33,41 @@ ASMSymbolTable collect_symbols( const ASTProgram& program )
 		if( element.label )
 			symbols.define_label( element.label->name, address );
 
-		address = std::visit( [&]( auto&& body ) -> uint16_t { return collect_symbols( symbols, body, address ); }, element.body );
+		address = std::visit( [&]( auto&& body ) -> uint16_t
+		{
+			using T = std::decay_t<decltype(body)>;
+
+			if constexpr( std::is_same_v<T, ASTInstruction> ) {
+
+				return address + 2;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTDirective> ) {
+
+				if( (body.name == ".DB") || (body.name == "DB") )
+					address += body.args.size();
+
+				if( (body.name == ".ORG") || (body.name == "ORG") )
+					address = evaluate_expression( body.args[0], symbols );
+
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEqu> ) {
+
+				symbols.define_constant( body.name, evaluate_expression( body.value, symbols ) );
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEmpty> ) {
+
+				return address;
+
+			}
+			else
+				static_assert(std::is_same_v<T, void>, "Unhandled AST type");
+
+		}, element.body );
 	}
 
 	return symbols;

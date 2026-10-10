@@ -24,55 +24,57 @@
 #include "instruction_generator.h"
 #include "expression.h"
 
-namespace {
-
-	uint16_t generate_ir( IRProgram& ir, const ASTInstruction& instruction, uint16_t address, const ASMSymbolTable& symbols )
-	{
-		Instruction generated = generate_instruction(instruction, symbols);
-
-		ir.elements.push_back( IRInstruction{address, std::move(generated)});
-
-		return address + 2;
-	}
-
-	uint16_t generate_ir( IRProgram& ir, const ASTDirective& directive, uint16_t address, const ASMSymbolTable& symbols )
-	{
-		if( (directive.name == ".DB") || (directive.name == "DB") ) {
-
-			std::vector<uint8_t> byte_run;
-
-			for( size_t i = 0; i < directive.args.size(); ++i )
-				byte_run.emplace_back( evaluate_expression( directive.args[i], symbols ));
-
-			ir.elements.push_back( IRDataBlock {address, byte_run } );
-
-			address += directive.args.size();
-		}
-
-		if( (directive.name == ".ORG") || (directive.name == "ORG") )
-			address = evaluate_expression( directive.args[0], symbols );
-
-		return address;
-	}
-
-	uint16_t generate_ir( IRProgram& ir, const ASTEqu&, uint16_t address, const ASMSymbolTable& symbols )
-	{
-		return address;
-	}
-
-	uint16_t generate_ir( IRProgram& ir, const ASTEmpty&, uint16_t address, const ASMSymbolTable& symbols )
-	{
-		return address;
-	}
-}
-
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols )
 {
 	IRProgram ir{};
 	uint16_t address = 0x200;
 
 	for( const ASTElement& element : program )
-		address = std::visit( [&]( auto&& body ) -> uint16_t { return generate_ir( ir, body, address, symbols ); }, element.body );
+		address = std::visit( [&]( auto&& body ) -> uint16_t
+		{
+			using T = std::decay_t<decltype(body)>;
+
+			if constexpr( std::is_same_v<T, ASTInstruction> ) {
+
+				Instruction generated = generate_instruction(body, symbols);
+				ir.elements.push_back( IRInstruction{address, std::move(generated)});
+				return address + 2;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTDirective> ) {
+
+				if( (body.name == ".DB") || (body.name == "DB") ) {
+
+					std::vector<uint8_t> byte_run;
+
+					for( size_t i = 0; i < body.args.size(); ++i )
+						byte_run.emplace_back( evaluate_expression( body.args[i], symbols ));
+
+					ir.elements.push_back( IRDataBlock {address, byte_run } );
+
+					address += body.args.size();
+				}
+
+				if( (body.name == ".ORG") || (body.name == "ORG") )
+					address = evaluate_expression( body.args[0], symbols );
+
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEqu> ) {
+
+				return address;
+
+			}
+			else if constexpr( std::is_same_v<T, ASTEmpty> ) {
+
+				return address;
+
+			}
+			else
+				static_assert(std::is_same_v<T, void>, "Unhandled AST type");
+
+		}, element.body );
 
 	return ir;
 }
