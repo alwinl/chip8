@@ -48,7 +48,7 @@ int main( int argc, char ** argv )
 		ASMEmitter emitter;
 
 		emitter.configure( {args.get_program_name()} );
-		emitter.emit( os, bundle, image, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+		emitter.emit( os, bundle, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
 
 		if( !args.get_dot_name().empty() || !args.get_uml_name().empty() ) {
 			CFGEmitter cfg_emitter;

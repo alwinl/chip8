@@ -51,7 +51,7 @@ int main( int argc, char ** argv )
 
 		if( !args.get_listing_name().empty() ) {
 			std::ofstream listing_os( args.get_listing_name() );
-			ASMEmitter().emit( listing_os, bundle, image, ASMEmitter::OutputMode::Listing );
+			ASMEmitter().emit( listing_os, bundle, ASMEmitter::OutputMode::Listing );
 		}
     }
 

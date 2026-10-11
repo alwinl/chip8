@@ -52,16 +52,16 @@ void ASMEmitter::emit_address( const EmitContext& ctx, uint16_t address )
 	ctx.os << "0x" << std::hex << std::uppercase << std::setw(3) << std::setfill('0') << address << "  ";
 }
 
-void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t address )
+void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t opcode )
 {
-	uint8_t high_byte = ctx.bin_image[ address - ctx.bundle.ir.origin ];
-	uint8_t low_byte  = ctx.bin_image[ address - ctx.bundle.ir.origin + 1 ];
+	uint8_t high_byte = static_cast<unsigned>((opcode >> 8 ) & 0xFF);
+	uint8_t low_byte  = static_cast<unsigned>((opcode >> 0 ) & 0xFF);
 
 	ctx.os << std::hex << std::uppercase
-		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
+		<< std::right << std::setw(2) << std::setfill('0') << +high_byte << " ";
 
 	ctx.os << std::hex << std::uppercase
-		<< std::setw(2) << std::setfill('0') << +low_byte << "  ";
+		<< std::right << std::setw(2) << std::setfill('0') << +low_byte << "  ";
 }
 
 void ASMEmitter::emit_label( const EmitContext& ctx, uint16_t address )
@@ -122,7 +122,7 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const IRInstruction& elem
 
 	if( ctx.mode == OutputMode::Listing ) {
 		emit_address( ctx, element.address );
-		emit_opcode( ctx, element.address );
+		emit_opcode( ctx, instruction.to_binary() );
 	}
 
 	emit_label( ctx, element.address );
@@ -164,12 +164,11 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const IRDataBlock& elemen
 	ctx.os << "\n";
 }
 
-void ASMEmitter::emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode )
+void ASMEmitter::emit( std::ostream& os, const IRBundle& bundle, OutputMode mode )
 {
 	EmitContext ctx = {
 		.os = os,
 		.bundle = bundle,
-		.bin_image = bin_image,
 		.mode = mode
 	};
 

@@ -36,15 +36,14 @@ public:
 
 	ASMEmitter() = default;
 
-	void emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode );
+	void emit( std::ostream& os, const IRBundle& bundle,OutputMode mode );
 
 	void configure( Config config ) { configuration = std::move(config); };
 
-private:
+protected:
 	struct EmitContext {
 		std::ostream& os;
 		const IRBundle& bundle;
-		const BinImage& bin_image;
 		OutputMode mode;
 	};
 
@@ -54,7 +53,7 @@ private:
 	void emit_element( const EmitContext& ctx, const IRInstruction& element );
 	void emit_element( const EmitContext& ctx, const IRDataBlock& element );
 	void emit_address( const EmitContext& ctx, uint16_t address );
-	void emit_opcode( const EmitContext& ctx, uint16_t address );
+	void emit_opcode( const EmitContext& ctx, uint16_t opcode );
 	void emit_label( const EmitContext& ctx, uint16_t address );
 	void emit_mnemonic( const EmitContext& ctx, const Opcode& opcode );
 	void emit_operand( const EmitContext& ctx, const Operand& op );
