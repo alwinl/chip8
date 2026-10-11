@@ -27,27 +27,29 @@
 
 #include "disassembler/disassembler.h"
 
-class IntegrationTest : public ::testing::Test
+// class IntegrationTest : public ::testing::Test
+// {
+// protected:
+// 	BinaryEncoder encoder;
+//     IRProgram ir;
+// 	Decoder decoder;
+
+// 	void SetUp() override {
+
+// 	}
+// 	void TearDown() override {
+// 	}
+
+// 	static uint16_t make_word(const BinImage& img, size_t offset = 0)
+// 	{
+// 		return (static_cast<uint16_t>(img[offset]) << 8) |  static_cast<uint16_t>(img[offset + 1]);
+// 	}
+// };
+
+TEST(IntegrationTest, EncoderDecoderRoundtrip)
 {
-protected:
-	BinaryEncoder encoder;
-    IRProgram ir;
-	Decoder decoder;
+	auto make_word = [](const BinImage& img, size_t offset = 0) -> uint16_t { return (static_cast<uint16_t>(img[offset]) << 8) |  static_cast<uint16_t>(img[offset + 1]); };
 
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-
-	static uint16_t make_word(const BinImage& img, size_t offset = 0)
-	{
-		return (static_cast<uint16_t>(img[offset]) << 8) |  static_cast<uint16_t>(img[offset + 1]);
-	}
-};
-
-TEST_F(IntegrationTest, EncoderDecoderRoundtrip)
-{
 	std::vector<Instruction> cases = {
 		Instruction::make_clear(),
 		Instruction::make_return(),
@@ -64,19 +66,21 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtrip)
 		IRProgram ir;
 		ir.elements.push_back( IRInstruction{ 0x200, instr });
 
-		auto image = encoder.encode(ir);
+		auto image = encode(ir);
 
-		Disassembler dis;
+		ASSERT_EQ(image.size(), 2);
 
-		dis.configure( {0x200} );
+        const uint16_t opcode = make_word(image);
 
-		auto reconstructed = dis.build_ir( image );
+        Decoder decoder;
+        auto result = decoder.decode(0x200, opcode);
 
-		EXPECT_EQ( reconstructed.ir, ir );
+        ASSERT_TRUE(result.valid);
+        EXPECT_EQ(result.instruction, instr);
 	}
 }
 
-TEST_F(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
+TEST(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
 {
 	IRProgram ir;
 
@@ -89,10 +93,10 @@ TEST_F(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
 	ir.elements.push_back( IRInstruction{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
 	ir.elements.push_back( IRInstruction{ 0x210, Instruction::make_save_regs(Reg{8})});
 
-	auto image = encoder.encode(ir);
+	auto image = encode(ir);
 
 	Disassembler dis;
-	dis.configure( {0x200} );
+	// dis.configure( {0x200} );
 
 	auto reconstructed = dis.build_ir( image );
 

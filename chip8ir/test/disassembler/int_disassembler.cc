@@ -20,17 +20,7 @@
 #include <gtest/gtest.h>
 #include "disassembler/disassembler.h"
 
-class IntegrationTest : public ::testing::Test
-{
-protected:
-    Disassembler dis;
-
-    void SetUp() override {
-        dis.configure({0x200});
-    }
-};
-
-TEST_F(IntegrationTest, straight_line_with_data)
+TEST(IntDisassembler, straight_line_with_data)
 {
     BinImage bin = {
         0x60, 0x01,
@@ -39,6 +29,7 @@ TEST_F(IntegrationTest, straight_line_with_data)
         0xAA, 0xBB
     };
 
+    Disassembler dis;
     auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);
@@ -60,7 +51,7 @@ TEST_F(IntegrationTest, straight_line_with_data)
     EXPECT_EQ(d->bytes.size(), 4);
 }
 
-TEST_F(IntegrationTest, conditional_skip)
+TEST(IntDisassembler, conditional_skip)
 {
     BinImage bin = {
         0x30, 0x00,
@@ -68,6 +59,7 @@ TEST_F(IntegrationTest, conditional_skip)
         0x60, 0x02
     };
 
+    Disassembler dis;
     auto [ir, symbols] = dis.build_ir(bin);
 
     // All three instructions must be discovered
@@ -86,7 +78,7 @@ TEST_F(IntegrationTest, conditional_skip)
     EXPECT_EQ(i2->address, 0x204);
 }
 
-TEST_F(IntegrationTest, jump_skips_data)
+TEST(IntDisassembler, jump_skips_data)
 {
     BinImage bin = {
         0x12, 0x06,
@@ -95,6 +87,7 @@ TEST_F(IntegrationTest, jump_skips_data)
         0x60, 0x01
     };
 
+    Disassembler dis;
     auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);
@@ -113,7 +106,7 @@ TEST_F(IntegrationTest, jump_skips_data)
     EXPECT_EQ(i1->address, 0x206);
 }
 
-TEST_F(IntegrationTest, no_overlapping_elements)
+TEST(IntDisassembler, no_overlapping_elements)
 {
     BinImage bin = {
         0x12, 0x06,
@@ -122,6 +115,7 @@ TEST_F(IntegrationTest, no_overlapping_elements)
         0x60, 0x01
     };
 
+    Disassembler dis;
     auto [ir, symbols] = dis.build_ir(bin);
 
     std::set<uint16_t> covered;
@@ -139,7 +133,7 @@ TEST_F(IntegrationTest, no_overlapping_elements)
     }
 }
 
-TEST_F(IntegrationTest, invalid_opcode_terminates_code_path)
+TEST(IntDisassembler, invalid_opcode_terminates_code_path)
 {
     BinImage bin = {
         0x60, 0x01,
@@ -147,6 +141,7 @@ TEST_F(IntegrationTest, invalid_opcode_terminates_code_path)
         0xFF, 0xFF
     };
 
+    Disassembler dis;
     auto [ir, symbols] = dis.build_ir(bin);
 
     ASSERT_EQ(ir.elements.size(), 3);

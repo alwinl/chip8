@@ -39,7 +39,7 @@ int main( int argc, char ** argv )
 		std::ifstream asm_file( args.get_source_name() );
 		IRBundle bundle = assembler::build_ir( asm_file );
 
-		BinImage bin_image = BinaryEncoder().encode(bundle.ir);
+		BinImage bin_image = encode(bundle.ir);
 
 		std::ofstream os( args.get_binary_name(), std::ios::binary );
 		save_binary( os, bin_image );

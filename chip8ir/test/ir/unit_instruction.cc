@@ -23,14 +23,7 @@
 
 #include "ir/chip8ir.h"
 
-class Chip8IRTest : public ::testing::Test
-{
-protected:
-    void SetUp() override {}
-    void TearDown() override {}
-};
-
-TEST_F(Chip8IRTest, Construction)
+TEST(UnitInstruction, Construction)
 {
     // Simple instructions
     auto instr_cls = Instruction::make_clear();
@@ -77,7 +70,7 @@ TEST_F(Chip8IRTest, Construction)
     EXPECT_NE(ss.str().find("5"), std::string::npos);
 }
 
-TEST_F(Chip8IRTest, FullOpcodeCoverage)
+TEST(UnitInstruction, FullOpcodeCoverage)
 {
     // Prepare a few sample values for operands
     Reg r0{0}, r1{1}, r2{2};
@@ -156,7 +149,7 @@ TEST_F(Chip8IRTest, FullOpcodeCoverage)
     }
 }
 
-TEST_F(Chip8IRTest, OperandEqualityFuzz)
+TEST(UnitInstruction, OperandEqualityFuzz)
 {
     // Sample values for each operand type
     Reg r0{0}, r1{1};
@@ -186,7 +179,7 @@ TEST_F(Chip8IRTest, OperandEqualityFuzz)
     }
 }
 
-TEST_F(Chip8IRTest, InstructionEqualityAndStream)
+TEST(UnitInstruction, InstructionEqualityAndStream)
 {
     // Sample operands
     Reg r0{0}, r1{1};

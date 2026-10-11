@@ -34,7 +34,7 @@ private:
 	std::map<uint16_t,std::string> symbols;
 };
 
-TEST(ASMEmitterTest, manual_visual_inspection)
+TEST(UnitASMEmitter, manual_visual_inspection)
 {
 	BinImage image { 0x00, 0xE0, 0x12, 0x02, 0xF4, 0x29, 0x12, 0x34, 0x56, 0x78 };
 
@@ -73,7 +73,7 @@ TEST(ASMEmitterTest, manual_visual_inspection)
 	}
 }
 
-TEST(ASMEmitterTest, all_opcodes_visual_inspection)
+TEST(UnitASMEmitter, all_opcodes_visual_inspection)
 {
     BinImage image;  // dummy binary for optional byte printing
 
@@ -90,7 +90,7 @@ TEST(ASMEmitterTest, all_opcodes_visual_inspection)
         addr += 2;
     };
 
-    // Build one of each opcode using your exact make_XXX methods
+    // Build one of each opcode using the make_XXX methods
     push_instruction( Instruction::make_nop(), { 0x00, 0xEF });
     push_instruction( Instruction::make_clear(), { 0x00, 0xE0 });
     push_instruction( Instruction::make_return(), { 0x00, 0xEE });

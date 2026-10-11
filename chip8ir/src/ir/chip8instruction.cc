@@ -19,7 +19,10 @@
 
 #include "ir/chip8instruction.h"
 
+#include <cassert>
+
 #include <iomanip>
+#include <algorithm>
 
 bool operator==( const Operand& a, const Operand& b )
 {
@@ -81,16 +84,16 @@ std::ostream& operator<<(std::ostream& os, const Operand& op)
 		auto fill  = os.fill();
 
 		if constexpr( std::is_same_v<T, Reg> )
-			os << "V" << std::uppercase << std::hex << +v.index;
+			os << "V" << std::uppercase << std::hex << +v.get_index();
 
 		else if constexpr( std::is_same_v<T, Addr> )
-			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
+			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.get_value();
 
 		else if constexpr( std::is_same_v<T, Imm> )
-			os << "#" << std::dec << +v.value;
+			os << "#" << std::dec << +v.get_value();
 
 		else if constexpr( std::is_same_v<T, Nibble> )
-			os << "0x" << std::uppercase << std::hex << +v.value;
+			os << "0x" << std::uppercase << std::hex << +v.get_value();
 
 		os.fill(fill);
 		os.flags(flags);
@@ -118,4 +121,89 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr)
     os << "]";
 
     return os;
+}
+
+struct OperandSpec
+{
+	enum class Type {  Addr, Reg, Imm, Nibble };
+
+	Type type;
+	uint8_t shift_by;
+};
+
+struct OpData
+{
+	uint16_t base;
+	uint16_t op_count;
+	std::array<OperandSpec, 3> operands;
+};
+
+static const std::array<OpData, opcode_count> base =
+{
+	/* OPCODE::NOP */		OpData{ 0x0000, 0, {{ {}, {}, {} }} },
+	/* Opcode::CLS */		OpData{ 0x00E0, 0, {{ {}, {}, {} }} },
+	/* Opcode::RET */		OpData{ 0x00EE, 0, {{ {}, {}, {} }} },
+	/* Opcode::JP */		OpData{ 0x1000, 1, {{ { OperandSpec::Type::Addr, 0 }, {}, {} }} },
+	/* Opcode::CALL */		OpData{ 0x2000, 1, {{ { OperandSpec::Type::Addr, 0 }, {}, {} }} },
+	/* Opcode::SE_Imm */	OpData{ 0x3000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Imm, 0 }, {} }} },
+	/* Opcode::SNE_Imm */	OpData{ 0x4000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Imm, 0 }, {} }} },
+	/* Opcode::SE_Reg */	OpData{ 0x5000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::LD_Imm */	OpData{ 0x6000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Imm, 0 }, {} }} },
+	/* Opcode::ADD_Imm */	OpData{ 0x7000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Imm, 0 }, {} }} },
+	/* Opcode::LD_Reg */	OpData{ 0x8000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::OR */		OpData{ 0x8001, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::AND */		OpData{ 0x8002, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::XOR */		OpData{ 0x8003, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::ADD_Reg */	OpData{ 0x8004, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::SUB */		OpData{ 0x8005, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::SHR */		OpData{ 0x8006, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::SUBN */		OpData{ 0x8007, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::SHL */		OpData{ 0x800E, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::SNE_Reg */	OpData{ 0x9000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, {} }} },
+	/* Opcode::LD_I */		OpData{ 0xA000, 1, {{ { OperandSpec::Type::Addr, 0 }, {}, {} }} },
+	/* Opcode::JP_V0 */		OpData{ 0xB000, 1, {{ { OperandSpec::Type::Addr, 0 }, {}, {} }} },
+	/* Opcode::RND */		OpData{ 0xC000, 2, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Imm, 0 }, {} }} },
+	/* Opcode::DRW */		OpData{ 0xD000, 3, {{ { OperandSpec::Type::Reg, 8 }, { OperandSpec::Type::Reg, 4 }, { OperandSpec::Type::Nibble, 0 } }} },
+	/* Opcode::SKP */		OpData{ 0xE09E, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::SKNP */		OpData{ 0xE0A1, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::LD_DT */		OpData{ 0xF015, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::LD_ST */		OpData{ 0xF018, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::ST_KEY */	OpData{ 0xF00A, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::ST_DT */		OpData{ 0xF007, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::ADD_I */		OpData{ 0xF01E, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::LD_SPRITE */	OpData{ 0xF029, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::BCD */		OpData{ 0xF033, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::ST_REGS */	OpData{ 0xF055, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} },
+	/* Opcode::LD_REGS */	OpData{ 0xF065, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} }
+};
+
+uint16_t Instruction::to_binary( ) const
+{
+	const auto& op_data = base.at(static_cast<size_t>(opcode_));
+
+	assert( operand_count_ == op_data.op_count );
+
+	uint16_t result = op_data.base;
+
+	for( size_t idx = 0; idx < op_data.op_count; ++idx ) {
+
+		const auto shift = op_data.operands[idx].shift_by;
+
+		switch( op_data.operands[idx].type ) {
+		case OperandSpec::Type::Addr:
+			result |= (std::get<Addr>(operands_[idx]).get_value() << shift);
+			break;
+		case OperandSpec::Type::Reg:
+			result |= (std::get<Reg>(operands_[idx]).get_index() << shift );
+			break;
+		case OperandSpec::Type::Imm:
+			result |= (std::get<Imm>(operands_[idx]).get_value() << shift );
+			break;
+		case OperandSpec::Type::Nibble:
+			result |= (std::get<Nibble>(operands_[idx]).get_value() << shift );
+			break;
+		}
+	}
+
+	return result;
 }

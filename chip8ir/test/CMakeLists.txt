@@ -22,12 +22,12 @@ include(GoogleTest)
 add_executable(
 	ir_test
 
-	ir/asm_emitter_test.cc
+	ir/unit_asm_emitter.cc
 	ir/binary_emitter_test.cc
 	ir/cfg_emitter_test.cc
-	ir/chip8ir_test.cc
-	ir/decoder_test.cc
-	ir/encoder_test.cc
+	ir/unit_instruction.cc
+	ir/unit_decoder.cc
+	ir/unit_encoder.cc
 	ir/integration_test.cc
 )
 
@@ -52,9 +52,9 @@ target_link_libraries( assembler_test PRIVATE gtest gtest_main chip8::ir )
 add_executable(
 	disassembler_test
 
-	disassembler/symbols_test.cc
-	disassembler/memory_test.cc
-	disassembler/integration_test.cc
+	disassembler/unit_symbol_table.cc
+	disassembler/unit_memory.cc
+	disassembler/int_disassembler.cc
 )
 
 target_link_libraries( disassembler_test PRIVATE gtest gtest_main chip8::ir )

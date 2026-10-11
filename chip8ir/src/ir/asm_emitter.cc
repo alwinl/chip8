@@ -21,20 +21,19 @@
 
 #include "ir/asm_emitter.h"
 
-void ASMEmitter::emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode )
+struct StreamStateGuard
 {
-	EmitContext ctx = {
-		.os = os,
-		.bundle = bundle,
-		.bin_image = bin_image,
-		.mode = mode
-	};
+    StreamStateGuard(std::ostream& os) : os(os), flags(os.flags()), fill(os.fill()) {}
 
-	emit_header( ctx, configuration.bin_name );
+    ~StreamStateGuard() {
+        os.flags(flags);
+        os.fill(fill);
+    }
 
-	for( const auto& element : bundle.ir.elements )
-        std::visit( [&]( const auto& v ) { emit_element( ctx, v ); }, element );
-}
+    std::ostream& os;
+    std::ios::fmtflags flags;
+    char fill;
+};
 
 void ASMEmitter::emit_header( const EmitContext& ctx, std::string name )
 {
@@ -46,6 +45,75 @@ void ASMEmitter::emit_header( const EmitContext& ctx, std::string name )
 	emit_address( ctx, ctx.bundle.ir.origin );
 
 	ctx.os << "\n\n";
+}
+
+void ASMEmitter::emit_address( const EmitContext& ctx, uint16_t address )
+{
+	ctx.os << "0x" << std::hex << std::uppercase << std::setw(3) << std::setfill('0') << address << "  ";
+}
+
+void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t address )
+{
+	uint8_t high_byte = ctx.bin_image[ address - ctx.bundle.ir.origin ];
+	uint8_t low_byte  = ctx.bin_image[ address - ctx.bundle.ir.origin + 1 ];
+
+	ctx.os << std::hex << std::uppercase
+		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
+
+	ctx.os << std::hex << std::uppercase
+		<< std::setw(2) << std::setfill('0') << +low_byte << "  ";
+}
+
+void ASMEmitter::emit_label( const EmitContext& ctx, uint16_t address )
+{
+	std::string label = ctx.bundle.resolver->get_label( address );
+
+	if( !label.empty() )
+		label += ":";
+
+	ctx.os << std::left << std::setw(8) << std::setfill(' ') << label;
+}
+
+void ASMEmitter::emit_mnemonic( const EmitContext& ctx, const Opcode& opcode )
+{
+	static std::array<std::string, opcode_count> mnemonics = {
+		"NOP", "CLS", "RET", "JP", "CALL", "SE",
+		"SNE", "SE", "LD", "ADD", "LD", "OR", "AND",
+		"XOR", "ADD", "SUB", "SHR", "SUBN", "SHL", "SNE", "LD I,",
+		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
+		"LD ST,", "ST K,", "ST DT,", "ADD I,",
+		"LD F,", "LD B,", "ST [I],", "LD [I],"
+	};
+
+	ctx.os << mnemonics[ static_cast<int>(opcode) ];
+}
+
+void ASMEmitter::emit_operand( const EmitContext& ctx, const Operand& op )
+{
+    std::visit( [&](auto&& v)
+	{
+		StreamStateGuard guard(ctx.os);
+
+        using T = std::decay_t<decltype(v)>;
+
+		if constexpr( std::is_same_v<T, Reg> )
+			ctx.os << "V" << std::uppercase << std::hex << +v.get_index();
+
+		else if constexpr( std::is_same_v<T, Addr> ) {
+			std::string target = ctx.bundle.resolver->get_label( v.get_value() );
+			if( target.empty() )
+				ctx.os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.get_value();
+			else
+				ctx.os << target;
+		}
+
+		else if constexpr( std::is_same_v<T, Imm> )
+			ctx.os << "#" << std::dec << +v.get_value();
+
+		else if constexpr( std::is_same_v<T, Nibble> )
+			ctx.os << "0x" << std::uppercase << std::hex << +v.get_value();
+
+	}, op);
 }
 
 void ASMEmitter::emit_element( const EmitContext& ctx, const IRInstruction& element )
@@ -96,85 +164,17 @@ void ASMEmitter::emit_element( const EmitContext& ctx, const IRDataBlock& elemen
 	ctx.os << "\n";
 }
 
-void ASMEmitter::emit_address( const EmitContext& ctx, uint16_t address )
+void ASMEmitter::emit( std::ostream& os, const IRBundle& bundle, const BinImage& bin_image, OutputMode mode )
 {
-	ctx.os << "0x" << std::hex << std::uppercase << std::setw(3) << std::setfill('0') << address << "  ";
-}
-
-void ASMEmitter::emit_opcode( const EmitContext& ctx, uint16_t address )
-{
-	uint8_t high_byte = ctx.bin_image[ address - ctx.bundle.ir.origin ];
-	uint8_t low_byte  = ctx.bin_image[ address - ctx.bundle.ir.origin + 1 ];
-
-	ctx.os << std::hex << std::uppercase
-		<< std::setw(2) << std::setfill('0') << +high_byte << " ";
-
-	ctx.os << std::hex << std::uppercase
-		<< std::setw(2) << std::setfill('0') << +low_byte << "  ";
-}
-
-void ASMEmitter::emit_label( const EmitContext& ctx, uint16_t address )
-{
-	std::string label = ctx.bundle.resolver->get_label( address );
-
-	if( !label.empty() )
-		label += ":";
-
-	ctx.os << std::left << std::setw(8) << std::setfill(' ') << label;
-}
-
-void ASMEmitter::emit_mnemonic( const EmitContext& ctx, const Opcode& opcode )
-{
-	static std::array<std::string, opcode_count> mnemonics = {
-		"NOP", "CLS", "RET", "JP", "CALL", "SE",
-		"SNE", "SE", "LD", "ADD", "LD", "OR", "AND",
-		"XOR", "ADD", "SUB", "SHR", "SUBN", "SHL", "SNE", "LD I,",
-		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
-		"LD ST,", "ST K,", "ST DT,", "ADD I,",
-		"LD F,", "LD B,", "ST [I],", "LD [I],"
+	EmitContext ctx = {
+		.os = os,
+		.bundle = bundle,
+		.bin_image = bin_image,
+		.mode = mode
 	};
 
-	ctx.os << mnemonics[ static_cast<int>(opcode) ];
-}
+	emit_header( ctx, configuration.bin_name );
 
-struct StreamStateGuard
-{
-    StreamStateGuard(std::ostream& os) : os(os), flags(os.flags()), fill(os.fill()) {}
-
-    ~StreamStateGuard() {
-        os.flags(flags);
-        os.fill(fill);
-    }
-
-    std::ostream& os;
-    std::ios::fmtflags flags;
-    char fill;
-};
-
-void ASMEmitter::emit_operand( const EmitContext& ctx, const Operand& op )
-{
-    std::visit( [&](auto&& v)
-	{
-		StreamStateGuard guard(ctx.os);
-
-        using T = std::decay_t<decltype(v)>;
-
-		if constexpr( std::is_same_v<T, Reg> )
-			ctx.os << "V" << std::uppercase << std::hex << +v.index;
-
-		else if constexpr( std::is_same_v<T, Addr> ) {
-			std::string target = ctx.bundle.resolver->get_label( v.value );
-			if( target.empty() )
-				ctx.os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.value;
-			else
-				ctx.os << target;
-		}
-
-		else if constexpr( std::is_same_v<T, Imm> )
-			ctx.os << "#" << std::dec << +v.value;
-
-		else if constexpr( std::is_same_v<T, Nibble> )
-			ctx.os << "0x" << std::uppercase << std::hex << +v.value;
-
-	}, op);
+	for( const auto& element : bundle.ir.elements )
+        std::visit( [&]( const auto& v ) { emit_element( ctx, v ); }, element );
 }

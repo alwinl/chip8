@@ -32,9 +32,7 @@ public:
 		uint16_t origin;
 	};
 
-	Disassembler() = default;
-
-	void configure( Config config ) { configuration = std::move(config); };
+	explicit Disassembler( Config config = {0x200} ) : configuration(config) {};
 
 	IRBundle build_ir( const BinImage& binary );
 

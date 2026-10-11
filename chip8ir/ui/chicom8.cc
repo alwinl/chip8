@@ -44,7 +44,7 @@ int main( int argc, char ** argv )
 
 		IRBundle bundle = compiler.build_ir( source );
 
-		BinImage image = BinaryEncoder().encode( bundle.ir );
+		BinImage image = encode( bundle.ir );
 
 		std::ofstream os( args.get_output_name(), std::ios::binary );
 		save_binary( os, image );

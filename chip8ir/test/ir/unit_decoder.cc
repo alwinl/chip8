@@ -21,18 +21,10 @@
 
 #include "ir/decoder.h"
 
-class DecoderTest : public ::testing::Test
-{
-protected:
-	Decoder decoder;
-
-	void SetUp() override {}
-	void TearDown() override {}
-};
-
-TEST_F(DecoderTest, decode_system_and_flow)
+TEST(UnitDecoder, decode_system_and_flow)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -51,9 +43,10 @@ TEST_F(DecoderTest, decode_system_and_flow)
     expect( 0xB370, "Opcode: JP V0 Operands: [0x370]" );
 }
 
-TEST_F(DecoderTest, decode_register_immediates)
+TEST(UnitDecoder, decode_register_immediates)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -66,9 +59,10 @@ TEST_F(DecoderTest, decode_register_immediates)
     expect( 0xA370, "Opcode: LD I Operands: [0x370]" );
 }
 
-TEST_F(DecoderTest, decode_arithmetic)
+TEST(UnitDecoder, decode_arithmetic)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -87,9 +81,10 @@ TEST_F(DecoderTest, decode_arithmetic)
     expect( 0x837E, "Opcode: SHL Operands: [V3, V7]" );
 }
 
-TEST_F(DecoderTest, decode_drawing_and_keys)
+TEST(UnitDecoder, decode_drawing_and_keys)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -102,9 +97,10 @@ TEST_F(DecoderTest, decode_drawing_and_keys)
     expect( 0xE8A1, "Opcode: SKNP Operands: [V8]" );
 }
 
-TEST_F(DecoderTest, decode_fx_instructions)
+TEST(UnitDecoder, decode_fx_instructions)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -124,9 +120,10 @@ TEST_F(DecoderTest, decode_fx_instructions)
     expect( 0xF265, "Opcode: LD [I] Operands: [V2]" );
 }
 
-TEST_F(DecoderTest, decode_invalids)
+TEST(UnitDecoder, decode_invalids)
 {
 	std::stringstream ss;
+	Decoder decoder;
 
 	auto expect = [&](uint16_t opcode, const char* text) {
 		ss.str("");
@@ -142,9 +139,10 @@ TEST_F(DecoderTest, decode_invalids)
     expect( 0xF045, "Opcode: NOP Operands: []" );
 }
 
-TEST_F(DecoderTest, decode_invalids_generated)
+TEST(UnitDecoder, decode_invalids_generated)
 {
     std::stringstream ss;
+	Decoder decoder;
 
     auto expect_nop = [&](uint16_t opcode) {
         ss.str("");
@@ -195,8 +193,10 @@ TEST_F(DecoderTest, decode_invalids_generated)
     }
 }
 
-TEST_F(DecoderTest, control_flow_unconditional)
+TEST(UnitDecoder, control_flow_unconditional)
 {
+	Decoder decoder;
+
     auto r = decoder.decode(0x200, 0x1234); // JP 0x234
 
     EXPECT_EQ(r.next_addresses.size(), 1);
@@ -206,8 +206,10 @@ TEST_F(DecoderTest, control_flow_unconditional)
     EXPECT_EQ(r.referenced_address, 0x234);
 }
 
-TEST_F(DecoderTest, control_flow_call)
+TEST(UnitDecoder, control_flow_call)
 {
+	Decoder decoder;
+
     auto r = decoder.decode(0x200, 0x2ABC); // CALL 0xABC
 
     EXPECT_EQ(r.next_addresses.size(), 2);
@@ -218,16 +220,20 @@ TEST_F(DecoderTest, control_flow_call)
     EXPECT_EQ(r.referenced_address, 0xABC);
 }
 
-TEST_F(DecoderTest, control_flow_ret)
+TEST(UnitDecoder, control_flow_ret)
 {
+	Decoder decoder;
+
     auto r = decoder.decode(0x200, 0x00EE); // RET
 
     EXPECT_TRUE(r.next_addresses.empty());
     EXPECT_EQ(r.role, AddressRole::None );
 }
 
-TEST_F(DecoderTest, control_flow_skip)
+TEST(UnitDecoder, control_flow_skip)
 {
+	Decoder decoder;
+
     // SE V1, #AA
     auto r = decoder.decode(0x300, 0x31AA);
 
@@ -238,8 +244,10 @@ TEST_F(DecoderTest, control_flow_skip)
     EXPECT_EQ(r.role, AddressRole::None );
 }
 
-TEST_F(DecoderTest, control_flow_key_skip)
+TEST(UnitDecoder, control_flow_key_skip)
 {
+	Decoder decoder;
+
     // SKP V9
     auto r = decoder.decode(0x400, 0xE99E);
 
@@ -250,8 +258,10 @@ TEST_F(DecoderTest, control_flow_key_skip)
     EXPECT_EQ(r.role, AddressRole::None );
 }
 
-TEST_F(DecoderTest, control_flow_fallthrough_only)
+TEST(UnitDecoder, control_flow_fallthrough_only)
 {
+	Decoder decoder;
+
     auto r = decoder.decode(0x500, 0x8374); // ADD V3, V7
 
     ASSERT_EQ(r.next_addresses.size(), 1);
@@ -260,8 +270,10 @@ TEST_F(DecoderTest, control_flow_fallthrough_only)
     EXPECT_EQ(r.role, AddressRole::None );
 }
 
-TEST_F(DecoderTest, control_flow_invalid_opcode)
+TEST(UnitDecoder, control_flow_invalid_opcode)
 {
+	Decoder decoder;
+
     auto r = decoder.decode(0x600, 0xFFFF);
 
     ASSERT_EQ(r.next_addresses.size(), 1);

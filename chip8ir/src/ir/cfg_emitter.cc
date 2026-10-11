@@ -70,7 +70,7 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 				// fall through
 
 			case Opcode::JP: {
-				auto target = std::get<Addr>(instruction_element->instruction.operands()[0]).value;
+				auto target = std::get<Addr>(instruction_element->instruction.operands()[0]).get_value();
 				node.successors.push_back( { target, "" } );
 				break;
 			}

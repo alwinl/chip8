@@ -28,24 +28,30 @@ protected:
     DisasmSymbolTable symbols;
 };
 
-TEST_F(SymbolsTest, add_empty_optional_does_nothing)
+TEST(UnitSymbolTable, add_empty_optional_does_nothing)
 {
-    symbols.add(std::nullopt);
+    DisasmSymbolTable symbols;
+
+	symbols.add(std::nullopt);
     symbols.sort_vectors();
 
     EXPECT_EQ(symbols.get_label(0x200), "");
 }
 
-TEST_F(SymbolsTest, add_single_target)
+TEST(UnitSymbolTable, add_single_target)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x234, JUMP});
     symbols.sort_vectors();
 
     EXPECT_EQ(symbols.get_label(0x234), "LABEL0");
 }
 
-TEST_F(SymbolsTest, multiple_targets_same_kind)
+TEST(UnitSymbolTable, multiple_targets_same_kind)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x300, SUBROUTINE});
     symbols.add(DecodedSymbol{0x200, SUBROUTINE});
     symbols.add(DecodedSymbol{0x280, SUBROUTINE});
@@ -57,8 +63,10 @@ TEST_F(SymbolsTest, multiple_targets_same_kind)
     EXPECT_EQ(symbols.get_label(0x300), "FUNC2");
 }
 
-TEST_F(SymbolsTest, duplicate_targets_are_removed)
+TEST(UnitSymbolTable, duplicate_targets_are_removed)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x234, JUMP});
     symbols.add(DecodedSymbol{0x234, JUMP});
     symbols.add(DecodedSymbol{0x234, JUMP});
@@ -68,8 +76,10 @@ TEST_F(SymbolsTest, duplicate_targets_are_removed)
     EXPECT_EQ(symbols.get_label(0x234), "LABEL0");
 }
 
-TEST_F(SymbolsTest, same_address_different_kinds)
+TEST(UnitSymbolTable, same_address_different_kinds)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x400, JUMP});
     symbols.add(DecodedSymbol{0x400, SUBROUTINE});
 
@@ -78,16 +88,20 @@ TEST_F(SymbolsTest, same_address_different_kinds)
     EXPECT_EQ(symbols.get_label(0x400), "FUNC0"); // SUBROUTINE checked first?
 }
 
-TEST_F(SymbolsTest, unknown_address_returns_empty)
+TEST(UnitSymbolTable, unknown_address_returns_empty)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x200, JUMP});
     symbols.sort_vectors();
 
     EXPECT_EQ(symbols.get_label(0x201), "");
 }
 
-TEST_F(SymbolsTest, indexed_list_contents)
+TEST(UnitSymbolTable, indexed_list_contents)
 {
+    DisasmSymbolTable symbols;
+
     symbols.add(DecodedSymbol{0x300, INDEXED});
     symbols.add(DecodedSymbol{0x200, INDEXED});
     symbols.add(DecodedSymbol{0x200, INDEXED});
@@ -101,7 +115,7 @@ TEST_F(SymbolsTest, indexed_list_contents)
 }
 
 // #ifndef NDEBUG
-// TEST_F(SymbolsTest, get_label_without_sort_asserts)
+// TEST(UnitSymbolTable, get_label_without_sort_asserts)
 // {
 //     symbols.add(DecodedSymbol{0x200, JUMP});
 //     EXPECT_DEATH(symbols.get_label(0x200), ".*");

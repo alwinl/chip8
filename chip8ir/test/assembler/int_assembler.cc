@@ -66,7 +66,7 @@ target:
     auto operands = jp.instruction.operands();
 
     ASSERT_EQ(operands.size(), 1);
-    EXPECT_EQ(std::get<Addr>(operands[0]).value, 0x204);
+    EXPECT_EQ(std::get<Addr>(operands[0]).get_value(), 0x204);
 }
 
 TEST(IntAssembler, ExpressionEvaluation)
@@ -82,7 +82,7 @@ R"(
 
     auto operands = inst.instruction.operands();
 
-    EXPECT_EQ(std::get<Imm>(operands[1]).value, 15);
+    EXPECT_EQ(std::get<Imm>(operands[1]).get_value(), 15);
 }
 
 TEST(IntAssembler, SE_RegisterVsImmediate)

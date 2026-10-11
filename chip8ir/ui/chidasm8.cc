@@ -36,8 +36,8 @@ int main( int argc, char ** argv )
         if( !args.parse_args( argc, argv ) )
 			return 1;
 
-		Disassembler disassembler;
-		disassembler.configure( {args.get_origin()} );
+		Disassembler disassembler({args.get_origin()});
+		// disassembler.configure( {args.get_origin()} );
 
 		std::ifstream is( args.get_source_name(), std::ios::binary );
 		BinImage image = load_binary( is );

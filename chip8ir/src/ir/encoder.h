@@ -22,14 +22,16 @@
 #include "ir/chip8ir.h"
 #include "ir/chip8formats.h"
 
-class BinaryEncoder
-{
-public:
-	BinaryEncoder() = default;
+BinImage encode( const IRProgram& ir );
 
-	BinImage encode( const IRProgram& ir );
+// class BinaryEncoder
+// {
+// public:
+// 	BinaryEncoder() = default;
 
-private:
-	void encode_element( const IRInstruction& instruction, BinImage& image );
-	void encode_element( const IRDataBlock& data, BinImage& image );
-};
+// 	BinImage encode( const IRProgram& ir );
+
+// private:
+// 	// void encode_element( const IRInstruction& instruction, BinImage& image );
+// 	// void encode_element( const IRDataBlock& data, BinImage& image );
+// };

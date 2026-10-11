@@ -21,30 +21,25 @@
 
 #include "disassembler/memory.h"
 
-class MemoryTest : public ::testing::Test
-{
-protected:
-	DisasmMemory memory;
-
-	void SetUp() override {}
-	void TearDown() override {}
-};
-
-TEST_F(MemoryTest, TestBoundaries)
+TEST(UnitMemory, TestBoundaries)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
+	DisasmMemory memory;
+
 	EXPECT_EQ( memory.start(), memory.end() );
 	memory.bind( image );
 	EXPECT_EQ( memory.start() + 4, memory.end() );
 }
 
-TEST_F(MemoryTest, TestLimits)
+TEST(UnitMemory, TestLimits)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
+	DisasmMemory memory;
+
 	memory.bind( image );
 	EXPECT_FALSE( memory.contains( 0x1FF ) );
 	EXPECT_TRUE( memory.contains( 0x200 ) );
@@ -52,11 +47,13 @@ TEST_F(MemoryTest, TestLimits)
 	EXPECT_FALSE( memory.contains( 0x204 ) );
 }
 
-TEST_F(MemoryTest, GetBytes)
+TEST(UnitMemory, GetBytes)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
+	DisasmMemory memory;
+
 	memory.bind( image );
 	EXPECT_EQ( memory.get_byte( 0x200 ), 0x01 );
 	EXPECT_EQ( memory.get_byte( 0x201 ), 0x02 );
@@ -64,22 +61,26 @@ TEST_F(MemoryTest, GetBytes)
 	EXPECT_EQ( memory.get_byte( 0x203 ), 0x04 );
 }
 
-TEST_F(MemoryTest, GetWords)
+TEST(UnitMemory, GetWords)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
+	DisasmMemory memory;
+
 	memory.bind( image );
 	EXPECT_EQ( memory.get_word( 0x200 ), 0x0102 );
 	EXPECT_EQ( memory.get_word( 0x201 ), 0x0203 );
 	EXPECT_EQ( memory.get_word( 0x202 ), 0x0304 );
 }
 
-TEST_F(MemoryTest, CheckValidInstructionMark)
+TEST(UnitMemory, CheckValidInstructionMark)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06
 	};
+	DisasmMemory memory;
+
 	memory.bind( image );
 
 	memory.mark_instruction( 0x202 );
@@ -89,11 +90,13 @@ TEST_F(MemoryTest, CheckValidInstructionMark)
 	EXPECT_FALSE( memory.is_instruction( 0x204) );
 }
 
-TEST_F(MemoryTest, CheckUnalignedInstructionMark)
+TEST(UnitMemory, CheckUnalignedInstructionMark)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06
 	};
+	DisasmMemory memory;
+
 	memory.bind( image );
 
 	memory.mark_instruction( 0x203 );

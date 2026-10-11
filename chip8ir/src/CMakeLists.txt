@@ -33,10 +33,9 @@ add_library(
 	assembler/tokeniser.cc
 	assembler/parser.cc
 	assembler/expression.cc
+	assembler/symbol_table.cc
 	assembler/instruction_generator.cc
 	assembler/ir_generator.cc
-	assembler/symbol_table.cc
-	assembler/symbol_collector.cc
 	assembler/assembler.cc
 	assembler/cmdlineparser.cc
 
