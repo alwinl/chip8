@@ -28,7 +28,7 @@
 #include "ebnf_parser.h"
 // #include "ebnf_generator.h"
 
-TEST(EBNFParserUnit, ParsesSimpleRule)
+TEST(UnitParser, ParsesSimpleRule)
 {
     std::string source = "<expr> ::= <term> ;";
     Parser parser(source);
@@ -47,7 +47,7 @@ TEST(EBNFParserUnit, ParsesSimpleRule)
     EXPECT_EQ(sym->token.lexeme, "term");
 }
 
-TEST(EBNFParserUnit, ParsesAlternation)
+TEST(UnitParser, ParsesAlternation)
 {
     std::string source = "<expr> ::= <term> | <factor> ;";
     Parser parser(source);
@@ -73,7 +73,7 @@ TEST(EBNFParserUnit, ParsesAlternation)
     EXPECT_EQ(right_symbol->token.lexeme, "factor");
 }
 
-TEST(EBNFParserUnit, ParsesGroupWithCardinality)
+TEST(UnitParser, ParsesGroupWithCardinality)
 {
     std::string source = "<expr> ::= (<term> | <factor>)* ;";
     Parser parser(source);
@@ -94,7 +94,7 @@ TEST(EBNFParserUnit, ParsesGroupWithCardinality)
     ASSERT_EQ(inner_alt->subparts.size(), 2);
 }
 
-TEST(EBNFParserUnit, ParsesSequenceOfSymbols)
+TEST(UnitParser, ParsesSequenceOfSymbols)
 {
     std::string source = "<pair> ::= <key> <value> ;";
     Parser parser(source);
@@ -110,7 +110,7 @@ TEST(EBNFParserUnit, ParsesSequenceOfSymbols)
     EXPECT_EQ(dynamic_cast<SymbolNode*>(sub->element[1].get())->token.lexeme, "value");
 }
 
-TEST(EBNFParserUnit, ParsesSymbolModifiers)
+TEST(UnitParser, ParsesSymbolModifiers)
 {
     std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
     Parser parser(source);
@@ -125,7 +125,7 @@ TEST(EBNFParserUnit, ParsesSymbolModifiers)
     EXPECT_EQ(sub->element[2]->card, ElementNode::Cardinality::ONE_OR_MORE);
 }
 
-TEST(EBNFParserError, MissingSemicolon)
+TEST(UnitParser, MissingSemicolon)
 {
     std::string source = "<expr> ::= <term>";
     Parser parser(source);
@@ -143,7 +143,7 @@ TEST(EBNFParserError, MissingSemicolon)
     }
 }
 
-TEST(EBNFParserError, UnexpectedToken)
+TEST(UnitParser, UnexpectedToken)
 {
     std::string source = "<expr> <term> ;"; // Missing ::=
     Parser parser(source);
@@ -161,7 +161,7 @@ TEST(EBNFParserError, UnexpectedToken)
     }
 }
 
-TEST(EBNFParserIntegration, ParsesMiniGrammar)
+TEST(IntParser, ParsesMiniGrammar)
 {
     std::string source = R"abc(
         <expr> ::= <term> | <term> OPERATOR("+") <expr> ;
@@ -178,7 +178,7 @@ TEST(EBNFParserIntegration, ParsesMiniGrammar)
     EXPECT_EQ(grammar.rules[2].name, "factor");
 }
 
-TEST(EBNFParserIntegration, ParsesChiComGrammar)
+TEST(IntParser, ParsesChiComGrammar)
 {
     std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
     Parser parser( file_name );

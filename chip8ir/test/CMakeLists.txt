@@ -23,12 +23,11 @@ add_executable(
 	ir_test
 
 	ir/unit_asm_emitter.cc
-	ir/binary_emitter_test.cc
-	ir/cfg_emitter_test.cc
+	ir/unit_cfg_emitter.cc
 	ir/unit_instruction.cc
 	ir/unit_decoder.cc
 	ir/unit_encoder.cc
-	ir/integration_test.cc
+	ir/int_irprogram.cc
 )
 
 target_link_libraries( ir_test PRIVATE gtest gtest_main chip8::ir )

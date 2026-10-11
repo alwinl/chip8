@@ -25,49 +25,49 @@
 #include "ebnf_tokeniser.h"
 
 
-TEST(EBNFTokeniserUnitTest, RecognisesNonterminal)
+TEST(UnitTokeniser, RecognisesNonterminal)
 {
     Tokeniser lexer(std::string( "<expr>") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::NONTERMINAL, "expr", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesColonEq)
+TEST(UnitTokeniser, RecognisesColonEq)
 {
     Tokeniser lexer(std::string( "::=") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::COLON_EQ, "::=", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesOpenBracket)
+TEST(UnitTokeniser, RecognisesOpenBracket)
 {
     Tokeniser lexer(std::string( "(") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::OPENBRACKET, "(", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesCloseBracket)
+TEST(UnitTokeniser, RecognisesCloseBracket)
 {
     Tokeniser lexer(std::string( ")") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::CLOSEBRACKET, ")", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesPipe)
+TEST(UnitTokeniser, RecognisesPipe)
 {
     Tokeniser lexer(std::string( "|") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::PIPE, "|", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesEndOfProduction)
+TEST(UnitTokeniser, RecognisesEndOfProduction)
 {
     Tokeniser lexer(std::string( ";") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::END_OF_PRODUCTION, ";", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesTokenProduction)
+TEST(UnitTokeniser, RecognisesTokenProduction)
 {
     Tokeniser lexer(std::string( "KEYWORD(\"if\")") );
     EXPECT_EQ( lexer.next_token(), Token( Token::Type::LITERAL, "KEYWORD(\"if\")", 1, 1));
 }
 
-TEST(EBNFTokeniserUnitTest, RecognisesModifiers)
+TEST(UnitTokeniser, RecognisesModifiers)
 {
     EXPECT_EQ( Tokeniser(std::string( "*") ).next_token(), Token( Token::Type::MODIFIER, "*", 1, 1));
     EXPECT_EQ( Tokeniser(std::string( "?") ).next_token(), Token( Token::Type::MODIFIER, "?", 1, 1));
@@ -75,7 +75,7 @@ TEST(EBNFTokeniserUnitTest, RecognisesModifiers)
 }
 
 
-TEST(EBNFTokeniserIntegrationTest, TokenisesSimpleRule)
+TEST(IntTokeniser, TokenisesSimpleRule)
 {
     std::string src = "<expr> ::= <term> | <factor> ;";
     Tokeniser tokenizer(src);
@@ -95,7 +95,7 @@ TEST(EBNFTokeniserIntegrationTest, TokenisesSimpleRule)
     EXPECT_EQ(tokens, expected);
 }
 
-TEST(EBNFTokeniserIntegrationTest, TokenisesChiComGrammar)
+TEST(IntTokeniser, TokenisesChiComGrammar)
 {
     std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
     Tokeniser tokenizer(file_name);

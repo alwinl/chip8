@@ -24,7 +24,7 @@
 
 #include <fstream>
 
-class CFGEmitterTest : public ::testing::Test
+class UnitCFGEmitter : public ::testing::Test
 {
 protected:
 	IRProgram ir;
@@ -44,7 +44,7 @@ protected:
 	void TearDown() override {}
 };
 
-TEST_F(CFGEmitterTest, create_plantuml )
+TEST_F(UnitCFGEmitter, create_plantuml )
 {
 	std::ofstream plantuml_file("cfg_plantuml.plantuml");
 
@@ -53,7 +53,7 @@ TEST_F(CFGEmitterTest, create_plantuml )
     plantuml_file.close();
 }
 
-TEST_F(CFGEmitterTest, create_dot )
+TEST_F(UnitCFGEmitter, create_dot )
 {
 	std::ofstream dot_file("cfg_dot.dot");
 

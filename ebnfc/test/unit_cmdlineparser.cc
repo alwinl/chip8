@@ -21,19 +21,10 @@
 
 #include "ebnf_cmdlineparser.h"
 
-class EBNFCommandLineTest : public ::testing::Test {
-protected:
-	void SetUp() override {
-
-	}
-	void TearDown() override {
-	}
-
-    CmdLineParser parser;
-};
-
-TEST_F(EBNFCommandLineTest, DecodeNoTarjan)
+TEST(UnitCmdLineParser, DecodeNoTarjan)
 {
+    CmdLineParser parser;
+
     std::vector<std::string> args = {
         "some_input_file"
     };
@@ -43,8 +34,10 @@ TEST_F(EBNFCommandLineTest, DecodeNoTarjan)
     EXPECT_EQ(parser.get_tarjan_name().empty(), true);
 }
 
-TEST_F(EBNFCommandLineTest, TarjanToStdOut)
+TEST(UnitCmdLineParser, TarjanToStdOut)
 {
+    CmdLineParser parser;
+
     std::vector<std::string> args = {
 		"--tarjan",
         "some_input_file"
@@ -55,8 +48,10 @@ TEST_F(EBNFCommandLineTest, TarjanToStdOut)
     EXPECT_EQ(parser.get_tarjan_name(), "-");
 }
 
-TEST_F(EBNFCommandLineTest, TarjanToFile)
+TEST(UnitCmdLineParser, TarjanToFile)
 {
+    CmdLineParser parser;
+
     std::vector<std::string> args = {
 		"--tarjan",
 		"-o",

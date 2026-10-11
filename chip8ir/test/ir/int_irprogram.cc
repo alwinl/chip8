@@ -46,7 +46,7 @@
 // 	}
 // };
 
-TEST(IntegrationTest, EncoderDecoderRoundtrip)
+TEST(IntIRProgram, EncoderDecoderRoundtrip)
 {
 	auto make_word = [](const BinImage& img, size_t offset = 0) -> uint16_t { return (static_cast<uint16_t>(img[offset]) << 8) |  static_cast<uint16_t>(img[offset + 1]); };
 
@@ -80,7 +80,7 @@ TEST(IntegrationTest, EncoderDecoderRoundtrip)
 	}
 }
 
-TEST(IntegrationTest, EncoderDecoderRoundtripMultiStatement)
+TEST(IntIRProgram, EncoderDecoderRoundtripMultiStatement)
 {
 	IRProgram ir;
 

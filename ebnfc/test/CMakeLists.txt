@@ -22,9 +22,9 @@ include( GoogleTest )
 add_executable(
     ebnfc_test
 
-    ebnf_tokeniser_test.cc
-    ebnf_parser_test.cc
-	ebnf_cmdlineparser_test.cc
+    unit_tokeniser.cc
+    unit_parser.cc
+	unit_cmdlineparser.cc
 )
 
 target_link_libraries( ebnfc_test  ebnf_compiler_lib gtest gtest_main )
