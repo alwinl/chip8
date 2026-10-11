@@ -1,3 +1,12 @@
 [submodule "resources/chip8-test-suite"]
 	path = resources/chip8-test-suite
 	url = https://github.com/Timendus/chip8-test-suite.git
+[submodule "vendor/ImGUI"]
+	path = vendor/ImGUI
+	url = https://github.com/ocornut/imgui.git
+[submodule "vendor/rlImGui"]
+	path = vendor/rlImGui
+	url = https://github.com/raylib-extras/rlImGui.git
+[submodule "vendor/cxxopts"]
+	path = vendor/cxxopts
+	url = https://github.com/jarro2783/cxxopts.git
