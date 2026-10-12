@@ -33,3 +33,5 @@ add_library(
 )
 
 target_include_directories(ebnf_compiler_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries( ebnf_compiler_lib PUBLIC cxxopts )

@@ -23,7 +23,8 @@
 #include <vector>
 #include <cstdint>
 
-#include "../vendor/cxxopts/cxxopts.hpp"
+// #include "../vendor/cxxopts/cxxopts.hpp"
+#include <cxxopts.hpp>
 
 class ChidasmCmdLineParser
 {

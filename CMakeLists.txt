@@ -26,6 +26,7 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+add_subdirectory(vendor)
 add_subdirectory(chip8ir)
 add_subdirectory(sprite_viewer)
 add_subdirectory(ebnfc)

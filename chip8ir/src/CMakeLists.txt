@@ -55,3 +55,5 @@ add_library( chip8::ir ALIAS chip8ir )
 target_compile_features( chip8ir PUBLIC cxx_std_20 )
 
 target_include_directories( chip8ir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
+target_link_libraries( chip8ir PUBLIC cxxopts )
