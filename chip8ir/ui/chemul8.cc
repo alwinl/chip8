@@ -18,10 +18,76 @@
  */
 
 #include <raylib.h>
+#include <rlImGui.h>
+#include <imgui.h>
 
 #include "emulator/chip8.h"
 
 
+#include <array>
+#include <cstdint>
+
+constexpr int CHIP8_WIDTH  = 64;
+constexpr int CHIP8_HEIGHT = 32;
+constexpr int CHIP8_PIXELS = CHIP8_WIDTH * CHIP8_HEIGHT;
+
+using RgbaBuffer = std::array<uint8_t, CHIP8_PIXELS * 4>;
+
+
+uint8_t test_buffer[64*32/8];
+
+void init_test_buffer()
+{
+	uint8_t content = 0x55;
+
+	for( size_t row = 0; row < 32; ++row ) {
+		for( size_t col = 0; col < 64/8; ++col )
+			test_buffer[row * 64/8 + col] = content;
+		content = (content == 0x55) ? 0xAA : 0x55;
+	}
+}
+
+
+Texture2D create_chip8_texture()
+{
+    Image image = GenImageColor(
+        CHIP8_WIDTH,
+        CHIP8_HEIGHT,
+        BLACK
+    );
+
+    Texture2D texture = LoadTextureFromImage(image);
+    UnloadImage(image);
+
+    SetTextureFilter(texture, TEXTURE_FILTER_POINT);
+
+    return texture;
+}
+
+
+
+void convert_framebuffer( const uint8_t* framebuffer, RgbaBuffer& rgba)
+{
+    for (int y = 0; y < CHIP8_HEIGHT; ++y) {
+        for (int x = 0; x < CHIP8_WIDTH; ++x) {
+
+            const int pixel_index = y * CHIP8_WIDTH + x;
+
+            const uint8_t packed = framebuffer[pixel_index / 8];
+
+            const int bit = 7 - (pixel_index % 8);
+            const bool on = (packed & (1u << bit)) != 0;
+
+            const uint8_t colour = on ? 192 : 96;
+            const int dst = pixel_index * 4;
+
+            rgba[dst + 0] = 0; //colour; // Red
+            rgba[dst + 1] = colour; // Green
+            rgba[dst + 2] = 0; //colour; // Blue
+            rgba[dst + 3] = 255;    // Alpha
+        }
+    }
+}
 
 void render_screen( uint8_t *buffer, uint16_t size)
 {
@@ -36,28 +102,134 @@ void render_screen( uint8_t *buffer, uint16_t size)
 	}
 }
 
-int main( int argc, char ** argv )
+
+#include "imgui.h"
+
+void draw_dockspace()
 {
-	Chip8 device;
+    // Enable docking.
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    InitWindow(640, 320, "Chemul8");
+    // Create a host window that fills the main viewport.
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-    while( ! WindowShouldClose() ) {
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    ImGuiWindowFlags host_flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoBringToFrontOnFocus |
+        ImGuiWindowFlags_NoNavFocus |
+        ImGuiWindowFlags_NoBackground |
+        ImGuiWindowFlags_NoDocking;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+    ImGui::Begin("Chemul8DockHost", nullptr, host_flags);
+    ImGui::PopStyleVar(3);
+
+    ImGuiID dockspace_id = ImGui::GetID("Chemul8Dockspace");
+
+    ImGui::DockSpace(
+        dockspace_id,
+        ImVec2(0.0f, 0.0f),
+        ImGuiDockNodeFlags_None
+    );
+
+    ImGui::End();
+}
+
+
+void draw_chip8_display(Texture2D texture)
+{
+    ImGui::Begin("CHIP-8 Display");
+
+    ImVec2 available = ImGui::GetContentRegionAvail();
+
+    float width  = available.x;
+    float height = width / 2.0f;
+
+    if (height > available.y)
+    {
+        height = available.y;
+        width  = height * 2.0f;
+    }
+
+    if (width > 0 && height > 0)
+    {
+        ImGui::Image(
+            (ImTextureID)(intptr_t)texture.id,
+            ImVec2(width, height)
+        );
+    }
+
+    ImGui::End();
+}
+
+int main(int argc, char** argv)
+{
+    Chip8 device;
+	init_test_buffer( );
+
+    InitWindow(1200, 800, "Chemul8");
+    rlImGuiSetup(true);
+
+	Texture2D chip8_texture = create_chip8_texture();
+    RgbaBuffer rgba{};
+
+    // Enable docking before creating the dockspace.
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    while (!WindowShouldClose())
+    {
+		// convert_framebuffer( device.get_display_buffer(), rgba );
+		convert_framebuffer( test_buffer, rgba );
+		UpdateTexture(chip8_texture, rgba.data());
 
         BeginDrawing();
+        ClearBackground(BLACK);
 
-        ClearBackground( BLACK );
+        rlImGuiBegin();
 
-		render_screen( device.get_display_buffer(), device.get_display_size() );
+        draw_dockspace();
+
+		draw_chip8_display( chip8_texture );
+
+
+        ImGui::Begin("Disassembly");
+        ImGui::Text("Disassembly will go here");
+        ImGui::End();
+
+        ImGui::Begin("Registers");
+        ImGui::Text("Registers will go here");
+        ImGui::End();
+
+        ImGui::Begin("Controls");
+        if (ImGui::Button("Step"))
+        {
+            // Execute one instruction here later.
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset"))
+        {
+            // Reset the emulator here later.
+        }
+        ImGui::End();
+
+        rlImGuiEnd();
 
         EndDrawing();
     }
 
+    rlImGuiShutdown();
     CloseWindow();
-
 }
-
-
 // #include <iostream>
 // #include <fstream>
 
