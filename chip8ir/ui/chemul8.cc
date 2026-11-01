@@ -17,10 +17,14 @@
  * MA 02110-1301, USA.
  */
 
+#include <iostream>
+
 #include <raylib.h>
 #include <rlImGui.h>
 #include <imgui.h>
 
+
+#include "emulator/cmdlineparser.h"
 #include "emulator/chip8.h"
 
 
@@ -103,8 +107,6 @@ void render_screen( uint8_t *buffer, uint16_t size)
 }
 
 
-#include "imgui.h"
-
 void draw_dockspace()
 {
     // Enable docking.
@@ -145,90 +147,184 @@ void draw_dockspace()
     ImGui::End();
 }
 
+enum class Actions { NONE, OPEN, EXIT, RESET, PAUSE, ABOUT };
 
-void draw_chip8_display(Texture2D texture)
+Actions render_menu_bar()
 {
+	Actions new_action = Actions::NONE;
+
+    if (ImGui::BeginMainMenuBar()) {
+
+        if (ImGui::BeginMenu("File")) {
+
+            if (ImGui::MenuItem("Open ROM", "Ctrl+O"))
+                new_action = Actions::OPEN;
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Exit"))
+                new_action = Actions::EXIT;
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Emulation")) {
+
+            if (ImGui::MenuItem("Reset"))
+                new_action = Actions::RESET;
+
+            if (ImGui::MenuItem("Pause"))
+                new_action = Actions::PAUSE;
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help")) {
+
+            if (ImGui::MenuItem("About"))
+                new_action = Actions::ABOUT;
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+	return new_action;
+}
+
+void render_chip8_display(Texture2D texture)
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
+
     ImGui::Begin("CHIP-8 Display");
 
-    ImVec2 available = ImGui::GetContentRegionAvail();
+		ImVec2 available = ImGui::GetContentRegionAvail();
 
-    float width  = available.x;
-    float height = width / 2.0f;
+		float width  = available.x;
+		float height = width / 2.0f;
 
-    if (height > available.y)
-    {
-        height = available.y;
-        width  = height * 2.0f;
-    }
+		if( height > available.y ) {
+			height = available.y;
+			width  = height * 2.0f;
+		}
 
-    if (width > 0 && height > 0)
-    {
-        ImGui::Image(
-            (ImTextureID)(intptr_t)texture.id,
-            ImVec2(width, height)
-        );
-    }
+		if( width > 0 && height > 0 )
+			ImGui::Image( (ImTextureID)(intptr_t)texture.id, ImVec2(width, height) );
 
     ImGui::End();
+
+	ImGui::PopStyleVar();
+}
+
+void render_disassebly_panel()
+{
+	ImGui::Begin("Disassembly");
+
+		ImGui::Text("Disassembly will go here");
+
+	ImGui::End();
+}
+
+void render_registers_panel( std::vector<Actions>& action_list )
+{
+	ImGui::Begin("Registers");
+
+		ImGui::Text("Registers will go here");
+
+		for( auto& action : action_list ) {
+			switch( action ) {
+			case Actions::NONE: ImGui::Text("NONE"); break;
+			case Actions::OPEN: ImGui::Text("OPEN"); break;
+			case Actions::EXIT: ImGui::Text("EXIT"); break;
+			case Actions::RESET: ImGui::Text("RESET"); break;
+			case Actions::PAUSE: ImGui::Text("PAUSE"); break;
+			case Actions::ABOUT: ImGui::Text("ABOUT"); break;
+			}
+		}
+
+	ImGui::End();
+
+}
+
+void render_controls_panel()
+{
+	ImGui::Begin("Controls");
+
+		if (ImGui::Button("Step")) {
+			// Execute one instruction here later.
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reset")) {
+			// Reset the emulator here later.
+		}
+
+	ImGui::End();
 }
 
 int main(int argc, char** argv)
 {
-    Chip8 device;
-	init_test_buffer( );
+	std::vector<Actions> action_list;
 
-    InitWindow(1200, 800, "Chemul8");
-    rlImGuiSetup(true);
+	try {
+		// emulator::CmdLineParser args;
 
-	Texture2D chip8_texture = create_chip8_texture();
-    RgbaBuffer rgba{};
+		// if( ! args.parse_args( argc, argv ) )
+		// 	return 1;
 
-    // Enable docking before creating the dockspace.
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		Chip8 device;
+		init_test_buffer( );
 
-    while (!WindowShouldClose())
-    {
-		// convert_framebuffer( device.get_display_buffer(), rgba );
-		convert_framebuffer( test_buffer, rgba );
-		UpdateTexture(chip8_texture, rgba.data());
+		InitWindow(1200, 800, "Chemul8");
+		rlImGuiSetup(true);
 
-        BeginDrawing();
-        ClearBackground(BLACK);
+		Texture2D chip8_texture = create_chip8_texture();
+		RgbaBuffer rgba{};
 
-        rlImGuiBegin();
+		// Enable docking before creating the dockspace.
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-        draw_dockspace();
+		Actions current_action = Actions::NONE;
 
-		draw_chip8_display( chip8_texture );
+		while (!WindowShouldClose())
+		{
+			// convert_framebuffer( device.get_display_buffer(), rgba );
+			convert_framebuffer( test_buffer, rgba );
+			UpdateTexture(chip8_texture, rgba.data());
 
+			BeginDrawing();
+				ClearBackground(BLACK);
 
-        ImGui::Begin("Disassembly");
-        ImGui::Text("Disassembly will go here");
-        ImGui::End();
+				rlImGuiBegin();
 
-        ImGui::Begin("Registers");
-        ImGui::Text("Registers will go here");
-        ImGui::End();
+					draw_dockspace();
 
-        ImGui::Begin("Controls");
-        if (ImGui::Button("Step"))
-        {
-            // Execute one instruction here later.
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reset"))
-        {
-            // Reset the emulator here later.
-        }
-        ImGui::End();
+					current_action = render_menu_bar();
+					render_chip8_display( chip8_texture );
+					render_registers_panel( action_list );
+					render_controls_panel();
 
-        rlImGuiEnd();
+				rlImGuiEnd();
 
-        EndDrawing();
-    }
+			EndDrawing();
 
-    rlImGuiShutdown();
-    CloseWindow();
+			if( current_action != Actions::NONE )
+				action_list.push_back( current_action );
+
+		}
+
+		rlImGuiShutdown();
+		CloseWindow();
+	}
+
+	catch( const std::exception &e ) {
+		std::cerr << e.what() << std::endl;
+        return 2;
+	}
+
+	return 0;
 }
 // #include <iostream>
 // #include <fstream>

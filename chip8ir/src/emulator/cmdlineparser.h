@@ -23,20 +23,22 @@
 #include <vector>
 #include <cstdint>
 
-// #include "../vendor/cxxopts/cxxopts.hpp"
 #include <cxxopts.hpp>
 
-class ChemulCmdLineParser
+namespace emulator
 {
-public:
-	ChemulCmdLineParser() = default;
+	class CmdLineParser
+	{
+	public:
+		CmdLineParser() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+		bool parse_args( int argc, char ** argv );
+		bool parse_args( std::vector<std::string> arguments );
 
-	std::string get_program();
-	uint16_t get_origin() const;
+		std::string get_program();
+		uint16_t get_origin() const;
 
-private:
-    cxxopts::ParseResult result;
-};
+	private:
+		cxxopts::ParseResult result;
+	};
+}

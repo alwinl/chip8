@@ -26,26 +26,29 @@
 // #include "../vendor/cxxopts/cxxopts.hpp"
 #include <cxxopts.hpp>
 
-class ChidasmCmdLineParser
+namespace disassembler
 {
-public:
-	ChidasmCmdLineParser() = default;
+	class CmdLineParser
+	{
+	public:
+		CmdLineParser() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+		bool parse_args( int argc, char ** argv );
+		bool parse_args( std::vector<std::string> arguments );
 
-    std::string get_source_name();
-    std::string get_program_name();
-	std::string get_output_name();
-	std::string get_dot_name();
-	std::string get_uml_name();
-    bool is_verbose() const;
-    bool is_clean() const;
-    bool show_help() const;
-	uint16_t get_origin() const;
+		std::string get_source_name();
+		std::string get_program_name();
+		std::string get_output_name();
+		std::string get_dot_name();
+		std::string get_uml_name();
+		bool is_verbose() const;
+		bool is_clean() const;
+		bool show_help() const;
+		uint16_t get_origin() const;
 
-private:
-    cxxopts::ParseResult result;
+	private:
+		cxxopts::ParseResult result;
 
-	const std::string get_output_prefix();
-};
+		const std::string get_output_prefix();
+	};
+}

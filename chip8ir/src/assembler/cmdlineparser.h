@@ -23,7 +23,6 @@
 #include <vector>
 #include <cstdint>
 
-// #include "../vendor/cxxopts/cxxopts.hpp"
 #include <cxxopts.hpp>
 
 namespace assembler

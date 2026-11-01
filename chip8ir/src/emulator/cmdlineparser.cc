@@ -21,67 +21,70 @@
 
 #include <iostream>
 
-bool ChemulCmdLineParser::parse_args( std::vector<std::string> arguments )
+namespace emulator
 {
-    if( arguments.empty() )
-		return false;
+	bool CmdLineParser::parse_args( std::vector<std::string> arguments )
+	{
+		if( arguments.empty() )
+			return false;
 
-    // Convert std::vector<std::string> to argc/argv
-    std::vector<char*> argv_ptrs;
-    argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
-    std::string fake_prog_name = "chasem8";
-    argv_ptrs.push_back(fake_prog_name.data());
+		// Convert std::vector<std::string> to argc/argv
+		std::vector<char*> argv_ptrs;
+		argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
+		std::string fake_prog_name = "chasem8";
+		argv_ptrs.push_back(fake_prog_name.data());
 
-    for (std::string& arg : arguments)
-        argv_ptrs.push_back(arg.data());
+		for (std::string& arg : arguments)
+			argv_ptrs.push_back(arg.data());
 
-    int argc = static_cast<int>(argv_ptrs.size());
-    char** argv = argv_ptrs.data();
+		int argc = static_cast<int>(argv_ptrs.size());
+		char** argv = argv_ptrs.data();
 
-	return parse_args(argc, argv);
-}
-
-bool ChemulCmdLineParser::parse_args( int argc, char ** argv )
-{
-    cxxopts::Options options("chemul8", "My chip8 emulator");
-
-    options.add_options()
-        ("C,chip8", "Emulate original Chip8")
-        ("X,xochip", "Emulate the XOChip8")
-        ("S,schip", "Emulate the Super Chip8")
-        ("h,help", "Print usage")
-        ("romfile", "CHIP-8 ROM file to load", cxxopts::value<std::string>());
-
-    options.parse_positional({"romfile"});
-    options.positional_help("romfile");
-	options.show_positional_help();
-
-	try {
-		result = options.parse(argc, argv);
-	}
-	catch (const cxxopts::exceptions::exception& e) {
-		std::cerr << "Error parsing command line options: " << e.what() << std::endl;
-		std::cerr << options.help() << std::endl;
-		return false;
+		return parse_args(argc, argv);
 	}
 
-    if( result.count("help") ) {
-        std::cout << options.help() << std::endl;
-        return false;
-    }
+	bool CmdLineParser::parse_args( int argc, char ** argv )
+	{
+		cxxopts::Options options("chemul8", "My chip8 emulator");
 
-    if( !result.count("romfile") ) {
-        std::cout << options.help() << std::endl;
-        std::cout << "Missing romfile" << std::endl;
-        return false;
-    }
+		options.add_options()
+			("C,chip8", "Emulate original Chip8")
+			("X,xochip", "Emulate the XOChip8")
+			("S,schip", "Emulate the Super Chip8")
+			("h,help", "Print usage")
+			("romfile", "CHIP-8 ROM file to load", cxxopts::value<std::string>());
 
-	return true;
+		options.parse_positional({"romfile"});
+		options.positional_help("romfile");
+		options.show_positional_help();
+
+		try {
+			result = options.parse(argc, argv);
+		}
+		catch (const cxxopts::exceptions::exception& e) {
+			std::cerr << "Error parsing command line options: " << e.what() << std::endl;
+			std::cerr << options.help() << std::endl;
+			return false;
+		}
+
+		if( result.count("help") ) {
+			std::cout << options.help() << std::endl;
+			return false;
+		}
+
+		if( !result.count("romfile") ) {
+			std::cout << options.help() << std::endl;
+			std::cout << "Missing romfile" << std::endl;
+			return false;
+		}
+
+		return true;
+	}
+
+	std::string CmdLineParser::get_program()
+	{
+		return result["romfile"].as<std::string>();
+	}
+
+	uint16_t CmdLineParser::get_origin() const { return 0x200; }
 }
-
-std::string ChemulCmdLineParser::get_program()
-{
-	return result["romfile"].as<std::string>();
-}
-
-uint16_t ChemulCmdLineParser::get_origin() const { return 0x200; }
