@@ -8,6 +8,8 @@ target_include_directories(cxxopts INTERFACE
 add_library(
 	rlimgui
 
+	SHARED
+
 	rlImGui/rlImGui.cpp
 )
 
@@ -29,5 +31,7 @@ add_library(
 target_include_directories(imgui INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGUI
 )
+
+target_link_libraries( imgui PRIVATE raylib )
 
 target_link_libraries( rlimgui PRIVATE imgui )
