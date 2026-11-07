@@ -433,7 +433,7 @@ void Chip8::SNE( uint16_t opcode ) // 9xy0 - SNE Vx, Vy : Skip next instruction 
 
 void Chip8::LDI( uint16_t opcode ) // Annn - LD I, addr : Set I = nnn
 {
-	const u_int16_t address = opcode & 0xFFF;
+	const uint16_t address = opcode & 0xFFF;
 
 	set_word( I_index, address );
 }
