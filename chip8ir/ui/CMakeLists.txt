@@ -17,33 +17,14 @@
 # MA 02110-1301, USA.
 #
 
-add_executable (
-	new_chasm8
-
-	chasm8.cc
-)
-
-add_executable (
-	new_chemul8
-
-	chemul8.cc
-)
-
-add_executable (
-	new_chicom8
-
-	chicom8.cc
-)
-
-add_executable (
-	new_chidasm8
-
-	chidasm8.cc
-)
+add_executable ( chasm8 chasm8.cc )
+add_executable ( chemul8 chemul8.cc )
+add_executable ( chicom8 chicom8.cc )
+add_executable ( chidasm8 chidasm8.cc )
 
 find_package(raylib REQUIRED)
 
-target_link_libraries( new_chasm8 PRIVATE chip8::ir )
-target_link_libraries( new_chemul8 PRIVATE chip8::ir raylib rlimgui imgui)
-target_link_libraries( new_chicom8 PRIVATE chip8::ir )
-target_link_libraries( new_chidasm8 PRIVATE chip8::ir )
+target_link_libraries( chasm8 PRIVATE chip8::ir )
+target_link_libraries( chemul8 PRIVATE chip8::ir imgui)
+target_link_libraries( chicom8 PRIVATE chip8::ir )
+target_link_libraries( chidasm8 PRIVATE chip8::ir )

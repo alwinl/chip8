@@ -60,10 +60,10 @@
 			]
 		},
 		{
-			"name": "Debug chemul8",
+			"name": "Debug new_chemul8",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/.build/chemul8/ui/chemul8",
+			"program": "${workspaceFolder}/.build/chemul8/ui/new_chemul8",
 			"args": [
 				"./chemul8/test/chip8-test-suite.ch8"
 			],
