@@ -18,7 +18,8 @@
 #
 
 add_executable ( chasm8 chasm8.cc )
-add_executable ( chemul8 chemul8.cc )
+add_executable ( chemul8 chemul8.cc
+    menu.cc )
 add_executable ( chicom8 chicom8.cc )
 add_executable ( chidasm8 chidasm8.cc )
 

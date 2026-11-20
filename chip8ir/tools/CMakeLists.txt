@@ -18,3 +18,7 @@
 #
 
 add_executable(ShiftRegister shift_register.cc)
+
+add_executable(raylib_test raylib_test.cc)
+
+target_link_libraries(raylib_test imgui)

@@ -31,6 +31,8 @@
 #include <array>
 #include <cstdint>
 
+#include "menu.h"
+
 constexpr int CHIP8_WIDTH  = 64;
 constexpr int CHIP8_HEIGHT = 32;
 constexpr int CHIP8_PIXELS = CHIP8_WIDTH * CHIP8_HEIGHT;
@@ -147,51 +149,6 @@ void draw_dockspace()
     ImGui::End();
 }
 
-enum class Actions { NONE, OPEN, EXIT, RESET, PAUSE, ABOUT };
-
-Actions render_menu_bar()
-{
-	Actions new_action = Actions::NONE;
-
-    if (ImGui::BeginMainMenuBar()) {
-
-        if (ImGui::BeginMenu("File")) {
-
-            if (ImGui::MenuItem("Open ROM", "Ctrl+O"))
-                new_action = Actions::OPEN;
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Exit"))
-                new_action = Actions::EXIT;
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Emulation")) {
-
-            if (ImGui::MenuItem("Reset"))
-                new_action = Actions::RESET;
-
-            if (ImGui::MenuItem("Pause"))
-                new_action = Actions::PAUSE;
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Help")) {
-
-            if (ImGui::MenuItem("About"))
-                new_action = Actions::ABOUT;
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-
-	return new_action;
-}
 
 void render_chip8_display(Texture2D texture)
 {
@@ -261,19 +218,41 @@ void render_controls_panel()
 			// Reset the emulator here later.
 		}
 
+		static Chip8::eQuirkType selected_quirk_type = Chip8::eQuirkType::CHIP8;
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Quirk Mode:");
+		ImGui::SameLine();
+
+		if( ImGui::RadioButton("Chip8", selected_quirk_type == Chip8::eQuirkType::CHIP8) )
+			selected_quirk_type = Chip8::eQuirkType::CHIP8;
+		ImGui::SameLine();
+		if( ImGui::RadioButton("SChip", selected_quirk_type == Chip8::eQuirkType::SCHIP) )
+			selected_quirk_type = Chip8::eQuirkType::SCHIP;
+		ImGui::SameLine();
+		if( ImGui::RadioButton("XOChip", selected_quirk_type == Chip8::eQuirkType::XOCHIP) )
+			selected_quirk_type = Chip8::eQuirkType::XOCHIP;
+
 	ImGui::End();
 }
+
+std::vector<MenuData> menu_data = {
+	{ MenuData::Type::SUBMENU, "File", "", Actions::NONE },
+	{ MenuData::Type::ITEM, "Open Rom", "Ctrl+O", Actions::OPEN },
+	{ MenuData::Type::SEPARATOR, "", "", Actions::NONE },
+	{ MenuData::Type::ITEM, "Exit", "", Actions::EXIT },
+	{ MenuData::Type::SUBMENU, "Emulator", "", Actions::NONE },
+	{ MenuData::Type::ITEM, "Reset", "", Actions::RESET },
+	{ MenuData::Type::ITEM, "Pause", "", Actions::PAUSE },
+	{ MenuData::Type::SUBMENU, "Help", "", Actions::NONE },
+	{ MenuData::Type::ITEM, "About", "", Actions::ABOUT },
+};
 
 int main(int argc, char** argv)
 {
 	std::vector<Actions> action_list;
 
 	try {
-		// emulator::CmdLineParser args;
-
-		// if( ! args.parse_args( argc, argv ) )
-		// 	return 1;
-
 		Chip8 device;
 		init_test_buffer( );
 
@@ -301,10 +280,10 @@ int main(int argc, char** argv)
 
 					draw_dockspace();
 
-					current_action = render_menu_bar();
+					current_action = render_main_menu( menu_data );
+					render_controls_panel();
 					render_chip8_display( chip8_texture );
 					render_registers_panel( action_list );
-					render_controls_panel();
 
 				rlImGuiEnd();
 
