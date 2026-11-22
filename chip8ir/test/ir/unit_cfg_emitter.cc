@@ -24,40 +24,40 @@
 
 #include <fstream>
 
-class UnitCFGEmitter : public ::testing::Test
+TEST(UnitCFGEmitter, create_plantuml )
 {
-protected:
 	IRProgram ir;
-	CFGEmitter emitter;
 
-	void SetUp() override
-	{
-		ir.origin = 0x200;
+	ir.origin = 0x200;
 
-		// Add some instructions
-		ir.elements.push_back( IRInstruction{0x200, Instruction::make_ld( Reg{0}, Imm{5} )} );
-		ir.elements.push_back( IRInstruction{0x202, Instruction::make_skip_eq( Reg{0}, Imm{5} )} );
-		ir.elements.push_back( IRInstruction{0x204, Instruction::make_jump( Addr{ 0x208} )} );
-		ir.elements.push_back( IRInstruction{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
-	}
+	// Add some instructions
+	ir.elements.emplace_back( IRInstruction{0x200, Instruction::make_ld( Reg{0}, Imm{5} )} );
+	ir.elements.emplace_back( IRInstruction{0x202, Instruction::make_skip_eq( Reg{0}, Imm{5} )} );
+	ir.elements.emplace_back( IRInstruction{0x204, Instruction::make_jump( Addr{ 0x208} )} );
+	ir.elements.emplace_back( IRInstruction{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
 
-	void TearDown() override {}
-};
-
-TEST_F(UnitCFGEmitter, create_plantuml )
-{
 	std::ofstream plantuml_file("cfg_plantuml.plantuml");
 
-    emitter.emit(plantuml_file, ir, CFGEmitter::OutputMode::PlantUML);
+    cfg_emitter::emit(plantuml_file, ir, cfg_emitter::OutputMode::PlantUML);
 
     plantuml_file.close();
 }
 
-TEST_F(UnitCFGEmitter, create_dot )
+TEST(UnitCFGEmitter, create_dot )
 {
+	IRProgram ir;
+
+	ir.origin = 0x200;
+
+	// Add some instructions
+	ir.elements.emplace_back( IRInstruction{0x200, Instruction::make_ld( Reg{0}, Imm{5} )} );
+	ir.elements.emplace_back( IRInstruction{0x202, Instruction::make_skip_eq( Reg{0}, Imm{5} )} );
+	ir.elements.emplace_back( IRInstruction{0x204, Instruction::make_jump( Addr{ 0x208} )} );
+	ir.elements.emplace_back( IRInstruction{0x208, Instruction::make_ld( Reg{1}, Imm{1} )} );
+
 	std::ofstream dot_file("cfg_dot.dot");
 
-    emitter.emit(dot_file, ir, CFGEmitter::OutputMode::Dot);
+    cfg_emitter::emit(dot_file, ir, cfg_emitter::OutputMode::Dot);
 
     dot_file.close();
 }

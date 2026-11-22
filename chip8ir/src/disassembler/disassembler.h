@@ -19,27 +19,13 @@
 
 #pragma once
 
-#include "ir/chip8ir.h"
-#include "ir/chip8formats.h"
+#include <istream>
+#include <string>
+
 #include "ir/ir_bundle.h"
 
-#include "disassembler/memory.h"
-
-class Disassembler
+namespace disassembler
 {
-public:
-	struct Config {
-		uint16_t origin;
-	};
+	IRBundle build_ir( std::istream& is, std::string program_name, uint16_t start_address = 0x200 );
 
-	explicit Disassembler( Config config = {0x200} ) : configuration(config) {};
-
-	IRBundle build_ir( const BinImage& binary );
-
-private:
-	Config configuration;
-
-	void collect_instructions( IRBundle& bundle, DisasmMemory& memory );
-	void collect_data_bytes( IRBundle& bundle, DisasmMemory& memory );
-	void sort_elements( IRBundle& bundle );
-};
+} // namespace disassembler

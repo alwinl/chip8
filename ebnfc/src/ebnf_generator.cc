@@ -133,7 +133,7 @@ void Generator::create_dot_source( std::ostream &os )
     os << dot_header;
 
     for( auto [node, nodedata] : graph )
-        for( auto edge : nodedata.edges )
+        for( const auto & edge : nodedata.edges )
             os << "    " << node << "->" << edge << '\n';
 
     os << dot_footer;
@@ -149,7 +149,7 @@ void Generator::create_svg_image( std::string filename )
 
     os.close( );
 
-    std::string cmd = "dot -Tsvg " + filename + ".dot" + " -o " + filename + ".svg";
+    const std::string cmd = "dot -Tsvg " + filename + ".dot" + " -o " + filename + ".svg";
 
     if( std::system(cmd.c_str()) != 0 )
         throw std::runtime_error("Graphviz 'dot' command failed.");
@@ -178,7 +178,7 @@ std::string convert_to_camel( std::string input )
 
     bool capitalize_next = true;
 
-    for (char c : input)
+    for (const char c : input)
     {
         if (c == '_') {
             capitalize_next = true;
@@ -201,8 +201,8 @@ void Generator::create_ast_header( std::ostream& os, std::string tokeniser_heade
     Transformer transformer( syntax_tree );
     transformer.transform_all();
 
-    std::vector<std::string> forward_decls = transformer.get_forward_decls();
-    std::vector<std::string> class_list = transformer.get_class_list();
+    const std::vector<std::string> forward_decls = transformer.get_forward_decls();
+    const std::vector<std::string> class_list = transformer.get_class_list();
 
     // need to figure out which ones are leaves
     Graph graph;

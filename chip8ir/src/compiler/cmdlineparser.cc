@@ -22,95 +22,107 @@
 #include <iostream>
 #include "cmdlineparser.h"
 
-bool ChicomCmdLineParser::parse_args( std::vector<std::string> arguments )
-{
-    if( arguments.empty() )
-        return false;
+namespace compiler {
 
-    // Convert std::vector<std::string> to argc/argv
-    std::vector<char*> argv_ptrs;
-    argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
-    std::string fake_prog_name = "chicom8";
-    argv_ptrs.push_back(fake_prog_name.data());
+	bool CmdLineParser::parse_args( std::vector<std::string> arguments )
+	{
+		if( arguments.empty() )
+			return false;
 
-    for (std::string& arg : arguments)
-        argv_ptrs.push_back(arg.data());
+		// Convert std::vector<std::string> to argc/argv
+		std::vector<char*> argv_ptrs;
+		argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
+		std::string fake_prog_name = "chicom8";
+		argv_ptrs.push_back(fake_prog_name.data());
 
-    int const argc = static_cast<int>(argv_ptrs.size());
-    char** argv = argv_ptrs.data();
+		for (std::string& arg : arguments)
+			argv_ptrs.push_back(arg.data());
 
-	return parse_args(argc, argv);
-}
+		int const argc = static_cast<int>(argv_ptrs.size());
+		char** argv = argv_ptrs.data();
 
-bool ChicomCmdLineParser::parse_args(int argc, char** argv)
-{
-    cxxopts::Options options("chicom8", "A C-like compiler for Chip-8" );
+		return parse_args(argc, argv);
+	}
 
-    options.add_options()
-        ("h,help", "Show this help message")
-        ("v,verbose", "Verbose output")
-        ("o", "Output file name", cxxopts::value<std::string>())
-        ("source", "Input file name", cxxopts::value<std::string>());
+	bool CmdLineParser::parse_args(int argc, char** argv)
+	{
+		cxxopts::Options options("chicom8", "A C-like compiler for Chip-8" );
 
-    options.parse_positional({"source"});
-    options.positional_help("<source>");
-    options.show_positional_help();
+		options.add_options()
+			("h,help", "Show this help message")
+			("v,verbose", "Verbose output")
+			("o", "Output file name", cxxopts::value<std::string>())
+			("source", "Input file name", cxxopts::value<std::string>());
 
-    try {
-        result = options.parse(argc, argv);
-    }
-    catch (const cxxopts::exceptions::exception& e) {
-        std::cerr << "Error parsing command line options: " << e.what() << '\n';
-        std::cerr << options.help() << std::endl;
-        return false;
-    }
+		options.parse_positional({"source"});
+		options.positional_help("<source>");
+		options.show_positional_help();
 
-    if (result.count("help") != 0U) {
-        std::cout << options.help() << '\n';
-        return false;
-    }
+		try {
+			result = options.parse(argc, argv);
+		}
+		catch (const cxxopts::exceptions::exception& e) {
+			std::cerr << "Error parsing command line options: " << e.what() << '\n';
+			std::cerr << options.help() << std::endl;
+			return false;
+		}
 
-    if (result.count("source") == 0U) {
-        std::cerr << "Error: Source file is required.\n";
-        std::cerr << options.help() << '\n';
-        return false;
-    }
+		if (result.count("help") != 0U) {
+			std::cout << options.help() << '\n';
+			return false;
+		}
 
-    return true;
-}
+		if (result.count("source") == 0U) {
+			std::cerr << "Error: Source file is required.\n";
+			std::cerr << options.help() << '\n';
+			return false;
+		}
 
-std::string ChicomCmdLineParser::get_input_name() const
-{
-    if (result.count("source") == 0U)
-		return {};
+		return true;
+	}
 
-	return result["source"].as<std::string>();
-}
+	std::string CmdLineParser::get_input_name() const
+	{
+		if (result.count("source") == 0U)
+			return {};
 
-std::string ChicomCmdLineParser::get_output_name() const
-{
-	if( result.count("o") != 0 )
-        return result["o"].as<std::string>();
+		return result["source"].as<std::string>();
+	}
 
-    if (result.count("source") == 0U)
-		return {};
+	std::string CmdLineParser::get_output_name() const
+	{
+		if( result.count("o") != 0 )
+			return result["o"].as<std::string>();
 
-	std::string const source = result["source"].as<std::string>();
-    std::filesystem::path const path(source);
-    return path.stem().string() + ".ch8";
-}
+		if (result.count("source") == 0U)
+			return {};
 
-std::string ChicomCmdLineParser::get_listing_name() const
-{
-	return std::string();
-}
+		std::string const source = result["source"].as<std::string>();
+		std::filesystem::path const path(source);
+		return path.stem().string() + ".ch8";
+	}
 
-bool ChicomCmdLineParser::is_verbose() const
-{
-    return result["verbose"].as<bool>();
-}
+	std::string CmdLineParser::get_listing_name() const
+	{
+		if( result.count("listing") == 0 )
+			return "";
 
-bool ChicomCmdLineParser::show_help() const
-{
-    return result.count("help") > 0;
-}
+		if( result["listing"].as<std::string>() == "__absent__" ) {
+			const std::string source = get_input_name();
+			const std::filesystem::path path(source);
+			return path.stem().string() + ".ch8.lst";
+		}
+
+		return result["listing"].as<std::string>();
+	}
+
+	bool CmdLineParser::is_verbose() const
+	{
+		return result["verbose"].as<bool>();
+	}
+
+	bool CmdLineParser::show_help() const
+	{
+		return result.count("help") > 0;
+	}
+} // namespace compiler

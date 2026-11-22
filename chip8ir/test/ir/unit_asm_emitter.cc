@@ -27,7 +27,7 @@ public:
 	void add( uint16_t address, std::string name )
 		{ symbols.insert( std::make_pair( address, name) ); }
 
-	std::string get_label( uint16_t address ) const
+	std::string get_label( uint16_t address ) const override
 		{ return symbols.find( address) != symbols.end() ? symbols.at(address) : ""; }
 
 private:
@@ -49,23 +49,23 @@ TEST(UnitASMEmitter, manual_visual_inspection)
 	resolver.add( 0x202, "LABEL0" );
 	resolver.add( 0x204, "DATA0" );
 
-	IRBundle bundle { ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
+	IRBundle bundle { "test_program", ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
 
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
-		ASMEmitter emitter;
-		emitter.configure( { "Test program" } );
+		// ASMEmitter emitter;
+		// emitter.configure( { "Test program" } );
 
-		emitter.emit( std::cout, bundle, ASMEmitter::OutputMode::Listing );
+		asm_emitter::emit( std::cout, bundle, "Test program", asm_emitter::OutputMode::Listing );
 
 		std::cout << "=============================\n";
 	}
 	{
 		std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
-		ASMEmitter emitter;
-		emitter.configure( { "Test program (assembly)" } );
+		// ASMEmitter emitter;
+		// emitter.configure( { "Test program (assembly)" } );
 
-		emitter.emit(std::cout, bundle, ASMEmitter::OutputMode::Assembly );
+		asm_emitter::emit(std::cout, bundle, "Test program (assembly)", asm_emitter::OutputMode::Assembly );
 
 		std::cout << "=============================\n";
 	}
@@ -130,18 +130,14 @@ TEST(UnitASMEmitter, all_opcodes_visual_inspection)
 	resolver.add( 0x202, "LABEL0" );
 	resolver.add( 0x220, "DATA0" );
 
-	IRBundle bundle { ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
+	IRBundle bundle { "test_program", ir, std::make_unique<ASMEmitterTestResolver>(resolver) };
 
     // Emit full and clean versions
     std::cout << "\n===== ASM EMITTER OUTPUT =====\n";
-    ASMEmitter emitter;
-    emitter.configure({ "All opcodes test" });
-    emitter.emit(std::cout, bundle, ASMEmitter::OutputMode::Listing);
+    asm_emitter::emit(std::cout, bundle, "All opcodes test", asm_emitter::OutputMode::Listing);
     std::cout << "=============================\n";
 
     std::cout << "\n===== ASM EMITTER OUTPUT (clean) =====\n";
-    ASMEmitter emitter_clean;
-    emitter_clean.configure({ "All opcodes test (assembly)" });
-    emitter_clean.emit(std::cout, bundle, ASMEmitter::OutputMode::Assembly);
+    asm_emitter::emit(std::cout, bundle, "All opcodes test (assembly)", asm_emitter::OutputMode::Assembly);
     std::cout << "=============================\n";
 }

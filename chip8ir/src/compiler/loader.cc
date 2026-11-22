@@ -1,5 +1,5 @@
 /*
- * c8c_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * c8c_loader.cc Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,23 @@
  * MA 02110-1301, USA.
  */
 
-#pragma once
+#include "compiler/loader.h"
 
-#include <istream>
-
-#include "ir/chip8formats.h"
-
-class C8CSourceLoader
+C8CSource load_C8_source( std::istream& is )
 {
-public:
-	C8CSourceLoader() = default;
+	C8CSource source {};
+	std::string line;
+	size_t line_no {0};
 
-	static C8CSource load( std::istream& is ) { return C8CSource {}; };
-};
+	while( std::getline( is, line ) ) {
+
+		line_no++;
+
+		if( line.empty() )
+			continue;
+
+		source.push_back( {line, line_no} );
+	}
+
+	return source;
+}

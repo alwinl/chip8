@@ -49,7 +49,7 @@ ResourceLayer::ResourceLayer( uint8_t width, uint8_t height )
 	if( ! SDL_Init( SDL_INIT_VIDEO ) )
 		throw InitError();
 
-	if( ! SDL_CreateWindowAndRenderer( "SpriteViewer", width * 10, height * 10, 0, &m_window, &m_renderer ) != 0 )
+	if( ! SDL_CreateWindowAndRenderer( "SpriteViewer", width * 10, height * 10, 0, &m_window, &m_renderer ) )
 		throw InitError();
 
 	srand( static_cast<unsigned>( time( nullptr ) ) );
@@ -67,7 +67,7 @@ uint16_t ResourceLayer::check_key_event()
 {
 	SDL_Event event;
 
-	while( SDL_PollEvent( &event ) != 0 ) {
+	while( SDL_PollEvent( &event ) ) {
 		switch( event.type ) {
 		case SDL_EVENT_KEY_UP: keys &= ~( 1 << mapping[event.key.key] ); break;
 		case SDL_EVENT_KEY_DOWN: keys |= 1 << mapping[event.key.key]; break;

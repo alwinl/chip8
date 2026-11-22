@@ -23,18 +23,18 @@
 
 TEST(UnitParser, NoTokens)
 {
-	ASMTokens tokens{
+	const ASMTokens tokens{
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
 	};
 
-	ASTProgram program = parse_tokens( tokens );
+	const ASTProgram program = parse_tokens( tokens );
 
 	EXPECT_EQ( program.size(), 0 );
 }
 
 TEST(UnitParser, SingleLabel)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
 	};
@@ -50,7 +50,7 @@ TEST(UnitParser, SingleLabel)
 
 TEST(UnitParser, SingleMnemonic)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::IDENTIFIER, "CLS", 1, 4 },
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
 	};
@@ -59,7 +59,7 @@ TEST(UnitParser, SingleMnemonic)
 
 	ASSERT_EQ( program.size(), 1 );
 
-	auto instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->mnemonic, "CLS" );
@@ -67,7 +67,7 @@ TEST(UnitParser, SingleMnemonic)
 
 TEST(UnitParser, SingleInstructionWithArgument)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::IDENTIFIER, "JP", 1, 4 },
 		ASMToken { ASMToken::Type::NUMBER, "0x300", 1, 7 },
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
@@ -77,14 +77,14 @@ TEST(UnitParser, SingleInstructionWithArgument)
 
 	ASSERT_EQ( program.size(), 1 );
 
-	auto instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->mnemonic, "JP" );
 
 	ASSERT_EQ( instr_ptr->operands.size(), 1 );
 
-	auto operand_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[0].expression);
+	auto * operand_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand_ptr, nullptr);
 
 	EXPECT_EQ( operand_ptr->value, 0x300 );
@@ -92,7 +92,7 @@ TEST(UnitParser, SingleInstructionWithArgument)
 
 TEST(UnitParser, SingleInstructionWithArguments)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 },
 		ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 },
 		ASMToken { ASMToken::Type::COMMA, ",", 1, 9 },
@@ -106,25 +106,25 @@ TEST(UnitParser, SingleInstructionWithArguments)
 
 	EXPECT_EQ( program[0].line, 1 );
 
-	auto instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->mnemonic, "LD" );
 
 	ASSERT_EQ( instr_ptr->operands.size(), 2 );
 
-	auto operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
+	auto * operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand1_ptr, nullptr);
 	EXPECT_EQ( operand1_ptr->text, "V0" );
 
-	auto operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
+	auto * operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
 	ASSERT_NE(operand2_ptr, nullptr);
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
 
 TEST(UnitParser, SingleInstructionWithLabelAndArguments)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
 		ASMToken { ASMToken::Type::IDENTIFIER, "LD", 1, 4 },
 		ASMToken { ASMToken::Type::IDENTIFIER, "V0", 1, 7 },
@@ -142,25 +142,25 @@ TEST(UnitParser, SingleInstructionWithLabelAndArguments)
 
 	EXPECT_EQ( program[0].line, 1 );
 
-	auto instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->mnemonic, "LD" );
 
 	ASSERT_EQ( instr_ptr->operands.size(), 2 );
 
-	auto operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
+	auto * operand1_ptr = std::get_if<ASTIdentifierExpr>(&instr_ptr->operands[0].expression);
 	ASSERT_NE(operand1_ptr, nullptr);
 	EXPECT_EQ( operand1_ptr->text, "V0" );
 
-	auto operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
+	auto * operand2_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->operands[1].expression);
 	ASSERT_NE(operand2_ptr, nullptr);
 	EXPECT_EQ( operand2_ptr->value, 10 );
 }
 
 TEST(UnitParser, Directive)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
 	};
@@ -169,7 +169,7 @@ TEST(UnitParser, Directive)
 
 	ASSERT_EQ( program.size(), 1 );
 
-	auto instr_ptr = std::get_if<ASTDirective>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTDirective>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->name, ".DW" );
@@ -178,7 +178,7 @@ TEST(UnitParser, Directive)
 
 TEST(UnitParser, DirectiveWithLabel)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
 		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
 		ASMToken { ASMToken::Type::END_OF_INPUT, "", 0, 0 }
@@ -191,7 +191,7 @@ TEST(UnitParser, DirectiveWithLabel)
 	EXPECT_TRUE( program[0].label.has_value() );
 	EXPECT_EQ( program[0].label.value().name, "start" );
 
-	auto instr_ptr = std::get_if<ASTDirective>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTDirective>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->name, ".DW" );
@@ -200,7 +200,7 @@ TEST(UnitParser, DirectiveWithLabel)
 
 TEST(UnitParser, DirectiveWithLabelAndArgs)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::LABEL, "start", 1, 1 },
 		ASMToken { ASMToken::Type::DIRECTIVE, ".DW", 1, 1 },
 		ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 },
@@ -218,7 +218,7 @@ TEST(UnitParser, DirectiveWithLabelAndArgs)
 	EXPECT_TRUE( program[0].label.has_value() );
 	EXPECT_EQ( program[0].label.value().name, "start" );
 
-	auto instr_ptr = std::get_if<ASTDirective>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTDirective>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->name, ".DW" );
@@ -227,7 +227,7 @@ TEST(UnitParser, DirectiveWithLabelAndArgs)
 
 TEST(UnitParser, VariableDef)
 {
-	ASMTokens tokens {
+	const ASMTokens tokens {
 		ASMToken { ASMToken::Type::IDENTIFIER, "X_POS", 1, 1 },
 		ASMToken { ASMToken::Type::ASSIGNMENT, "EQU", 1, 1 },
 		ASMToken { ASMToken::Type::NUMBER, "0x10", 1, 7 },
@@ -240,12 +240,12 @@ TEST(UnitParser, VariableDef)
 
 	EXPECT_FALSE( program[0].label.has_value() );
 
-	auto instr_ptr = std::get_if<ASTEqu>(&program[0].body);
+	auto * instr_ptr = std::get_if<ASTEqu>(&program[0].body);
 	ASSERT_NE(instr_ptr, nullptr);
 
 	EXPECT_EQ( instr_ptr->name, "X_POS" );
 
-	auto expr_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->value.expression);
+	auto * expr_ptr = std::get_if<ASTNumberExpr>(&instr_ptr->value.expression);
 	ASSERT_NE(expr_ptr, nullptr);
 	EXPECT_EQ( expr_ptr->value, 0x10 );
 }

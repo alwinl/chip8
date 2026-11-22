@@ -25,37 +25,29 @@
 #include "ir/encoder.h"
 
 #include "compiler/cmdlineparser.h"
-#include "compiler/c8c_loader.h"
 #include "compiler/compiler.h"
 
 int main( int argc, char ** argv )
 {
     try {
-        ChicomCmdLineParser args;
+        compiler::CmdLineParser args;
 
         if( !args.parse_args( argc, argv ) )
 			return 1;
 
-		Compiler compiler;
-		compiler.configure(args);
-
 		std::ifstream is( args.get_input_name() );
-		C8CSource source = C8CSourceLoader::load( is );
-
-		IRBundle bundle = compiler.build_ir( source );
-
-		BinImage image = encode( bundle.ir );
+		const IRBundle bundle = compiler::build_ir( is, args.get_input_name() );
 
 		std::ofstream os( args.get_output_name(), std::ios::binary );
-		save_binary( os, image );
+		binary_emitter::emit( os, bundle );
 
 		if( !args.get_listing_name().empty() ) {
 			std::ofstream listing_os( args.get_listing_name() );
-			ASMEmitter().emit( listing_os, bundle, ASMEmitter::OutputMode::Listing );
+			asm_emitter::emit( listing_os, bundle, args.get_input_name(), asm_emitter::OutputMode::Listing );
 		}
     }
 
-	catch (const std::exception &e) {
+	catch( const std::exception &e ) {
         std::cerr << e.what() << std::endl;
         return 2;
     }

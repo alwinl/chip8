@@ -78,14 +78,14 @@ TEST(UnitSymbolTable, LabelAndConstantCanCoexist)
 
 TEST(UnitSymbolTable, MissingLabelReturnsEmptyString)
 {
-	ASMSymbolTable symbols;
+	const ASMSymbolTable symbols;
 
 	EXPECT_EQ(symbols.get_label(0x200), "");
 }
 
 TEST(UnitSymbolTable, MissingSymbolReturnsSentinel)
 {
-	ASMSymbolTable symbols;
+	const ASMSymbolTable symbols;
 
 	EXPECT_THROW(symbols.get_value("missing"), std::runtime_error);
 }

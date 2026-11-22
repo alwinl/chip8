@@ -28,13 +28,13 @@ BinImage encode( const IRProgram &ir )
 	BinImage image;
 
 	for( const auto& element : ir.elements )
-        std::visit( [&]( auto&& v )
+        std::visit( [&]( auto&& element )
 		{
-			using T = std::decay_t<decltype(v)>;
+			using T = std::decay_t<decltype(element)>;
 
 			if constexpr( std::is_same_v<T, IRInstruction> ) {
 
-				uint16_t word = v.instruction.to_binary();
+				const uint16_t word = element.instruction.to_binary();
 
 				image.push_back( (word >> 8) & 0xFF );
 				image.push_back( (word     ) & 0xFF );
@@ -42,7 +42,7 @@ BinImage encode( const IRProgram &ir )
 			}
 			else if constexpr( std::is_same_v<T, IRDataBlock> ) {
 
-				image.insert( image.end(), v.bytes.begin(), v.bytes.end() );
+				image.insert( image.end(), element.bytes.begin(), element.bytes.end() );
 
 			}
 			else

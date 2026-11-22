@@ -2,14 +2,14 @@
 #include <rlImGui.h>
 #include <imgui.h>
 
-int main( int argc, char ** argv )
+int main( int /*argc*/, char ** /*argv*/ )
 {
     InitWindow( 800, 600, "test");
     SetTargetFPS( 60 );
 
     rlImGuiSetup( true );
 
-    Font my_font = LoadFontEx( "C:/Users/Alwin Leerling/Programming/chip8/resources/fonts/Inter/Inter-VariableFont_opsz,wght.ttf", 32, nullptr, 0);
+    const Font my_font = LoadFontEx( "C:/Users/Alwin Leerling/Programming/chip8/resources/fonts/Inter/Inter-VariableFont_opsz,wght.ttf", 32, nullptr, 0);
 
     while( !WindowShouldClose() ) {
 

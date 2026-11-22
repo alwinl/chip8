@@ -52,14 +52,14 @@ namespace {
 
 		size_t pos = line.length();
 
-		while( pos && (line[pos -1] == ' ' || line[pos -1] == '\t') )
+		while( (pos != 0) && (line[pos -1] == ' ' || line[pos -1] == '\t') )
 			--pos;
 
 		line.resize(pos);
 
 		return line.empty();
 	}
-}
+} // namespace
 
 ASMSource load_assembly_source( std::istream& is )
 {

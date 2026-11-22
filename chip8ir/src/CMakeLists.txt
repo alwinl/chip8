@@ -39,13 +39,15 @@ add_library(
 	assembler/assembler.cc
 	assembler/cmdlineparser.cc
 
+	disassembler/symbol_table.cc
 	disassembler/disassembler.cc
 	disassembler/cmdlineparser.cc
-	disassembler/symbol_table.cc
 
 	emulator/cmdlineparser.cc
 	emulator/chip8.cc
 
+	compiler/loader.cc
+	compiler/symbol_table.cc
 	compiler/compiler.cc
 	compiler/cmdlineparser.cc
 )

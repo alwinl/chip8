@@ -26,12 +26,12 @@
 IRBundle bundle_builder(const std::string& text)
 {
 	std::istringstream is(text);
-	return assembler::build_ir(is);
+	return assembler::build_ir(is, "test_program" );
 }
 
 TEST(IntAssembler, SimpleProgram)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	.ORG 0x200
 	CLS
@@ -51,7 +51,7 @@ R"(
 
 TEST(IntAssembler, LabelResolution)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 start:
 	JP target
@@ -61,9 +61,9 @@ target:
 )"
 	);
 
-    const auto& jp = std::get<IRInstruction>(ir.elements[0]);
+    const auto& jump = std::get<IRInstruction>(ir.elements[0]);
 
-    auto operands = jp.instruction.operands();
+    auto operands = jump.instruction.operands();
 
     ASSERT_EQ(operands.size(), 1);
     EXPECT_EQ(std::get<Addr>(operands[0]).get_value(), 0x204);
@@ -71,7 +71,7 @@ target:
 
 TEST(IntAssembler, ExpressionEvaluation)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	value EQU 10
 	LD V1, value + 5
@@ -87,7 +87,7 @@ R"(
 
 TEST(IntAssembler, SE_RegisterVsImmediate)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	SE V1, V2
 	SE V1, 10
@@ -100,7 +100,7 @@ R"(
 
 TEST(IntAssembler, JumpIndexedVsDirect)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	JP V0, 0x300
 	JP 0x400
@@ -113,7 +113,7 @@ R"(
 
 TEST(IntAssembler, OrgDirective)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	.ORG 0x300
 	CLS
@@ -125,7 +125,7 @@ R"(
 
 TEST(IntAssembler, DataDirective)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	.DB 1,2,3,4
 )"
@@ -140,7 +140,7 @@ R"(
 
 TEST(IntAssembler, CommentsAndWhitespace)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
 	; full line comment
 	CLS ; inline comment
@@ -153,7 +153,7 @@ R"(
 
 TEST(IntAssembler, ForwardJumpResolvesLabel)
 {
-	auto [ir, _] = bundle_builder(
+	auto [name, ir, _] = bundle_builder(
 R"(
         JP target
         NOP
@@ -163,7 +163,7 @@ target: NOP
 
     ASSERT_EQ(ir.elements.size(), 3);
 
-	Instruction expected = Instruction::make_jump( Addr{0x204} );
+	const Instruction expected = Instruction::make_jump( Addr{0x204} );
 
     const auto& actual = std::get<IRInstruction>(ir.elements[0]);
     EXPECT_EQ( actual.instruction, expected );

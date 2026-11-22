@@ -20,17 +20,20 @@
 #include <gtest/gtest.h>
 #include "disassembler/disassembler.h"
 
+#include "disassembler/vectorstream.h"
+
 TEST(IntDisassembler, straight_line_with_data)
 {
-    BinImage bin = {
+    std::vector<uint8_t> bin = {
         0x60, 0x01,
         0x61, 0x02,
         0xFF, 0xFF,
         0xAA, 0xBB
     };
 
-    Disassembler dis;
-    auto [ir, symbols] = dis.build_ir(bin);
+	vectorstream is( bin );
+
+    auto [name, ir, symbols] = disassembler::build_ir( is, "test_program", 0x200 );
 
     ASSERT_EQ(ir.elements.size(), 3);
 
@@ -53,14 +56,15 @@ TEST(IntDisassembler, straight_line_with_data)
 
 TEST(IntDisassembler, conditional_skip)
 {
-    BinImage bin = {
+    std::vector<uint8_t>  bin = {
         0x30, 0x00,
         0x60, 0x01,
         0x60, 0x02
     };
 
-    Disassembler dis;
-    auto [ir, symbols] = dis.build_ir(bin);
+	vectorstream is( bin );
+
+    auto [name, ir, symbols] = disassembler::build_ir( is, "test_program", 0x200 );
 
     // All three instructions must be discovered
     ASSERT_EQ(ir.elements.size(), 3);
@@ -80,15 +84,16 @@ TEST(IntDisassembler, conditional_skip)
 
 TEST(IntDisassembler, jump_skips_data)
 {
-    BinImage bin = {
+    std::vector<uint8_t>  bin = {
         0x12, 0x06,
         0xAA, 0xBB,
         0xCC, 0xDD,
         0x60, 0x01
     };
 
-    Disassembler dis;
-    auto [ir, symbols] = dis.build_ir(bin);
+	vectorstream is( bin );
+
+    auto [name, ir, symbols] = disassembler::build_ir( is, "test_program", 0x200 );
 
     ASSERT_EQ(ir.elements.size(), 3);
 
@@ -108,15 +113,16 @@ TEST(IntDisassembler, jump_skips_data)
 
 TEST(IntDisassembler, no_overlapping_elements)
 {
-    BinImage bin = {
+    std::vector<uint8_t>  bin = {
         0x12, 0x06,
         0xAA, 0xBB,
         0xCC, 0xDD,
         0x60, 0x01
     };
 
-    Disassembler dis;
-    auto [ir, symbols] = dis.build_ir(bin);
+	vectorstream is( bin );
+
+    auto [name, ir, symbols] = disassembler::build_ir( is, "test_program", 0x200 );
 
     std::set<uint16_t> covered;
 
@@ -135,14 +141,15 @@ TEST(IntDisassembler, no_overlapping_elements)
 
 TEST(IntDisassembler, invalid_opcode_terminates_code_path)
 {
-    BinImage bin = {
+    std::vector<uint8_t>  bin = {
         0x60, 0x01,
         0x61, 0x02,
         0xFF, 0xFF
     };
 
-    Disassembler dis;
-    auto [ir, symbols] = dis.build_ir(bin);
+	vectorstream is( bin );
+
+    auto [name, ir, symbols] = disassembler::build_ir( is, "test_program", 0x200 );
 
     ASSERT_EQ(ir.elements.size(), 3);
 

@@ -13,12 +13,14 @@ add_library(
 	ImGUI/imgui_draw.cpp
 	ImGUI/imgui_tables.cpp
 	ImGUI/imgui_widgets.cpp
+	ImGUI/misc/cpp/imgui_stdlib.cpp
 
 	rlImGui/rlImGui.cpp
 )
 
 target_include_directories( imgui PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/ImGUI
+	${CMAKE_CURRENT_SOURCE_DIR}/ImGUI/misc/cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rlImGui
 )
 

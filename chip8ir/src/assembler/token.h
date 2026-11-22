@@ -29,8 +29,8 @@ struct ASMToken
 
     Type type;
     std::string lexeme;
-    int line;
-    int column;
+    size_t line;
+    size_t column;
 };
 
 using ASMTokens = std::vector<ASMToken>;

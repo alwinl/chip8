@@ -23,5 +23,3 @@
 #include <cstdint>
 
 using BinImage = std::vector<uint8_t>;
-
-using C8CSource = std::vector<std::string>;

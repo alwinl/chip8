@@ -25,5 +25,5 @@
 
 namespace assembler
 {
-	IRBundle build_ir( std::istream& is );
-}
+	IRBundle build_ir( std::istream& is, std::string program_name );
+} // namespace assembler

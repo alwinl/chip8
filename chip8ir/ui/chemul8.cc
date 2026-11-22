@@ -22,6 +22,7 @@
 #include <raylib.h>
 #include <rlImGui.h>
 #include <imgui.h>
+#include <imgui_stdlib.h>
 
 
 #include "emulator/cmdlineparser.h"
@@ -36,8 +37,9 @@
 constexpr int CHIP8_WIDTH  = 64;
 constexpr int CHIP8_HEIGHT = 32;
 constexpr int CHIP8_PIXELS = CHIP8_WIDTH * CHIP8_HEIGHT;
+constexpr int CHIP8_BUF_SIZE = CHIP8_PIXELS * 4;
 
-using RgbaBuffer = std::array<uint8_t, CHIP8_PIXELS * 4>;
+using RgbaBuffer = std::array<uint8_t, CHIP8_BUF_SIZE>;
 
 
 uint8_t test_buffer[64*32/8];
@@ -56,7 +58,7 @@ void init_test_buffer()
 
 Texture2D create_chip8_texture()
 {
-    Image image = GenImageColor(
+    const Image image = GenImageColor(
         CHIP8_WIDTH,
         CHIP8_HEIGHT,
         BLACK
@@ -97,7 +99,7 @@ void convert_framebuffer( const uint8_t* framebuffer, RgbaBuffer& rgba)
 
 void render_screen( uint8_t *buffer, uint16_t size)
 {
-	uint16_t total_pixels = size * 8;
+	const uint16_t total_pixels = size * 8;
 
 	for( uint16_t pixel = 0; pixel < total_pixels; ++pixel ) {
 
@@ -204,8 +206,48 @@ void render_registers_panel( std::vector<Actions>& action_list )
 
 }
 
-void render_controls_panel()
+void ShowMessageBox(const char* title, const char* message)
 {
+    ImGui::OpenPopup(title);
+
+    if (ImGui::BeginPopupModal(title, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::TextWrapped("%s", message);
+        ImGui::Spacing();
+
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+class ControlPanel
+{
+public:
+	void render();
+
+	void set_result( std::string result ) { load_result = result; }
+
+	std::string get_filename() const { return filename; };
+	Chip8::eQuirkType get_quirk_type() const { return selected_quirk_type; }
+
+	bool get_load_program() const { return load_program; }
+
+private:
+	std::string filename;
+	Chip8::eQuirkType selected_quirk_type = Chip8::eQuirkType::CHIP8;
+	bool load_program{};
+
+	std::string load_result;
+};
+
+void ControlPanel::render( )
+{
+	int* ptr = NULL;
+
 	ImGui::Begin("Controls");
 
 		if (ImGui::Button("Step")) {
@@ -218,20 +260,51 @@ void render_controls_panel()
 			// Reset the emulator here later.
 		}
 
-		static Chip8::eQuirkType selected_quirk_type = Chip8::eQuirkType::CHIP8;
+		ImGui::InputText( "Filename", &filename );
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Quirk Mode:");
-		ImGui::SameLine();
+        const char* combo_preview_value =
+			(selected_quirk_type == Chip8::eQuirkType::XOCHIP) ? "XOChip" :
+			(selected_quirk_type == Chip8::eQuirkType::SCHIP) ? "SChip" :
+			"Chip8";
 
-		if( ImGui::RadioButton("Chip8", selected_quirk_type == Chip8::eQuirkType::CHIP8) )
-			selected_quirk_type = Chip8::eQuirkType::CHIP8;
-		ImGui::SameLine();
-		if( ImGui::RadioButton("SChip", selected_quirk_type == Chip8::eQuirkType::SCHIP) )
-			selected_quirk_type = Chip8::eQuirkType::SCHIP;
-		ImGui::SameLine();
-		if( ImGui::RadioButton("XOChip", selected_quirk_type == Chip8::eQuirkType::XOCHIP) )
-			selected_quirk_type = Chip8::eQuirkType::XOCHIP;
+        if (ImGui::BeginCombo("Quirks", combo_preview_value, 0))
+        {
+			if (ImGui::Selectable( "Chip8", selected_quirk_type == Chip8::eQuirkType::CHIP8) )
+				selected_quirk_type = Chip8::eQuirkType::CHIP8;
+
+			if (ImGui::Selectable( "SChip", selected_quirk_type == Chip8::eQuirkType::SCHIP) )
+				selected_quirk_type = Chip8::eQuirkType::SCHIP;
+
+			if (ImGui::Selectable( "XOChip", selected_quirk_type == Chip8::eQuirkType::XOCHIP) )
+				selected_quirk_type = Chip8::eQuirkType::XOCHIP;
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			// if (is_selected)
+			// 	ImGui::SetItemDefaultFocus();
+            ImGui::EndCombo();
+        }
+
+		// ShowMessageBox( "File load result", "Test" );
+
+		load_program = ImGui::Button("Load");
+
+		if( ! load_result.empty() ) {
+
+			ImGui::OpenPopup("File load result");
+
+			if (ImGui::BeginPopupModal("File load result", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ImGui::TextWrapped("%s", load_result.c_str());
+				ImGui::Spacing();
+
+				if (ImGui::Button("OK", ImVec2(120, 0))) {
+					ImGui::CloseCurrentPopup();
+					load_result.clear();
+				}
+
+				ImGui::EndPopup();
+			}
+		}
 
 	ImGui::End();
 }
@@ -266,9 +339,14 @@ int main(int argc, char** argv)
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		Actions current_action = Actions::NONE;
+		ControlPanel control_data;
 
 		while (!WindowShouldClose())
 		{
+			if( control_data.get_load_program() ) {
+				control_data.set_result( "Still to be implemented");
+			}
+
 			// convert_framebuffer( device.get_display_buffer(), rgba );
 			convert_framebuffer( test_buffer, rgba );
 			UpdateTexture(chip8_texture, rgba.data());
@@ -281,7 +359,7 @@ int main(int argc, char** argv)
 					draw_dockspace();
 
 					current_action = render_main_menu( menu_data );
-					render_controls_panel();
+					control_data.render();
 					render_chip8_display( chip8_texture );
 					render_registers_panel( action_list );
 
@@ -305,42 +383,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-// #include <iostream>
-// #include <fstream>
-
-// #include "ir/binary_loader.h"
-// #include "ir/ir_bundle.h"
-
-// #include "disassembler/disassembler.h"
-
-// #include "emulator/emulator.h"
-
-// int main( int argc, char ** argv )
-// {
-//     try {
-//         ChemulCmdLineParser args;
-
-//         if( !args.parse_args( argc, argv ) )
-// 			return 1;
-
-// 		Disassembler disassembler;
-// 		disassembler.configure( {args.get_origin()} );
-
-// 		std::ifstream is( args.get_program(), std::ios::binary );
-// 		BinImage image = load_binary( is );
-
-// 		IRBundle bundle = disassembler.build_ir( image );
-
-//         Emulator emulator;
-//         emulator.configure( args );
-
-//         emulator.run( image, bundle.ir );
-//     }
-
-// 	catch (const std::exception &e) {
-//         std::cerr << e.what() << std::endl;
-//         return 2;
-//     }
-
-// 	return 0;
-// }

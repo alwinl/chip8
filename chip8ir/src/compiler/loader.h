@@ -1,5 +1,5 @@
 /*
- * binary_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
+ * c8c_loader.h Copyright 2026 Alwin Leerling dna.leerling@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,6 @@
 
 #include <istream>
 
-#include "ir/chip8formats.h"
+#include "c8c.h"
 
-inline BinImage load_binary( std::istream& is )
-{
-	return { std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>() };
-}
+C8CSource load_C8_source( std::istream& is );

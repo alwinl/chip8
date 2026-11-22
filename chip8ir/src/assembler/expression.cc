@@ -20,37 +20,40 @@
 #include "assembler/expression.h"
 #include <cassert>
 
-uint16_t evaluate_expression( const ASTExpression& expr, const ASMSymbolTable& symbols )
-{
-	return std::visit( [&]( auto&& expression ) -> uint16_t
-		{
-			using T = std::decay_t<decltype(expression)>;
+uint16_t evaluate_expression(const ASTExpression &expr,
+                             const ASMSymbolTable &symbols) {
+  return std::visit(
+      [&](auto &&expression) -> uint16_t {
+        using T = std::decay_t<decltype(expression)>;
 
-			if constexpr( std::is_same_v<T, ASTNumberExpr> )
-				return expression.value;
+        if constexpr (std::is_same_v<T, ASTNumberExpr>)
+          return expression.value;
 
-			else if constexpr( std::is_same_v<T, ASTIdentifierExpr> )
-				return symbols.get_value( expression.text );
+        else if constexpr (std::is_same_v<T, ASTIdentifierExpr>)
+          return symbols.get_value(expression.text);
 
-			else if constexpr( std::is_same_v<T, ASTBinaryExpr> ) {
+        else if constexpr (std::is_same_v<T, ASTBinaryExpr>) {
 
-				auto lhs = evaluate_expression( *expression.lhs, symbols );
-				auto rhs = evaluate_expression( *expression.rhs, symbols );
+          auto lhs = evaluate_expression(*expression.lhs, symbols);
+          auto rhs = evaluate_expression(*expression.rhs, symbols);
 
-				switch( expression.op ) {
-				case '+': return lhs + rhs;
-				case '-': return lhs - rhs;
-				case '*': return lhs * rhs;
-				case '/':
-					if( rhs == 0 )
-						throw( std::runtime_error("Division by zero") );
-					return lhs / rhs;
-				}
+          switch (expression.op) {
+          case '+':
+            return lhs + rhs;
+          case '-':
+            return lhs - rhs;
+          case '*':
+            return lhs * rhs;
+          case '/':
+            if (rhs == 0)
+              throw(std::runtime_error("Division by zero"));
+            return lhs / rhs;
+          }
 
-				throw( std::runtime_error("Invalid operator") );
+          throw(std::runtime_error("Invalid operator"));
 
-			} else
-				static_assert(std::is_same_v<T, void>, "Unhandled expression type");
-
-		}, expr.expression );
+        } else
+          static_assert(std::is_same_v<T, void>, "Unhandled expression type");
+      },
+      expr.expression);
 }

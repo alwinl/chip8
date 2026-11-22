@@ -28,51 +28,51 @@ namespace assembler
 		if( arguments.empty() )
 			return false;
 
-		// Convert std::vector<std::string> to argc/argv
 		std::vector<char*> argv_ptrs;
-		argv_ptrs.reserve(arguments.size() + 1); // +1 for the program name
+		argv_ptrs.reserve( arguments.size() + 1 ); // +1 for the program name
+
 		std::string fake_prog_name = "chasem8";
-		argv_ptrs.push_back(fake_prog_name.data());
+		argv_ptrs.push_back( fake_prog_name.data() );
 
-		for (std::string& arg : arguments)
-			argv_ptrs.push_back(arg.data());
+		for( std::string& arg : arguments )
+			argv_ptrs.push_back( arg.data() );
 
-		int argc = static_cast<int>(argv_ptrs.size());
+		const int argc = static_cast<int>( argv_ptrs.size() );
 		char** argv = argv_ptrs.data();
 
-		return parse_args(argc, argv);
+		return parse_args( argc, argv );
 	}
 
 	bool CmdLineParser::parse_args( int argc, char **argv )
 	{
-		cxxopts::Options options("chasm8", "Assembler for CHIP-8 files" );
+		cxxopts::Options options( "chasm8", "Assembler for CHIP-8 files" );
 
 		options.add_options()
-			("l,listing", "Generate listing file (optional filename)", cxxopts::value<std::string>()->implicit_value("__absent__"))
+			( "l,listing", "Generate listing file (optional filename)", cxxopts::value<std::string>()->implicit_value("__absent__") )
 			( "h,help", "Show this help message" )
 			( "v,verbose", "Verbose output" )
 			( "o", "Output binary file name", cxxopts::value<std::string>() )
 			( "source", "Source file name", cxxopts::value<std::string>() );
 
-		options.parse_positional({"source"});
-		options.positional_help("<source>");
+		options.parse_positional( {"source"} );
+		options.positional_help( "<source>" );
 		options.show_positional_help();
 
 		try {
 			result = options.parse(argc, argv);
 		}
-		catch (const cxxopts::exceptions::exception& e) {
+		catch( const cxxopts::exceptions::exception& e ) {
 			std::cerr << "Error parsing command line options: " << e.what() << std::endl;
 			std::cerr << options.help() << std::endl;
 			return false;
 		}
 
-		if (result.count("help")) {
+		if( result.count("help") != 0 ) {
 			std::cout << options.help() << std::endl;
 			return false;
 		}
 
-		if (!result.count("source")) {
+		if( result.count("source") != 0 ) {
 			std::cerr << "Error: Source file is required." << std::endl;
 			std::cerr << options.help() << std::endl;
 			return false;
@@ -102,18 +102,21 @@ namespace assembler
 		return result["listing"].as<std::string>();
 	}
 
-	bool CmdLineParser::is_verbose() const {
+	bool CmdLineParser::is_verbose() const
+	{
 		return result["verbose"].as<bool>();
 	}
 
-	bool CmdLineParser::show_help() const {
+	bool CmdLineParser::show_help() const
+	{
 		return result.count("help") > 0;
 	}
 
-	const std::string CmdLineParser::get_output_prefix()
+	std::string CmdLineParser::get_output_prefix()
 	{
-		std::string source = get_source_name();
-		std::filesystem::path path(source);
+		const std::string source = get_source_name();
+		const std::filesystem::path path(source);
 		return path.stem().string();
 	}
-}
+
+} // namespace assembler

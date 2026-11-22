@@ -25,9 +25,9 @@
 
 TEST(UnitExpression, Literal)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
-    ASTExpression expr{ ASTNumberExpr{42}, 0 };
+    const ASTExpression expr{ ASTNumberExpr{42}, 0 };
 
     EXPECT_EQ(evaluate_expression(expr, symbols), 42);
 }
@@ -37,14 +37,14 @@ TEST(UnitExpression, Identifier)
     ASMSymbolTable symbols;
     symbols.define_constant("FOO", 123);
 
-    ASTExpression expr{ ASTIdentifierExpr{"FOO"}, 0 };
+    const ASTExpression expr{ ASTIdentifierExpr{"FOO"}, 0 };
 
     EXPECT_EQ(evaluate_expression(expr, symbols), 123);
 }
 
 TEST(UnitExpression, BinaryAdd)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTExpression lhs{ ASTNumberExpr{10}, 0 };
     ASTExpression rhs{ ASTNumberExpr{5}, 0 };
@@ -55,14 +55,14 @@ TEST(UnitExpression, BinaryAdd)
         std::make_unique<ASTExpression>(std::move(rhs))
     };
 
-    ASTExpression expr{ std::move(bin), 0 };
+    const ASTExpression expr{ std::move(bin), 0 };
 
     EXPECT_EQ(evaluate_expression(expr, symbols), 15);
 }
 
 TEST(UnitExpression, DivisionByZero)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTExpression lhs{ ASTNumberExpr{10}, 0 };
     ASTExpression rhs{ ASTNumberExpr{0}, 0 };
@@ -73,7 +73,7 @@ TEST(UnitExpression, DivisionByZero)
         std::make_unique<ASTExpression>(std::move(rhs))
     };
 
-    ASTExpression expr{ std::move(bin), 0 };
+    const ASTExpression expr{ std::move(bin), 0 };
 
     EXPECT_THROW( evaluate_expression(expr, symbols), std::runtime_error );
 }

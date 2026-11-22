@@ -76,7 +76,7 @@ ASMSymbolTable collect_symbols( const ASTProgram& program )
 
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols )
 {
-	IRProgram ir{};
+	IRProgram int_rep{};
 	uint16_t address = 0x200;
 
 	for( const ASTElement& element : program )
@@ -86,8 +86,8 @@ IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols 
 
 			if constexpr( std::is_same_v<T, ASTInstruction> ) {
 
-				Instruction generated = generate_instruction(body, symbols);
-				ir.elements.push_back( IRInstruction{address, std::move(generated)});
+				const Instruction generated = generate_instruction(body, symbols);
+				int_rep.elements.emplace_back( IRInstruction{address, generated});
 				return address + 2;
 
 			}
@@ -100,7 +100,7 @@ IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols 
 					for( size_t i = 0; i < body.args.size(); ++i )
 						byte_run.emplace_back( evaluate_expression( body.args[i], symbols ));
 
-					ir.elements.push_back( IRDataBlock {address, byte_run } );
+					int_rep.elements.emplace_back( IRDataBlock {address, byte_run } );
 
 					address += body.args.size();
 				}
@@ -111,12 +111,7 @@ IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols 
 				return address;
 
 			}
-			else if constexpr( std::is_same_v<T, ASTEqu> ) {
-
-				return address;
-
-			}
-			else if constexpr( std::is_same_v<T, ASTEmpty> ) {
+			else if constexpr( std::is_same_v<T, ASTEqu> || std::is_same_v<T, ASTEmpty> ) {
 
 				return address;
 
@@ -126,13 +121,13 @@ IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols 
 
 		}, element.body );
 
-	return ir;
+	return int_rep;
 }
 
-IRBundle generate_ir_bundle( const ASTProgram& program )
+IRBundle generate_ir_bundle( const ASTProgram& program, std::string program_name )
 {
-	ASMSymbolTable symbols = collect_symbols( program );
-	IRProgram ir = generate_ir( program, symbols );
+	const ASMSymbolTable symbols = collect_symbols( program );
+	IRProgram int_rep = generate_ir( program, symbols );
 
-	return { std::move(ir), std::make_unique<ASMSymbolTable>(std::move(symbols)) };
+	return { program_name, std::move(int_rep), std::make_unique<ASMSymbolTable>(symbols) };
 }

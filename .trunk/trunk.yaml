@@ -26,6 +26,10 @@ lint:
     - clang-tidy@16.0.3
     - git-diff-check
     - trufflehog@3.100.0
+  ignore:
+    - linters: [ALL]
+      paths:
+        - resources/backup/**
 actions:
   disabled:
     - trunk-announce

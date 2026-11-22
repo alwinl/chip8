@@ -9,7 +9,7 @@ Actions render_main_menu( const std::vector<MenuData>& menu )
 
 	if( ImGui::BeginMainMenuBar() ) {
 
-		for( auto& menu_data_item : menu ) {
+		for( const auto& menu_data_item : menu ) {
 			switch( menu_data_item.type ) {
 			case MenuData::Type::SUBMENU:
 				if( render_submenu )
@@ -35,9 +35,10 @@ Actions render_main_menu( const std::vector<MenuData>& menu )
 
 		if( render_submenu )
 			ImGui::EndMenu();
-		
+
 		ImGui::EndMainMenuBar();
 	}
+
 	return new_action;
 }
 

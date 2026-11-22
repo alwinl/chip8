@@ -37,7 +37,7 @@ namespace emulator
 		for (std::string& arg : arguments)
 			argv_ptrs.push_back(arg.data());
 
-		int argc = static_cast<int>(argv_ptrs.size());
+		const int argc = static_cast<int>(argv_ptrs.size());
 		char** argv = argv_ptrs.data();
 
 		return parse_args(argc, argv);
@@ -51,6 +51,7 @@ namespace emulator
 			("C,chip8", "Emulate original Chip8")
 			("X,xochip", "Emulate the XOChip8")
 			("S,schip", "Emulate the Super Chip8")
+			("o,origin", "Execution start address")
 			("h,help", "Print usage")
 			("romfile", "CHIP-8 ROM file to load", cxxopts::value<std::string>());
 
@@ -67,12 +68,12 @@ namespace emulator
 			return false;
 		}
 
-		if( result.count("help") ) {
+		if( result.count("help") != 0 ) {
 			std::cout << options.help() << std::endl;
 			return false;
 		}
 
-		if( !result.count("romfile") ) {
+		if( result.count("romfile") == 0 ) {
 			std::cout << options.help() << std::endl;
 			std::cout << "Missing romfile" << std::endl;
 			return false;
@@ -86,5 +87,12 @@ namespace emulator
 		return result["romfile"].as<std::string>();
 	}
 
-	uint16_t CmdLineParser::get_origin() const { return 0x200; }
-}
+	uint16_t CmdLineParser::get_origin() const
+	{
+		if( result.count("origin") == 0 )
+			return 0x200;
+
+		return result["origin"].as<uint16_t>();
+	}
+
+} // namespace emulator

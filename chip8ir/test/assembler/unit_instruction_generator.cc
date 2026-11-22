@@ -28,7 +28,7 @@
 
 TEST(UnitInstruction, LD_Immediate)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTInstruction inst;
     inst.mnemonic = "LD";
@@ -36,14 +36,14 @@ TEST(UnitInstruction, LD_Immediate)
     inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{42}, 0 } );
 
 	EXPECT_NO_THROW({
-		Instruction ir = generate_instruction(inst, symbols);
+		const Instruction ir = generate_instruction(inst, symbols);
 		EXPECT_EQ(ir.opcode(), Opcode::LD_Imm);
 	});
 }
 
 TEST(UnitInstruction, ADD_Register)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTInstruction inst;
     inst.mnemonic = "ADD";
@@ -51,28 +51,28 @@ TEST(UnitInstruction, ADD_Register)
     inst.operands.emplace_back( ASTExpression{ ASTIdentifierExpr{"V2"}, 0 } );
 
 	EXPECT_NO_THROW({
-		Instruction ir = generate_instruction(inst, symbols);
+		const Instruction ir = generate_instruction(inst, symbols);
 		EXPECT_EQ(ir.opcode(), Opcode::ADD_Reg);
 	});
 }
 
 TEST(UnitInstruction, Jump)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTInstruction inst;
     inst.mnemonic = "JP";
     inst.operands.emplace_back( ASTExpression{ ASTNumberExpr{0x300}, 0 } );
 
 	EXPECT_NO_THROW({
-		Instruction ir = generate_instruction(inst, symbols);
+		const Instruction ir = generate_instruction(inst, symbols);
 		EXPECT_EQ(ir.opcode(), Opcode::JP);
 	});
 }
 
 TEST(UnitInstruction, UnknownMnemonic)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTInstruction inst;
     inst.mnemonic = "UNKNOWN";
@@ -85,7 +85,7 @@ TEST(UnitInstruction, UnknownMnemonic)
 
 TEST(UnitInstruction, InvalidRegister)
 {
-    ASMSymbolTable symbols;
+    const ASMSymbolTable symbols;
 
     ASTInstruction inst;
     inst.mnemonic = "OR";

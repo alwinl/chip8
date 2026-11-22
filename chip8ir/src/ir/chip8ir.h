@@ -46,6 +46,6 @@ struct IRProgram
     std::vector<IRElement> elements;
 };
 
-bool operator==( const IRProgram& a, const IRProgram& b );
+bool operator==( const IRProgram& lhs, const IRProgram& rhs );
 
 std::ostream& operator<<(std::ostream& os, const IRProgram& ir);

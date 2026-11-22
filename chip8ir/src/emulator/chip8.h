@@ -122,7 +122,7 @@ private:
 	uint8_t get_delay_timer() const;
 	bool is_key_pressed( uint8_t key_no );
 	bool key_captured( uint8_t &key_no );
-	uint8_t get_random_value();
+	// uint8_t get_random_value();
 
 	void clear_screen();
 	bool toggle_a_pixel( uint8_t x, uint8_t y );

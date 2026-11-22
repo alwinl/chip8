@@ -37,7 +37,7 @@ namespace disassembler
 		for (std::string& arg : arguments)
 			argv_ptrs.push_back(arg.data());
 
-		int argc = static_cast<int>(argv_ptrs.size());
+		const int argc = static_cast<int>(argv_ptrs.size());
 		char** argv = argv_ptrs.data();
 
 		return parse_args(argc, argv);
@@ -71,18 +71,18 @@ namespace disassembler
 			throw std::runtime_error( options.help() + "\nError: " + std::string(e.what()) );
 		}
 
-		if (result.count("help")) {
+		if (result.count("help") != 0 ) {
 			std::cout << options.help() << std::endl;
 			return false;
 		}
 
-		if( !result.count("source") )
+		if( result.count("source") == 0 )
 			throw std::runtime_error( options.help() + "\nError: Source file is required.\n" );
 
 		return true;
 	}
 
-	std::string CmdLineParser::get_dot_name()
+	std::string CmdLineParser::get_dot_name() const
 	{
 		if( result.count("d") == 0 )
 			return {};
@@ -90,7 +90,7 @@ namespace disassembler
 		return get_output_prefix() + ".dot";
 	}
 
-	std::string CmdLineParser::get_uml_name()
+	std::string CmdLineParser::get_uml_name() const
 	{
 		if( result.count("u") == 0 )
 			return {};
@@ -98,7 +98,7 @@ namespace disassembler
 		return get_output_prefix() + ".plantuml";
 	}
 
-	std::string CmdLineParser::get_output_name()
+	std::string CmdLineParser::get_output_name() const
 	{
 		if( result.count("o") != 0 )
 			return result["o"].as<std::string>();
@@ -109,17 +109,17 @@ namespace disassembler
 		return get_output_prefix() + ".lst";
 	}
 
-	const std::string CmdLineParser::get_output_prefix()
+	std::string CmdLineParser::get_output_prefix() const
 	{
-		std::string source = get_source_name();
-		std::filesystem::path path(source);
+		const std::string source = get_source_name();
+		const std::filesystem::path path(source);
 		return path.stem().string();
 	}
 
-	std::string CmdLineParser::get_source_name() { return result["source"].as<std::string>(); }
-	std::string CmdLineParser::get_program_name() { return ( result.count("p") == 0 ) ? get_output_prefix() : result["program"].as<std::string>(); }
+	std::string CmdLineParser::get_source_name() const { return result["source"].as<std::string>(); }
+	std::string CmdLineParser::get_program_name() const { return ( result.count("p") == 0 ) ? get_output_prefix() : result["program"].as<std::string>(); }
 	bool CmdLineParser::is_verbose() const { return result["verbose"].as<bool>(); }
 	bool CmdLineParser::is_clean() const { return result["clean"].as<bool>(); }
 	uint16_t CmdLineParser::get_origin() const { return 0x200; }
 	bool CmdLineParser::show_help() const { return result.count("help") > 0; }
-}
+} // namespace disassembler

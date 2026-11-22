@@ -20,16 +20,18 @@
 #include <gtest/gtest.h>
 
 #include "disassembler/memory.h"
+#include "disassembler/vectorstream.h"
 
 TEST(UnitMemory, TestBoundaries)
 {
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
-	DisasmMemory memory;
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
-	EXPECT_EQ( memory.start(), memory.end() );
-	memory.bind( image );
+	// EXPECT_EQ( memory.start(), memory.end() );
+	// memory.bind( image );
 	EXPECT_EQ( memory.start() + 4, memory.end() );
 }
 
@@ -38,9 +40,9 @@ TEST(UnitMemory, TestLimits)
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
-	DisasmMemory memory;
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
-	memory.bind( image );
 	EXPECT_FALSE( memory.contains( 0x1FF ) );
 	EXPECT_TRUE( memory.contains( 0x200 ) );
 	EXPECT_TRUE( memory.contains( 0x203 ) );
@@ -52,9 +54,9 @@ TEST(UnitMemory, GetBytes)
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
-	DisasmMemory memory;
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
-	memory.bind( image );
 	EXPECT_EQ( memory.get_byte( 0x200 ), 0x01 );
 	EXPECT_EQ( memory.get_byte( 0x201 ), 0x02 );
 	EXPECT_EQ( memory.get_byte( 0x202 ), 0x03 );
@@ -66,9 +68,9 @@ TEST(UnitMemory, GetWords)
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04
 	};
-	DisasmMemory memory;
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
-	memory.bind( image );
 	EXPECT_EQ( memory.get_word( 0x200 ), 0x0102 );
 	EXPECT_EQ( memory.get_word( 0x201 ), 0x0203 );
 	EXPECT_EQ( memory.get_word( 0x202 ), 0x0304 );
@@ -79,9 +81,8 @@ TEST(UnitMemory, CheckValidInstructionMark)
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06
 	};
-	DisasmMemory memory;
-
-	memory.bind( image );
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
 	memory.mark_instruction( 0x202 );
 
@@ -95,9 +96,8 @@ TEST(UnitMemory, CheckUnalignedInstructionMark)
 	BinImage image = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06
 	};
-	DisasmMemory memory;
-
-	memory.bind( image );
+	vectorstream is( image );
+	DisasmMemory memory{is};
 
 	memory.mark_instruction( 0x203 );
 

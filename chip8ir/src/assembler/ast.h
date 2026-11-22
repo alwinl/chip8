@@ -50,7 +50,7 @@ using ASTExpressionType = std::variant<ASTNumberExpr, ASTIdentifierExpr, ASTBina
 struct ASTExpression
 {
 	ASTExpressionType expression;
-	int column;
+	size_t column;
 };
 
 using ASTExpressions = std::vector<ASTExpression>;
@@ -58,27 +58,27 @@ using ASTExpressions = std::vector<ASTExpression>;
 struct ASTLabel
 {
 	std::string name;
-	int column;
+	size_t column;
 };
 
 struct ASTInstruction
 {
 	std::string mnemonic;
-	int column;
+	size_t column;
     ASTExpressions operands;
 };
 
 struct ASTDirective
 {
     std::string name;
-	int column;
+	size_t column;
     ASTExpressions args;
 };
 
 struct ASTEqu
 {
 	std::string name;
-	int column;
+	size_t column;
 	ASTExpression value;
 };
 
@@ -90,7 +90,7 @@ using ASTElementKind = std::variant< ASTInstruction, ASTDirective, ASTEqu, ASTEm
 
 struct ASTElement
 {
-	int line;
+	size_t line;
     std::optional<ASTLabel> label;
     ASTElementKind body;
 };

@@ -23,25 +23,27 @@
 #include <vector>
 #include <cstdint>
 
-// #include "../vendor/cxxopts/cxxopts.hpp"
 #include <cxxopts.hpp>
 
-class ChicomCmdLineParser
+namespace compiler
 {
-public:
-    ChicomCmdLineParser() = default;
+	class CmdLineParser
+	{
+	public:
+		CmdLineParser() = default;
 
-	bool parse_args( int argc, char ** argv );
-    bool parse_args( std::vector<std::string> arguments );
+		bool parse_args( int argc, char ** argv );
+		bool parse_args( std::vector<std::string> arguments );
 
-    std::string get_input_name() const;
-	std::string get_output_name() const;
-	std::string get_listing_name() const;
+		std::string get_input_name() const;
+		std::string get_output_name() const;
+		std::string get_listing_name() const;
 
-    bool is_verbose() const;
-    bool show_help() const;
+		bool is_verbose() const;
+		bool show_help() const;
 
-private:
-    cxxopts::ParseResult result;
-};
+	private:
+		cxxopts::ParseResult result;
+	};
 
+} // namespace compiler

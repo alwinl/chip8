@@ -23,41 +23,35 @@
 #include <unordered_map>
 #include <array>
 
-static std::array<std::string, opcode_count> mnemonics = {
-	"NOP", "CLS", "RET", "JP", "CALL", "SE",
-	"SNE", "LD", "ADD", "OR", "AND",
-	"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I,",
-	"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
-	"LD ST,", "ST K,", "ST DT,", "ADD I,",
-	"LD F,", "LD B,", "ST [I],", "LD [I],"
-};
-
-void CFGEmitter::emit( std::ostream &os, const IRProgram &ir, OutputMode mode )
+namespace
 {
-	CFGraph graph = build_graph( ir );
+	std::array<std::string, opcode_count> mnemonics = {
+		"NOP", "CLS", "RET", "JP", "CALL", "SE",
+		"SNE", "LD", "ADD", "OR", "AND",
+		"XOR", "SUB", "SHR", "SUBN", "SHL", "LD I,",
+		"JP V0,", "RND", "DRW", "SKP", "SKNP", "LD DT,",
+		"LD ST,", "ST K,", "ST DT,", "ADD I,",
+		"LD F,", "LD B,", "ST [I],", "LD [I],"
+	};
+	struct Successor {
+		uint16_t address;
+		std::string condition;
+	};
+	struct CFGNode {
+		uint16_t address;
+		std::string mnemonic;
+		std::vector<Successor> successors;
+	};
 
-	emit_header( os, ir, mode );
+	using CFGraph = std::map<uint16_t, CFGNode>;
 
-	emit_node_header( os, mode );
-
-	for( const auto& node : graph )
-		emit_node( os, node.second, mode );
-
-	emit_edge_header( os, mode );
-
-	for( const auto& node : graph )
-		emit_edge( os, node.second, mode );
-
-	emit_footer( os, ir, mode );
-}
-
-CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
+CFGraph build_graph( const IRProgram &ir )
 {
 	CFGraph graph;
 
 	for (const auto& element : ir.elements) {
 
-		if( auto* instruction_element = std::get_if<IRInstruction>( &element ) ) {
+		if( const auto* instruction_element = std::get_if<IRInstruction>( &element ) ) {
 
 			CFGNode node;
 
@@ -81,10 +75,6 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 			case Opcode::SE_Imm:
 			case Opcode::SE_Reg:
 			case Opcode::SKP:
-				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 2), "false" } );
-				node.successors.push_back( { static_cast<uint16_t>(instruction_element->address + 4), "true" } );
-				break;
-
 			case Opcode::SNE_Imm:
 			case Opcode::SNE_Reg:
 			case Opcode::SKNP:
@@ -104,9 +94,9 @@ CFGEmitter::CFGraph CFGEmitter::build_graph( const IRProgram &ir )
 	return graph;
 }
 
-void CFGEmitter::emit_header( std::ostream &os, const IRProgram &ir, OutputMode mode )
+void emit_header( std::ostream &os, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML ) {
+	if( mode == cfg_emitter::OutputMode::PlantUML ) {
 		os << "@startuml cfg\ntitle Instruction-level CFG\n";
 	} else {
 		os << R"(digraph CFG
@@ -134,34 +124,34 @@ void CFGEmitter::emit_header( std::ostream &os, const IRProgram &ir, OutputMode 
 	}
 }
 
-void CFGEmitter::emit_node_header( std::ostream &os, OutputMode mode )
+void emit_node_header( std::ostream &os, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML )
+	if( mode == cfg_emitter::OutputMode::PlantUML )
 		os << "\n    ' Nodes\n";
 	else
 		os << "\n    // Nodes\n";
 }
 
-void CFGEmitter::emit_node( std::ostream &os, const CFGNode& node, OutputMode mode )
+void emit_node( std::ostream &os, const CFGNode& node, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML )
+	if( mode == cfg_emitter::OutputMode::PlantUML )
 		os << "    node \"0x" << std::hex << node.address << "\\n" << node.mnemonic << "\" as n" << node.address << "\n";
 	else
 		os << "    n" << std::hex << node.address << " [label=\"0x" << std::hex << node.address << ": " << node.mnemonic << "\"];\n";
 }
 
-void CFGEmitter::emit_edge_header( std::ostream &os, OutputMode mode )
+void emit_edge_header( std::ostream &os, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML )
+	if( mode == cfg_emitter::OutputMode::PlantUML )
 		os << "\n    ' Edges\n";
 	else
 		os << "\n    // Edges\n";
 }
 
-void CFGEmitter::emit_edge( std::ostream &os, const CFGNode &node, OutputMode mode )
+void emit_edge( std::ostream &os, const CFGNode &node, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML) {
-		for( auto succ : node.successors ) {
+	if( mode == cfg_emitter::OutputMode::PlantUML) {
+		for( const auto& succ : node.successors ) {
 			os << "    n" << std::hex << node.address
 			<< " --> n" << std::hex << succ.address;
 			if( !succ.condition.empty() )
@@ -169,7 +159,7 @@ void CFGEmitter::emit_edge( std::ostream &os, const CFGNode &node, OutputMode mo
 			os << "\n";
 		}
 	} else {
-		for( auto succ : node.successors ) {
+		for( const auto& succ : node.successors ) {
 			os << "   n" << std::hex << node.address
 			<< " -> n" << std::hex << succ.address;
 			if( !succ.condition.empty() )
@@ -179,10 +169,34 @@ void CFGEmitter::emit_edge( std::ostream &os, const CFGNode &node, OutputMode mo
 	}
 }
 
-void CFGEmitter::emit_footer( std::ostream &os, const IRProgram &ir, OutputMode mode )
+void emit_footer( std::ostream &os, cfg_emitter::OutputMode mode )
 {
-	if( mode == OutputMode::PlantUML )
+	if( mode == cfg_emitter::OutputMode::PlantUML )
 		os << "\n@enduml\n";
 	else
 		os << "\n}\n";
 }
+
+} // namespace
+
+namespace cfg_emitter
+{
+	void emit( std::ostream &os, const IRProgram &ir, OutputMode mode )
+	{
+		const CFGraph graph = build_graph( ir );
+
+		emit_header( os, mode );
+
+		emit_node_header( os, mode );
+
+		for( const auto& node : graph )
+			emit_node( os, node.second, mode );
+
+		emit_edge_header( os, mode );
+
+		for( const auto& node : graph )
+			emit_edge( os, node.second, mode );
+
+		emit_footer( os, mode );
+	}
+} // namespace cfg_emitter

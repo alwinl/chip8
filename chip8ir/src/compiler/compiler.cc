@@ -19,16 +19,15 @@
 
 #include "compiler/compiler.h"
 
-#include "ir/label_resolver.h"
+#include "compiler/loader.h"
+#include "compiler/symbol_table.h"
 
-class CompilerSymbols : public ILabelResolver
+namespace compiler
 {
-public:
-	std::string get_label( uint16_t address ) const { return ""; }
-};
+	IRBundle build_ir( std::istream& is, std::string program_name )
+	{
+		const C8CSource source = load_C8_source( is );
 
-
-IRBundle Compiler::build_ir( const C8CSource& source )
-{
-	return { IRProgram {}, std::make_unique<CompilerSymbols>() };
-};
+		return { program_name, IRProgram {}, std::make_unique<CompilerSymbols>() };
+	};
+} // namespace compiler

@@ -28,7 +28,7 @@ TEST(UnitLoader, EmptyInput)
 {
     std::istringstream is("");
 
-    ASMSource source = load_assembly_source(is);
+    const ASMSource source = load_assembly_source(is);
 
     EXPECT_TRUE(source.empty());
 }

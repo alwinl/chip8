@@ -83,104 +83,104 @@ void SyntaxTree::accept( ASTVisitor& visitor ) const
 {
     visitor.pre_syntax( *this );
 
-    for( auto& rule : rules )
+    for( const auto& rule : rules )
         rule.accept( visitor );
 
     visitor.post_syntax( *this );
 }
 
 
-bool equals( const PartNode& a, const PartNode& b );
-bool equals( const ElementNode& a, const ElementNode& b );
-bool equals( const ProductionNode& a, const ProductionNode& b );
+bool equals( const PartNode& lhs, const PartNode& rhs );
+bool equals( const ElementNode& lhs, const ElementNode& rhs );
+bool equals( const ProductionNode& lhs, const ProductionNode& rhs );
 
 template <typename T>
-inline bool equals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b)
+inline bool equals(const std::unique_ptr<T>& lhs, const std::unique_ptr<T>& rhs)
 {
-    if (!a && !b) return true;
-    if (!a || !b) return false;
+    if (!lhs && !rhs) return true;
+    if (!lhs || !rhs) return false;
 
-    return equals(static_cast<const T&>(*a), static_cast<const T&>(*b));
+    return equals(static_cast<const T&>(*lhs), static_cast<const T&>(*rhs));
 }
 
 template <typename T>
-bool equals_vector( const std::vector<T>& a, const std::vector<T>& b )
+bool equals_vector( const std::vector<T>& lhs, const std::vector<T>& rhs )
 {
-    if (a.size() != b.size())
+    if (lhs.size() != rhs.size())
         return false;
 
-    for( size_t i = 0; i < a.size(); ++i )
-        if( !equals( a[i], b[i] ) )
+    for( size_t i = 0; i < lhs.size(); ++i )
+        if( !equals( lhs[i], rhs[i] ) )
             return false;
 
     return true;
 }
 
 template <typename T>
-bool equals_vector( const std::vector<std::unique_ptr<T>>& a, const std::vector<std::unique_ptr<T>>& b )
+bool equals_vector( const std::vector<std::unique_ptr<T>>& lhs, const std::vector<std::unique_ptr<T>>& rhs )
 {
-    if (a.size() != b.size())
+    if (lhs.size() != rhs.size())
         return false;
 
-    for( size_t i = 0; i < a.size(); ++i )
-        if( !equals( a[i], b[i] ) )
+    for( size_t i = 0; i < lhs.size(); ++i )
+        if( !equals( lhs[i], rhs[i] ) )
             return false;
 
     return true;
 }
 
-bool equals( const ElementNode& a, const ElementNode& b )
+bool equals( const ElementNode& lhs, const ElementNode& rhs )
 {
-    if( typeid(a) != typeid(b) )
+    if( typeid(lhs) != typeid(rhs) )
         return false;
 
-    if( auto sa = dynamic_cast<const SymbolNode*>(&a) )
-        return (sa->token == dynamic_cast<const SymbolNode*>(&b)->token ) &&
-                (sa->card == dynamic_cast<const SymbolNode*>(&b)->card );
+    if( const auto * lhs_symbol = dynamic_cast<const SymbolNode*>(&lhs) )
+        return (lhs_symbol->token == dynamic_cast<const SymbolNode*>(&rhs)->token ) &&
+                (lhs_symbol->card == dynamic_cast<const SymbolNode*>(&rhs)->card );
 
-    if( auto aa = dynamic_cast<const GroupNode*>(&a) )
-        return equals( aa->inner, dynamic_cast<const GroupNode*>(&b)->inner );
+    if( const auto * lhs_group = dynamic_cast<const GroupNode*>(&lhs) )
+        return equals( lhs_group->inner, dynamic_cast<const GroupNode*>(&rhs)->inner );
 
     return false;
 }
 
-bool equals( const PartNode& a, const PartNode& b )
+bool equals( const PartNode& lhs, const PartNode& rhs )
 {
-    if( typeid(a) != typeid(b) )
+    if( typeid(lhs) != typeid(rhs) )
         return false;
 
-    if( auto sa = dynamic_cast<const SubPartNode*>(&a) )
-        return equals_vector( sa->element, dynamic_cast<const SubPartNode*>(&b)->element );
+    if( const auto * lhs_subpart = dynamic_cast<const SubPartNode*>(&lhs) )
+        return equals_vector( lhs_subpart->element, dynamic_cast<const SubPartNode*>(&rhs)->element );
 
-    if( auto aa = dynamic_cast<const AlternatePartsNode*>(&a) )
-        return equals_vector( aa->subparts, dynamic_cast<const AlternatePartsNode*>(&b)->subparts );
+    if( const auto * lhs_altpart = dynamic_cast<const AlternatePartsNode*>(&lhs) )
+        return equals_vector( lhs_altpart->subparts, dynamic_cast<const AlternatePartsNode*>(&rhs)->subparts );
 
     return false;
 }
 
-bool equals( const ProductionNode& a, const ProductionNode& b )
+bool equals( const ProductionNode& lhs, const ProductionNode& rhs )
 {
-    return equals( a.content, b.content );
+    return equals( lhs.content, rhs.content );
 }
 
-bool equals( const RuleNode& a, const RuleNode& b )
+bool equals( const RuleNode& lhs, const RuleNode& rhs )
 {
-    return( a.name == b.name && equals( a.production, b.production) );
+    return( lhs.name == rhs.name && equals( lhs.production, rhs.production) );
 }
 
-bool equals( const SyntaxTree& a, const SyntaxTree& b )
+bool equals( const SyntaxTree& lhs, const SyntaxTree& rhs )
 {
-    if (a.rules.size() != b.rules.size())
+    if (lhs.rules.size() != rhs.rules.size())
         return false;
 
-    for( size_t i = 0; i < a.rules.size(); ++i )
-        if( ! equals( a.rules[i], b.rules[i]) )
+    for( size_t i = 0; i < lhs.rules.size(); ++i )
+        if( ! equals( lhs.rules[i], rhs.rules[i]) )
             return false;
 
     return true;
 }
 
-bool operator==( const SyntaxTree& a, const SyntaxTree& b )
+bool operator==( const SyntaxTree& lhs, const SyntaxTree& rhs )
 {
-    return equals( a, b );
+    return equals( lhs, rhs );
 }

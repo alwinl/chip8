@@ -23,7 +23,7 @@
 
 namespace {
 
-	unsigned long parse_number(const std::string& lexeme)
+	uint64_t parse_number(const std::string& lexeme)
 	{
 		if (lexeme == "#")
 			throw std::runtime_error("Invalid number: #");
@@ -63,14 +63,14 @@ namespace {
 		ASMTokens::const_iterator cursor;
 
 		ASTElement parse_line();
-		ASTExpressions parse_expressions( int line );
+		ASTExpressions parse_expressions( size_t line );
 		ASTExpression parse_expression();
 		ASTExpression parse_additive();
 		ASTExpression parse_multiplicative();
 		ASTExpression parse_primary();
 
 		ASMToken consume( ASMToken::Type type, const std::string& lexeme, const std::string& message );
-		bool end_of_current_line( int start_line );
+		bool end_of_current_line( size_t start_line );
 		bool match( ASMToken::Type type, std::string lexeme = "" );
 		void forward_cursor();
 		const ASMToken& peek() { return (cursor != tokens->end()) ? *cursor : tokens->back(); }
@@ -94,7 +94,7 @@ namespace {
 
 	ASTElement ASMParser::parse_line()
 	{
-		auto make_upper = [](unsigned char c){ return std::toupper(c); };
+		auto make_upper = [](unsigned char chr){ return std::toupper(chr); };
 
 		ASTElement element { .body = ASTEmpty{} };
 
@@ -147,7 +147,7 @@ namespace {
 		return element;
 	}
 
-	ASTExpressions ASMParser::parse_expressions(int line)
+	ASTExpressions ASMParser::parse_expressions(size_t line)
 	{
 		ASTExpressions args;
 
@@ -222,10 +222,10 @@ namespace {
 	{
 		if( match(ASMToken::Type::NUMBER) )
 		{
-			int col = cursor->column;
-			std::string lexeme = consume( ASMToken::Type::NUMBER, "", "Expected number" ).lexeme;
+			const size_t col = cursor->column;
+			const std::string lexeme = consume( ASMToken::Type::NUMBER, "", "Expected number" ).lexeme;
 
-			unsigned long tmp = 0;
+			uint64_t tmp = 0;
 			try {
 				tmp = parse_number( lexeme );
 			}
@@ -246,8 +246,8 @@ namespace {
 
 		if( match(ASMToken::Type::IDENTIFIER) )
 		{
-			int col = cursor->column;
-			std::string lexeme = consume( ASMToken::Type::IDENTIFIER, "", "Expected identifier" ).lexeme;
+			const size_t col = cursor->column;
+			const std::string lexeme = consume( ASMToken::Type::IDENTIFIER, "", "Expected identifier" ).lexeme;
 			return ASTExpression{ ASTIdentifierExpr{ lexeme }, col };
 		}
 
@@ -269,7 +269,7 @@ namespace {
 			+ ": Parse error: " + message + " (expected '" + lexeme + "', got '" + peek().lexeme + "')" );
 	}
 
-	bool ASMParser::end_of_current_line(int start_line)
+	bool ASMParser::end_of_current_line(size_t start_line)
 	{
 		return match(ASMToken::Type::END_OF_INPUT) || peek().line != start_line;
 	}
@@ -292,7 +292,7 @@ namespace {
 		while( peek().type == ASMToken::Type::COMMENT )
 			++cursor;
 	}
-}
+} // namespace
 
 ASTProgram parse_tokens( const ASMTokens& tokens )
 {

@@ -21,9 +21,16 @@
 
 #include <ostream>
 
+#include "ir/ir_bundle.h"
+#include "ir/encoder.h"
 #include "ir/chip8formats.h"
 
-inline void save_binary( std::ostream& os, const BinImage& image )
+namespace binary_emitter
 {
-	os.write(reinterpret_cast<const char*>(image.data()), image.size());
-}
+	inline void emit( std::ostream& os, const IRBundle& bundle )
+	{
+		const BinImage image = encode( bundle.ir );
+
+		os.write(reinterpret_cast<const char*>(image.data()), image.size());
+	}
+} // namespace binary_emitter

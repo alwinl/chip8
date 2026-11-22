@@ -26,6 +26,7 @@
 #include "ir/decoder.h"
 
 #include "disassembler/disassembler.h"
+#include "disassembler/vectorstream.h"
 
 // class IntegrationTest : public ::testing::Test
 // {
@@ -50,7 +51,7 @@ TEST(IntIRProgram, EncoderDecoderRoundtrip)
 {
 	auto make_word = [](const BinImage& img, size_t offset = 0) -> uint16_t { return (static_cast<uint16_t>(img[offset]) << 8) |  static_cast<uint16_t>(img[offset + 1]); };
 
-	std::vector<Instruction> cases = {
+	const std::vector<Instruction> cases = {
 		Instruction::make_clear(),
 		Instruction::make_return(),
 		Instruction::make_jump(Addr{0x123}),
@@ -64,7 +65,7 @@ TEST(IntIRProgram, EncoderDecoderRoundtrip)
 	for (const auto& instr : cases)
 	{
 		IRProgram ir;
-		ir.elements.push_back( IRInstruction{ 0x200, instr });
+		ir.elements.emplace_back( IRInstruction{ 0x200, instr });
 
 		auto image = encode(ir);
 
@@ -84,21 +85,20 @@ TEST(IntIRProgram, EncoderDecoderRoundtripMultiStatement)
 {
 	IRProgram ir;
 
-	ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
-	ir.elements.push_back( IRInstruction{ 0x202, Instruction::make_jump(Addr{0x208}) } );
-	ir.elements.push_back( IRDataBlock{ 0x204, { 0x01, 0x02, 0x03, 0x04 } } );
-	ir.elements.push_back( IRInstruction{ 0x208, Instruction::make_ld(Reg{2}, Imm{0xAA}) } );
-	ir.elements.push_back( IRInstruction{ 0x20A, Instruction::make_add(Reg{2}, Reg{7}) });
-	ir.elements.push_back( IRInstruction{ 0x20C, Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5})});
-	ir.elements.push_back( IRInstruction{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
-	ir.elements.push_back( IRInstruction{ 0x210, Instruction::make_save_regs(Reg{8})});
+	ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+	ir.elements.emplace_back( IRInstruction{ 0x202, Instruction::make_jump(Addr{0x208}) } );
+	ir.elements.emplace_back( IRDataBlock{ 0x204, { 0x01, 0x02, 0x03, 0x04 } } );
+	ir.elements.emplace_back( IRInstruction{ 0x208, Instruction::make_ld(Reg{2}, Imm{0xAA}) } );
+	ir.elements.emplace_back( IRInstruction{ 0x20A, Instruction::make_add(Reg{2}, Reg{7}) });
+	ir.elements.emplace_back( IRInstruction{ 0x20C, Instruction::make_drw(Reg{1}, Reg{2}, Nibble{5})});
+	ir.elements.emplace_back( IRInstruction{ 0x20E, Instruction::make_skip_if_key(Reg{4})});
+	ir.elements.emplace_back( IRInstruction{ 0x210, Instruction::make_save_regs(Reg{8})});
 
-	auto image = encode(ir);
+	std::vector<uint8_t> image = encode(ir);
 
-	Disassembler dis;
-	// dis.configure( {0x200} );
+	vectorstream is( image );
 
-	auto reconstructed = dis.build_ir( image );
+    auto reconstructed = disassembler::build_ir( is, "test_program", 0x200 );
 
 	EXPECT_EQ( reconstructed.ir, ir );
 }

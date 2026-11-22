@@ -27,31 +27,9 @@
 
 #include "ir/chip8ir.h"
 
-class CFGEmitter
+namespace cfg_emitter
 {
-public:
 	enum class OutputMode { PlantUML, Dot };
 
 	void emit( std::ostream& os, const IRProgram& ir, OutputMode mode );
-
-private:
-	struct Successor {
-		uint16_t address;
-		std::string condition;
-	};
-	struct CFGNode {
-		uint16_t address;
-		std::string mnemonic;
-		std::vector<Successor> successors;
-	};
-
-	using CFGraph = std::map<uint16_t, CFGNode>;
-
-	CFGraph build_graph( const IRProgram &ir );
-	void emit_header( std::ostream &os, const IRProgram &ir, OutputMode mode );
-	void emit_node_header( std::ostream &os, OutputMode mode );
-	void emit_node( std::ostream &os, const CFGNode& node, OutputMode mode );
-	void emit_edge_header( std::ostream &os, OutputMode mode );
-	void emit_edge( std::ostream &os, const CFGNode& node, OutputMode mode );
-	void emit_footer( std::ostream &os, const IRProgram &ir, OutputMode mode );
-};
+} // namespace cfg_emitter

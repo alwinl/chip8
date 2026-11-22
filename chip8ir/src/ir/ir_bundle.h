@@ -22,10 +22,12 @@
 #include "ir/chip8ir.h"
 #include "ir/label_resolver.h"
 
+#include <string>
 #include <memory>
 
 struct IRBundle
 {
+	std::string program_name;
     IRProgram ir;
     std::unique_ptr<ILabelResolver> resolver;
 };

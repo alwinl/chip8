@@ -4,12 +4,10 @@ A combination of all chip8 relevant development. Currently I have an emulator, a
 I have a sprite viewer but unsure as to the complete functionally of it yet
 Working on the compiler at the moment.
 
-
-
-### Random insight
+## Random insight
 
 The compiler takes a stream of characters (read from a file or a stream, it does not matter) and transforms it
-into an array of one or more streams of characters. Each stream represents a distinct output that could be 
+into an array of one or more streams of characters. Each stream represents a distinct output that could be
 sent to a file, output to the terminal or ignored.
 
 There will always be a stream that represent assembly code, ready to be processed by the assembler.
@@ -23,14 +21,14 @@ DS : data structure
 PB : process block
 
 stream of chars (DS) => tokeniser (PB) => stream of tokens (DS) => parser (PB) => stream of components (DS)
-    => transformer => stream of assembly instructions (DS) => generator => array of stream of chars (DS)
+=> transformer => stream of assembly instructions (DS) => generator => array of stream of chars (DS)
 
 The header of each program block should define the output data structure. Currently the DS's are PLOD's
 but perhaps in the future, the process block, s emphasis is less on processing and more on object production.
 For instance a tokeniser is a factory that consumes a stream of chars and outputs a stream of tokens.
 Instead we can define a TokenStream class that represents a stream of tokens
 
-### Side project
+## Side project
 
 As I am learning compiler implementation I though it prudent to practice on a smaller scale.
 I am writing a EBNF "compiler" that consumes a grammer (in this case our chicom8 grammar) and outputs
@@ -39,7 +37,7 @@ So far the tokeniser and the parser are good. The generator only generates ast.h
 scetch of the transformer.
 The function of the transformer is to detect the semantic intent of the grammar and output the most
 optimal structure to reflect that intent.
-I need to extract the transformer code into its own class, define the DS for the transformer output/generator 
+I need to extract the transformer code into its own class, define the DS for the transformer output/generator
 input and hook the generator up to that.
 I then need to figure out if it is better to start generating the implementation file or start working on the
 transformer to make the ast more compact and expressive.
@@ -47,32 +45,32 @@ Turns out , its more BNF and less EBNF.
 
 My grammar:
 
-<syntax>         ::= <rule> | <rule> <syntax>
+\<syntax\> ::= \<rule\> | \<rule\> \<syntax\>
 
-<rule>           ::= <opt-whitespace> "<" <rule-name> ">" <opt-whitespace> "::=" <opt-whitespace> <expression> <line-end>
+\<rule\> ::= \<opt-whitespace\> "\<" \<rule-name\> "\>" \<opt-whitespace\> "::=" \<opt-whitespace\> \<expression\> \<line-end\>
 
-<opt-whitespace> ::= " " <opt-whitespace> | ""
+\<opt-whitespace\> ::= " " \<opt-whitespace\> | ""
 
-<line-end>       ::= <opt-whitespace> <EOL> | <line-end> <line-end>
+\<line-end\> ::= \<opt-whitespace\> \<EOL\> | \<line-end\> \<line-end\>
 
-<expression>     ::= <list> | <list> <opt-whitespace> "|" <opt-whitespace> <expression>
+\<expression\> ::= \<list\> | \<list\> \<opt-whitespace\> "|" \<opt-whitespace\> \<expression\>
 
-<list>           ::= <term> | <term> <opt-whitespace> <list>
+\<list\> ::= \<term\> | \<term\> \<opt-whitespace\> \<list\>
 
-<term>           ::= <literal> | "<" <rule-name> ">"
+\<term\> ::= \<literal\> | "\<" \<rule-name\> "\>"
 
-<literal>        ::= '"' <text> '"'
+\<literal\> ::= '"' \<text\> '"'
 
-<text>          ::= "" | <character> <text>
+\<text\> ::= "" | \<character\> \<text\>
 
-<rule-name>      ::= <letter> | <rule-name> <rule-char>
+\<rule-name\> ::= \<letter\> | \<rule-name\> \<rule-char\>
 
-<rule-char>      ::= <letter> | <digit> | "-"
+\<rule-char\> ::= \<letter\> | \<digit\> | "-"
 
-<character>      ::= <letter> | <digit> | <symbol>
+\<character\> ::= \<letter\> | \<digit\> | \<symbol\>
 
-<letter>         ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+\<letter\> ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
 
-<digit>          ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+\<digit\> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 
-<symbol>         ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "}" | "~" | "'"
+\<symbol\> ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | "*" | "+" | "," | "-" | "." | "/" | ":" | ";" | ">" | "=" | "\<" | "?" | "@" | "[" | "\" | "]" | "^" | "_" | "`" | "{" | "}" | "~" | "'"

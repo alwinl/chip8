@@ -22,7 +22,6 @@
 
 #include <fstream>
 #include <ostream>
-#include <iostream>
 #include <string>
 
 #include "ebnf_tokeniser.h"
@@ -40,21 +39,24 @@ int main( int argc, char * argv[] )
 	if( ! args.parse_args(argc, argv) )
 		return 1;
 
-    std::filesystem::path input_file = args.get_input_name();
+    std::filesystem::path const input_file = args.get_input_name();
 
-	Tokens tokens = Tokeniser( input_file ).tokenise_all();
+	Tokens const tokens = Tokeniser( input_file ).tokenise_all();
 
 	if( args.produce_token_list() ) {
 
 		if( args.get_output_name() == "-" ) {
-			for( auto token : tokens )
+			for( const auto& token : tokens )
 				std::cout << token << "\n";
 		} else {
-			std::filesystem::path output_file( args.get_output_name() + ".tokens" );
+			std::filesystem::path const output_file( args.get_output_name() + ".tokens" );
 			std::ofstream os( output_file );
-			if( !os )
-				throw std::runtime_error("Cannot open: \"" + args.get_output_name() + "\"");
-			for( auto token : tokens )
+			if( !os ) {
+				std::cerr << "Cannot open: \"" + args.get_output_name() + "\"";
+				return -1;
+			}
+				// throw std::runtime_error("Cannot open: \"" + args.get_output_name() + "\"");
+			for( const auto& token : tokens )
 				os << token << "\n";
 		}
 	}
@@ -67,10 +69,12 @@ int main( int argc, char * argv[] )
 		if( args.get_output_name() == "-" ) {
 			generator.create_grammar_file( std::cout );
 		} else {
-			std::filesystem::path output_file( args.get_output_name() + ".json" );
+			std::filesystem::path const output_file( args.get_output_name() + ".json" );
 			std::ofstream os( output_file );
-			if( !os )
-				throw std::runtime_error("Cannot open: \"" + args.get_output_name() + "\"");
+			if( !os ) {
+				std::cerr << "Cannot open: \"" + args.get_output_name() + "\"";
+				return -1;
+			}
 
 			generator.create_grammar_file( os );
 		}
@@ -82,11 +86,15 @@ int main( int argc, char * argv[] )
 		if( args.get_output_name() != "-" )
 			dot_file_name = args.get_output_name() + ".dot";
 
-		std::filesystem::path dot_file( dot_file_name );
+		std::filesystem::path const dot_file( dot_file_name );
 
 		std::ofstream os( dot_file );
-		if( !os )
-			throw std::runtime_error("Cannot open: \"" + dot_file_name + "\"");
+		if( !os ) {
+			std::cerr << "Cannot open: \"" + dot_file_name + "\"";
+			return -1;
+		}
+		// if( !os )
+		// 	throw std::runtime_error("Cannot open: \"" + dot_file_name + "\"");
 
 		generator.create_dot_source( os );
 		os.close();
@@ -96,8 +104,11 @@ int main( int argc, char * argv[] )
 		if( args.get_output_name() != "-" )
 			cmd += " -o " + args.get_output_name() + ".svg";
 
-		if( std::system(cmd.c_str()) != 0 )
-			throw std::runtime_error("Graphviz 'dot' command failed.");
+		if( std::system(cmd.c_str()) != 0 ) {
+			std::cerr << "Graphviz 'dot' command failed.";
+			return -1;
+			// throw std::runtime_error("Graphviz 'dot' command failed.");
+		}
 	}
 
 	if( args.produce_graph() ) {
@@ -105,16 +116,19 @@ int main( int argc, char * argv[] )
 		if( args.get_output_name() == "-" ) {
 			generator.stream_graph( std::cout );
 		} else {
-			std::filesystem::path output_file( args.get_output_name() + ".graph" );
+			std::filesystem::path const output_file( args.get_output_name() + ".graph" );
 			std::ofstream os( output_file );
-			if( !os )
-				throw std::runtime_error("Cannot open: \"" + args.get_output_name() + ".graph" + "\"");
+			if( !os ) {
+				std::cerr << "Cannot open: \"" + args.get_output_name() + ".graph" + "\"";
+				return -1;
+				// throw std::runtime_error("Cannot open: \"" + args.get_output_name() + ".graph" + "\"");
+			}
 
 			generator.stream_graph( os );
 		}
 	}
 
-	std::string ast_header_file = args.get_ast_header_name();
+	std::string const ast_header_file = args.get_ast_header_name();
 
 	if( !ast_header_file.empty() ) {
 
@@ -125,19 +139,22 @@ int main( int argc, char * argv[] )
 		} else {
 
 			std::ofstream os( ast_header_file );
-			if( !os )
-				throw std::runtime_error("Cannot open: " + ast_header_file);
+			if( !os ) {
+				std::cerr << "Cannot open: " + ast_header_file;
+				return -1;
+				// throw std::runtime_error("Cannot open: " + ast_header_file);
+			}
 
 			generator.create_ast_header( os, "ast_header" );
 		}
 	}
 
-	std::string tarjan_file = args.get_tarjan_name();
+	std::string const tarjan_file = args.get_tarjan_name();
 
 	if( !tarjan_file.empty() ) {
 
 		Transformer transformer = Transformer( grammar );
-		GrammarIR ir = transformer.transform_all();
+		GrammarIR const ir = transformer.transform_all();
 
 		if( tarjan_file == "-" ) {
 
@@ -152,8 +169,11 @@ int main( int argc, char * argv[] )
 		} else {
 
 			std::ofstream os( tarjan_file );
-			if( !os )
-				throw std::runtime_error("Cannot open: " + tarjan_file);
+			if( !os ) {
+				std::cerr << "Cannot open: " + tarjan_file;
+				return -1;
+				// throw std::runtime_error("Cannot open: " + tarjan_file);
+			}
 
 			os << "Printing the sccs's:\n--------------------\n";
 			transformer.print_all_cycles( os );

@@ -30,7 +30,7 @@
 
 TEST(UnitParser, ParsesSimpleRule)
 {
-    std::string source = "<expr> ::= <term> ;";
+    const std::string source = "<expr> ::= <term> ;";
     Parser parser(source);
     SyntaxTree grammar = parser.parse_all();
 
@@ -49,7 +49,7 @@ TEST(UnitParser, ParsesSimpleRule)
 
 TEST(UnitParser, ParsesAlternation)
 {
-    std::string source = "<expr> ::= <term> | <factor> ;";
+    const std::string source = "<expr> ::= <term> | <factor> ;";
     Parser parser(source);
     SyntaxTree grammar = parser.parse_all();
 
@@ -75,7 +75,7 @@ TEST(UnitParser, ParsesAlternation)
 
 TEST(UnitParser, ParsesGroupWithCardinality)
 {
-    std::string source = "<expr> ::= (<term> | <factor>)* ;";
+    const std::string source = "<expr> ::= (<term> | <factor>)* ;";
     Parser parser(source);
     SyntaxTree grammar = parser.parse_all();
 
@@ -96,7 +96,7 @@ TEST(UnitParser, ParsesGroupWithCardinality)
 
 TEST(UnitParser, ParsesSequenceOfSymbols)
 {
-    std::string source = "<pair> ::= <key> <value> ;";
+    const std::string source = "<pair> ::= <key> <value> ;";
     Parser parser(source);
     SyntaxTree grammar = parser.parse_all();
 
@@ -112,7 +112,7 @@ TEST(UnitParser, ParsesSequenceOfSymbols)
 
 TEST(UnitParser, ParsesSymbolModifiers)
 {
-    std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
+    const std::string source = "<expr> ::= <term>* <factor>? <digit>+ ;";
     Parser parser(source);
     SyntaxTree grammar = parser.parse_all();
 
@@ -127,7 +127,7 @@ TEST(UnitParser, ParsesSymbolModifiers)
 
 TEST(UnitParser, MissingSemicolon)
 {
-    std::string source = "<expr> ::= <term>";
+    const std::string source = "<expr> ::= <term>";
     Parser parser(source);
 
     try {
@@ -145,7 +145,7 @@ TEST(UnitParser, MissingSemicolon)
 
 TEST(UnitParser, UnexpectedToken)
 {
-    std::string source = "<expr> <term> ;"; // Missing ::=
+    const std::string source = "<expr> <term> ;"; // Missing ::=
     Parser parser(source);
 
     try {
@@ -163,7 +163,7 @@ TEST(UnitParser, UnexpectedToken)
 
 TEST(IntParser, ParsesMiniGrammar)
 {
-    std::string source = R"abc(
+    const std::string source = R"abc(
         <expr> ::= <term> | <term> OPERATOR("+") <expr> ;
         <term> ::= <factor> | <factor> OPERATOR("*") <term> ;
         <factor> ::= <number> | PUNCTIATION("(") <expr> PUNCTIATION(")") ;
@@ -180,11 +180,11 @@ TEST(IntParser, ParsesMiniGrammar)
 
 TEST(IntParser, ParsesChiComGrammar)
 {
-    std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
+    const std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
     Parser parser( file_name );
 
     try {
-        SyntaxTree grammar = parser.parse_all();
+        const SyntaxTree grammar = parser.parse_all();
     }
     catch(...) {
         FAIL() << "Did not expect to throw an exception parsing 'chicom8.bnf'";

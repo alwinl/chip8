@@ -36,7 +36,7 @@ TEST( UnitEncoder, EncodesCLS )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_clear() } );
 
     auto image = encode(ir);
 
@@ -48,7 +48,7 @@ TEST( UnitEncoder, Encodes_JP_Address )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_jump( Addr { 0x234 }) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_jump( Addr { 0x234 }) } );
 
     auto image = encode(ir);
 
@@ -60,7 +60,7 @@ TEST( UnitEncoder, Encodes_LD_Imm )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_ld( Reg{1}, Imm{0xAB} ) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_ld( Reg{1}, Imm{0xAB} ) } );
 
     auto image = encode(ir);
 
@@ -72,7 +72,7 @@ TEST( UnitEncoder, Encodes_ADD_Reg )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_add( Reg{2}, Reg{3} ) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_add( Reg{2}, Reg{3} ) } );
 
     auto image = encode(ir);
 
@@ -84,7 +84,7 @@ TEST( UnitEncoder, Encodes_DRW )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_drw( Reg{1}, Reg{2}, Nibble{5} ) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_drw( Reg{1}, Reg{2}, Nibble{5} ) } );
 
     auto image = encode(ir);
 
@@ -96,7 +96,7 @@ TEST( UnitEncoder, Encodes_IRDataBlock )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRDataBlock { 0x300, { 0xDE, 0xAD, 0xBE, 0xEF } } );
+    ir.elements.emplace_back( IRDataBlock { 0x300, { 0xDE, 0xAD, 0xBE, 0xEF } } );
 
     auto image = encode(ir);
 
@@ -112,10 +112,10 @@ TEST( UnitEncoder, Encodes_MixedProgram )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_clear() } );
-    ir.elements.push_back( IRInstruction{ 0x202, Instruction::make_ld( Reg{1}, Imm{0x10} ) } );
-    ir.elements.push_back( IRInstruction{ 0x204, Instruction::make_jump( Addr { 0x300 }) } );
-    ir.elements.push_back( IRDataBlock{ 0x206, { 0xAA, 0xBB } } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_clear() } );
+    ir.elements.emplace_back( IRInstruction{ 0x202, Instruction::make_ld( Reg{1}, Imm{0x10} ) } );
+    ir.elements.emplace_back( IRInstruction{ 0x204, Instruction::make_jump( Addr { 0x300 }) } );
+    ir.elements.emplace_back( IRDataBlock{ 0x206, { 0xAA, 0xBB } } );
 
     auto image = encode(ir);
 
@@ -132,7 +132,7 @@ TEST( UnitEncoder, Encodes_MaxValues )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_skip_eq( Reg{15}, Imm{0xFF} ) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_skip_eq( Reg{15}, Imm{0xFF} ) } );
 
     auto image = encode(ir);
 
@@ -144,8 +144,8 @@ TEST( UnitEncoder, IgnoresElementAddresses )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x400, Instruction::make_clear() } );
-    ir.elements.push_back( IRInstruction{ 0x100, Instruction::make_return() } );
+    ir.elements.emplace_back( IRInstruction{ 0x400, Instruction::make_clear() } );
+    ir.elements.emplace_back( IRInstruction{ 0x100, Instruction::make_return() } );
 
     auto image = encode(ir);
 
@@ -158,7 +158,7 @@ TEST( UnitEncoder, Encodes_SKP )
 {
     IRProgram ir;
 
-    ir.elements.push_back( IRInstruction{ 0x200, Instruction::make_skip_if_key(Reg{3}) } );
+    ir.elements.emplace_back( IRInstruction{ 0x200, Instruction::make_skip_if_key(Reg{3}) } );
 
     auto image = encode(ir);
 

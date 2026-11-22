@@ -20,7 +20,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "ir/binary_loader.h"
 #include "ir/asm_emitter.h"
 #include "ir/cfg_emitter.h"
 #include "ir/ir_bundle.h"
@@ -36,38 +35,26 @@ int main( int argc, char ** argv )
         if( !args.parse_args( argc, argv ) )
 			return 1;
 
-		Disassembler disassembler({args.get_origin()});
-		// disassembler.configure( {args.get_origin()} );
-
 		std::ifstream is( args.get_source_name(), std::ios::binary );
-		BinImage image = load_binary( is );
-
-		IRBundle bundle = disassembler.build_ir( image );
+		const IRBundle bundle = disassembler::build_ir( is, args.get_output_name(), args.get_origin() );
 
 		std::ofstream os( args.get_output_name() );
-		ASMEmitter emitter;
+		asm_emitter::emit( os, bundle, args.get_source_name(), args.is_clean() ? asm_emitter::OutputMode::Assembly : asm_emitter::OutputMode::Listing );
 
-		emitter.configure( {args.get_program_name()} );
-		emitter.emit( os, bundle, args.is_clean() ? ASMEmitter::OutputMode::Assembly : ASMEmitter::OutputMode::Listing );
+		if( !args.get_uml_name().empty() ) {
+			std::ofstream plantuml_file(args.get_uml_name());
+			cfg_emitter::emit(plantuml_file, bundle.ir, cfg_emitter::OutputMode::PlantUML);
+			plantuml_file.close();
+		}
 
-		if( !args.get_dot_name().empty() || !args.get_uml_name().empty() ) {
-			CFGEmitter cfg_emitter;
-
-			if( !args.get_uml_name().empty() ) {
-				std::ofstream plantuml_file(args.get_uml_name());
-				cfg_emitter.emit(plantuml_file, bundle.ir, CFGEmitter::OutputMode::PlantUML);
-				plantuml_file.close();
-			}
-
-			if( !args.get_dot_name().empty() ) {
-				std::ofstream dot_file(args.get_dot_name());
-				cfg_emitter.emit(dot_file, bundle.ir, CFGEmitter::OutputMode::Dot);
-				dot_file.close();
-			}
+		if( !args.get_dot_name().empty() ) {
+			std::ofstream dot_file(args.get_dot_name());
+			cfg_emitter::emit(dot_file, bundle.ir, cfg_emitter::OutputMode::Dot);
+			dot_file.close();
 		}
     }
 
-	catch (const std::exception &e) {
+	catch( const std::exception &e ) {
         std::cerr << e.what() << std::endl;
         return 2;
     }

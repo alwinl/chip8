@@ -48,7 +48,7 @@ std::vector<TokenMatcher> match_set =
 
 Tokeniser::Tokeniser( std::filesystem::path file_path )
 {
-    std::ifstream src(file_path);
+    const std::ifstream src(file_path);
     std::ostringstream dst;
 
     dst << src.rdbuf();

@@ -33,20 +33,18 @@ int main( int argc, char ** argv )
 	try {
 		assembler::CmdLineParser args;
 
-		if( ! args.parse_args( argc, argv ) )
+		if( !args.parse_args( argc, argv ) )
 			return 1;
 
-		std::ifstream asm_file( args.get_source_name() );
-		IRBundle bundle = assembler::build_ir( asm_file );
-
-		BinImage bin_image = encode(bundle.ir);
+		std::ifstream is( args.get_source_name() );
+		const IRBundle bundle = assembler::build_ir( is, args.get_source_name() );
 
 		std::ofstream os( args.get_binary_name(), std::ios::binary );
-		save_binary( os, bin_image );
+		binary_emitter::emit( os, bundle );
 
 		if( !args.get_listing_name().empty() ) {
 			std::ofstream listing_os( args.get_listing_name() );
-			ASMEmitter().emit( listing_os, bundle, ASMEmitter::OutputMode::Listing  );
+			asm_emitter::emit( listing_os, bundle, args.get_source_name(), asm_emitter::OutputMode::Listing  );
 		}
 	}
 

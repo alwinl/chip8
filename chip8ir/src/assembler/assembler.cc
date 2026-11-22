@@ -26,12 +26,12 @@
 
 namespace assembler
 {
-	IRBundle build_ir( std::istream& is )
+	IRBundle build_ir( std::istream& is, std::string program_name )
 	{
-		ASMSource source = load_assembly_source( is );
-		ASMTokens tokens = tokenise_assembly( source );
-		ASTProgram program = parse_tokens(tokens);
+		const ASMSource source = load_assembly_source( is );
+		const ASMTokens tokens = tokenise_assembly( source );
+		const ASTProgram program = parse_tokens(tokens);
 
-		return generate_ir_bundle( program );
+		return generate_ir_bundle( program, program_name );
 	}
-}
+} // namespace assembler

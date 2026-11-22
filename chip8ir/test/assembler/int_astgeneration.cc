@@ -46,7 +46,7 @@ T* get_operand( ASTExpression& expr )
 
 TEST(IntASTGeneration, FourLiner)
 {
-	std::string input =
+	const std::string input =
 R"(start:
     LD V0, 10
     ADD V0, 5
@@ -67,7 +67,7 @@ R"(start:
 		EXPECT_FALSE( program[1].label.has_value() );
 		EXPECT_EQ( program[1].line, 2 );
 
-		auto instr_ptr = std::get_if<ASTInstruction>(&program[1].body);
+		auto * instr_ptr = std::get_if<ASTInstruction>(&program[1].body);
 		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "LD" );
 
@@ -79,7 +79,7 @@ R"(start:
 		EXPECT_FALSE( program[2].label.has_value() );
 		EXPECT_EQ( program[2].line, 3 );
 
-		auto instr_ptr = std::get_if<ASTInstruction>(&program[2].body);
+		auto * instr_ptr = std::get_if<ASTInstruction>(&program[2].body);
 		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "ADD" );
 
@@ -91,7 +91,7 @@ R"(start:
 		EXPECT_FALSE( program[3].label.has_value() );
 		EXPECT_EQ( program[3].line, 4 );
 
-		auto instr_ptr = std::get_if<ASTInstruction>(&program[3].body);
+		auto * instr_ptr = std::get_if<ASTInstruction>(&program[3].body);
 		ASSERT_NE( instr_ptr, nullptr );
 		EXPECT_EQ( instr_ptr->mnemonic, "JP" );
 
@@ -102,7 +102,7 @@ R"(start:
 
 TEST(IntASTGeneration, DirectiveWithOperands)
 {
-    std::string input =
+    const std::string input =
 R"(.DW 0x10, 0x20, 0x30
 )";
 
@@ -110,7 +110,7 @@ R"(.DW 0x10, 0x20, 0x30
 
     ASSERT_EQ(program.size(), 1);
 
-    auto dir_ptr = std::get_if<ASTDirective>(&program[0].body);
+    auto * dir_ptr = std::get_if<ASTDirective>(&program[0].body);
     ASSERT_NE(dir_ptr, nullptr);
 
     EXPECT_EQ(dir_ptr->name, ".DW");
@@ -123,7 +123,7 @@ R"(.DW 0x10, 0x20, 0x30
 
 TEST(IntASTGeneration, VariableDefinitionEqu)
 {
-    std::string input =
+    const std::string input =
 R"(X_POS EQU 0x10
 Y_POS EQU 0x20
 )";
@@ -132,12 +132,12 @@ Y_POS EQU 0x20
 
     ASSERT_EQ(program.size(), 2);
 
-    auto equ1 = std::get_if<ASTEqu>(&program[0].body);
+    auto * equ1 = std::get_if<ASTEqu>(&program[0].body);
     ASSERT_NE(equ1, nullptr);
     EXPECT_EQ(equ1->name, "X_POS");
     EXPECT_EQ(get_operand<ASTNumberExpr>(equ1->value)->value, 0x10);
 
-    auto equ2 = std::get_if<ASTEqu>(&program[1].body);
+    auto * equ2 = std::get_if<ASTEqu>(&program[1].body);
     ASSERT_NE(equ2, nullptr);
     EXPECT_EQ(equ2->name, "Y_POS");
     EXPECT_EQ(get_operand<ASTNumberExpr>(equ2->value)->value, 0x20);
@@ -145,7 +145,7 @@ Y_POS EQU 0x20
 
 TEST(IntASTGeneration, CommentsAndWhitespace)
 {
-    std::string input =
+    const std::string input =
 R"(start:          ; label comment
     LD V0, 0x10   ; instruction comment
     ; full line comment
@@ -162,7 +162,7 @@ R"(start:          ; label comment
 	EXPECT_TRUE( std::holds_alternative<ASTEmpty>(program[0].body) );
 
     // LD instruction
-    auto ld_ptr = std::get_if<ASTInstruction>(&program[1].body);
+    auto * ld_ptr = std::get_if<ASTInstruction>(&program[1].body);
     ASSERT_NE(ld_ptr, nullptr);
     EXPECT_EQ(ld_ptr->mnemonic, "LD");
     ASSERT_EQ(ld_ptr->operands.size(), 2);
@@ -172,7 +172,7 @@ R"(start:          ; label comment
     // Full line comment should be skipped by tokeniser
 
     // JP instruction
-    auto jp_ptr = std::get_if<ASTInstruction>(&program[2].body);
+    auto * jp_ptr = std::get_if<ASTInstruction>(&program[2].body);
     ASSERT_NE(jp_ptr, nullptr);
     EXPECT_EQ(jp_ptr->mnemonic, "JP");
     ASSERT_EQ(jp_ptr->operands.size(), 1);
@@ -181,7 +181,7 @@ R"(start:          ; label comment
 
 TEST(IntASTGeneration, SimpleExpressionOperands)
 {
-    std::string input =
+    const std::string input =
 R"(LD V0, 10+5*2
 )";
 
@@ -189,25 +189,25 @@ R"(LD V0, 10+5*2
 
     ASSERT_EQ(program.size(), 1);
 
-    auto instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
+    auto * instr_ptr = std::get_if<ASTInstruction>(&program[0].body);
     ASSERT_NE(instr_ptr, nullptr);
     ASSERT_EQ(instr_ptr->operands.size(), 2);
 
     EXPECT_EQ(get_operand<ASTIdentifierExpr>(instr_ptr->operands[0])->text, "V0");
 
-    auto expr_ptr = std::get_if<ASTBinaryExpr>(&instr_ptr->operands[1].expression);
+    auto * expr_ptr = std::get_if<ASTBinaryExpr>(&instr_ptr->operands[1].expression);
     ASSERT_NE(expr_ptr, nullptr);
 
     // Check root operator
     EXPECT_EQ(expr_ptr->op, '+');
 
     // Left side = 10
-    auto lhs_num = std::get_if<ASTNumberExpr>(&expr_ptr->lhs->expression);
+    auto * lhs_num = std::get_if<ASTNumberExpr>(&expr_ptr->lhs->expression);
     ASSERT_NE(lhs_num, nullptr);
     EXPECT_EQ(lhs_num->value, 10);
 
     // Right side = 5*2
-    auto rhs_bin = std::get_if<ASTBinaryExpr>(&expr_ptr->rhs->expression);
+    auto * rhs_bin = std::get_if<ASTBinaryExpr>(&expr_ptr->rhs->expression);
     ASSERT_NE(rhs_bin, nullptr);
     EXPECT_EQ(rhs_bin->op, '*');
     EXPECT_EQ(std::get<ASTNumberExpr>(rhs_bin->lhs->expression).value, 5);

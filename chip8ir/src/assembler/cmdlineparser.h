@@ -44,6 +44,6 @@ namespace assembler
 	private:
 		cxxopts::ParseResult result;
 
-		const std::string get_output_prefix();
+		std::string get_output_prefix();
 	};
 }

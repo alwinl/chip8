@@ -21,7 +21,7 @@
 
 #include <regex>
 #include <unordered_map>
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 namespace {
@@ -48,9 +48,9 @@ namespace {
 		TokenMatcher{ std::regex(R"(^,)"), ASMToken::Type::COMMA, false }
 	};
 
-	void tokenise_line( const std::string& input, int line_no, ASMTokens & tokens )
+	void tokenise_line( const std::string& input, size_t line_no, ASMTokens & tokens )
 	{
-		int cursor = 0;
+		size_t cursor = 0;
 		auto end = input.cend();
 
 		while( cursor < input.size() ) {
@@ -67,7 +67,7 @@ namespace {
 				assert( match.position() == 0 );
 				assert( match.length() > 0 );
 
-				std::string lexeme = match[0];
+				const std::string lexeme = match[0];
 
 				if( ! match_entry.skip_token )
 					tokens.push_back( { match_entry.type, lexeme, line_no, cursor + 1 } );
@@ -83,7 +83,7 @@ namespace {
 			}
 		}
 	}
-}
+} // namespace
 
 ASMTokens tokenise_assembly( ASMSource source )
 {

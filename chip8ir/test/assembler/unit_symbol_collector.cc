@@ -25,7 +25,7 @@ namespace {
 
 TEST(UnitSymbolCollector, EmptyProgram)
 {
-    ASTProgram program;
+    const ASTProgram program;
 
     auto symbols = collect_symbols(program);
 

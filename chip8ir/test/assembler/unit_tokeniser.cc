@@ -24,7 +24,7 @@
 
 TEST(UnitTokeniser, EmptyInput)
 {
-	ASMSource source {
+	const ASMSource source {
 	};
 
 	ASMTokens tokens = tokenise_assembly( source );
@@ -35,7 +35,7 @@ TEST(UnitTokeniser, EmptyInput)
 
 TEST(UnitTokeniser, LabelOnly)
 {
-	ASMSource source {
+	const ASMSource source {
 		ASMLine { "start:", 1 }
 	};
 
@@ -51,7 +51,7 @@ TEST(UnitTokeniser, LabelOnly)
 
 TEST(UnitTokeniser, InstructionWithArguments)
 {
-	ASMSource source {
+	const ASMSource source {
 		ASMLine { "LD V0, 10", 1 }
 	};
 
@@ -74,7 +74,7 @@ TEST(UnitTokeniser, InstructionWithArguments)
 
 TEST(UnitTokeniser, Directive)
 {
-	ASMSource source {
+	const ASMSource source {
 		ASMLine { ".DB 0xFF, 0x01", 1 }
 	};
 
@@ -90,11 +90,11 @@ TEST(UnitTokeniser, Directive)
 
 TEST(UnitTokeniser, CommentIsTokenised)
 {
-	ASMSource source {
+	const ASMSource source {
 		ASMLine { "LD V0, 1 ; comment here", 1 }
 	};
 
-	ASMTokens tokens = tokenise_assembly( source );
+	const ASMTokens tokens = tokenise_assembly( source );
 
     bool found_comment = false;
     for (const auto& tok : tokens)
@@ -106,7 +106,7 @@ TEST(UnitTokeniser, CommentIsTokenised)
 
 TEST(UnitTokeniser, Operators)
 {
-	ASMSource source {
+	const ASMSource source {
 		ASMLine { "+-*/", 1 }
 	};
 

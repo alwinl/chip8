@@ -77,12 +77,12 @@ TEST(UnitTokeniser, RecognisesModifiers)
 
 TEST(IntTokeniser, TokenisesSimpleRule)
 {
-    std::string src = "<expr> ::= <term> | <factor> ;";
+    const std::string src = "<expr> ::= <term> | <factor> ;";
     Tokeniser tokenizer(src);
 
-    Tokens tokens = tokenizer.tokenise_all();
+    const Tokens tokens = tokenizer.tokenise_all();
 
-    Tokens expected = {
+    const Tokens expected = {
         { Token::Type::NONTERMINAL, "expr", 1, 1 },
         { Token::Type::COLON_EQ, "::=", 1, 8 },
         { Token::Type::NONTERMINAL, "term", 1, 12 },
@@ -97,11 +97,11 @@ TEST(IntTokeniser, TokenisesSimpleRule)
 
 TEST(IntTokeniser, TokenisesChiComGrammar)
 {
-    std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
+    const std::filesystem::path file_name( "../../../chicom8/src/chicom8.bnf");
     Tokeniser tokenizer(file_name);
 
     try {
-        Tokens tokens = tokenizer.tokenise_all();
+        const Tokens tokens = tokenizer.tokenise_all();
     }
     catch(...) {
         FAIL() << "Did not expect to throw an exception tokenising 'chicom8.bnf'";

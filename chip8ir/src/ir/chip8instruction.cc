@@ -79,9 +79,9 @@ static const std::array<OpData, opcode_count> base =
 	/* Opcode::LD_REGS */	OpData{ "LD [I]", 0xF065, 1, {{ { OperandSpec::Type::Reg, 8 }, {}, {} }} }
 };
 
-bool operator==( const Operand& a, const Operand& b )
+bool operator==( const Operand& lhs, const Operand& rhs )
 {
-    if( a.index() != b.index() )
+    if( lhs.index() != rhs.index() )
 		return false;
 
     return std::visit(
@@ -94,50 +94,50 @@ bool operator==( const Operand& a, const Operand& b )
 				return false;
 			else
 				return lhs == rhs;
-    	}, a, b
+		}, lhs, rhs
 	);
 }
 
-bool operator==(const Instruction& a, const Instruction& b)
+bool operator==(const Instruction& lhs, const Instruction& rhs)
 {
-    if( a.opcode_ != b.opcode_ )
+    if( lhs.opcode_ != rhs.opcode_ )
         return false;
 
-    if( a.operand_count_ != b.operand_count_ )
+    if( lhs.operand_count_ != rhs.operand_count_ )
         return false;
 
-    for( size_t i = 0; i < a.operand_count_; ++i )
-		if( !(a.operands_[i] == b.operands_[i]) )
+    for( size_t i = 0; i < lhs.operand_count_; ++i )
+		if( !(lhs.operands_[i] == rhs.operands_[i]) )
 			return false;
 
     return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const Operand& op)
+std::ostream& operator<<(std::ostream& os, const Operand& operand)
 {
-    std::visit( [&os](auto&& v)
+    std::visit( [&os](auto&& operand)
 	{
-        using T = std::decay_t<decltype(v)>;
+        using T = std::decay_t<decltype(operand)>;
 
 		auto flags = os.flags();
 		auto fill  = os.fill();
 
 		if constexpr( std::is_same_v<T, Reg> )
-			os << "V" << std::uppercase << std::hex << +v.get_index();
+			os << "V" << std::uppercase << std::hex << +operand.get_index();
 
 		else if constexpr( std::is_same_v<T, Addr> )
-			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +v.get_value();
+			os << "0x" << std::uppercase << std::hex << std::setw(3) << std::setfill('0') << +operand.get_value();
 
 		else if constexpr( std::is_same_v<T, Imm> )
-			os << "#" << std::dec << +v.get_value();
+			os << "#" << std::dec << +operand.get_value();
 
 		else if constexpr( std::is_same_v<T, Nibble> )
-			os << "0x" << std::uppercase << std::hex << +v.get_value();
+			os << "0x" << std::uppercase << std::hex << +operand.get_value();
 
 		os.fill(fill);
 		os.flags(flags);
 
-    }, op);
+    }, operand);
 
     return os;
 }
@@ -148,14 +148,14 @@ std::ostream& operator<<(std::ostream& os, const Instruction& instr)
     os << " Operands: [";
 
     bool first = true;
-    for( auto& op : instr.operands() )
+    for( const auto& operand : instr.operands() )
 	{
-        if(!first)
+		if(!first)
 			os << ", ";
 		else
 			first = false;
 
-        os << op;
+        os << operand;
     }
 
     os << "]";

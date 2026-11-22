@@ -25,7 +25,7 @@ TEST(UnitCmdLineParser, DecodeNoTarjan)
 {
     CmdLineParser parser;
 
-    std::vector<std::string> args = {
+    const std::vector<std::string> args = {
         "some_input_file"
     };
 
@@ -38,7 +38,7 @@ TEST(UnitCmdLineParser, TarjanToStdOut)
 {
     CmdLineParser parser;
 
-    std::vector<std::string> args = {
+    const std::vector<std::string> args = {
 		"--tarjan",
         "some_input_file"
     };
@@ -52,7 +52,7 @@ TEST(UnitCmdLineParser, TarjanToFile)
 {
     CmdLineParser parser;
 
-    std::vector<std::string> args = {
+    const std::vector<std::string> args = {
 		"--tarjan",
 		"-o",
 		"tarjan.txt",

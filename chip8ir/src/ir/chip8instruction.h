@@ -149,7 +149,7 @@ public:
 	Opcode opcode() const { return opcode_; }
 	std::span<const Operand> operands() const { return { operands_.data(), operand_count_ }; }
 
-	friend bool operator==(const Instruction& a, const Instruction& b);
+	friend bool operator==(const Instruction& lhs, const Instruction& rhs);
 
 	uint16_t to_binary( ) const;
 
@@ -166,7 +166,7 @@ private:
 };
 
 // bool operator==( const Operand& a, const Operand& b );
-bool operator==( const Instruction& a, const Instruction& b );
+bool operator==( const Instruction& lhs, const Instruction& rhs );
 
 // std::ostream& operator<<(std::ostream& os, const Opcode& opcode );
 std::ostream& operator<<(std::ostream& os, const Operand& op);

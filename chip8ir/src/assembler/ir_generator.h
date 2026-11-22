@@ -28,4 +28,4 @@
 ASMSymbolTable collect_symbols( const ASTProgram& program );
 IRProgram generate_ir( const ASTProgram& program, const ASMSymbolTable& symbols );
 
-IRBundle generate_ir_bundle( const ASTProgram& program );
+IRBundle generate_ir_bundle( const ASTProgram& program, std::string program_name );

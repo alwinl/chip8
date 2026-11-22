@@ -68,7 +68,7 @@ SyntaxTree Parser::parse_all()
 
 RuleNode Parser::next_rule()
 {
-    Token name = consume(Token::Type::NONTERMINAL, "", "not a valid rule name" );
+    const Token name = consume(Token::Type::NONTERMINAL, "", "not a valid rule name" );
     consume( Token::Type::COLON_EQ, "::=", "missing operator");
 
     std::unique_ptr<ProductionNode> production = parse_production();
@@ -122,10 +122,10 @@ ElementNode::Pointer Parser::parse_element()
         element = std::move( std::make_unique<GroupNode>( parse_production(), ElementNode::Cardinality::ONCE ) );
         consume( Token::Type::CLOSEBRACKET, ")", "missing symbol" );
     } else if( match( Token::Type::NONTERMINAL ) ) {
-        Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
+        const Token tok = consume( Token::Type::NONTERMINAL, "", "missing identifier" );
         element = std::move( std::make_unique<SymbolNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else if( match( Token::Type::LITERAL ) ) {
-        Token tok = consume( Token::Type::LITERAL, "", "missing a string" );
+        const Token tok = consume( Token::Type::LITERAL, "", "missing a string" );
         element = std::move( std::make_unique<LiteralNode>( tok, ElementNode::Cardinality::ONCE ) );
     } else {
         // need to pick up if the previous line had a missing semi-colon

@@ -41,7 +41,7 @@ void PrintVisitor::visit_symbol( const SymbolNode& symbol )
     os << "\n";
 }
 
-void PrintVisitor::visit_literal( const LiteralNode &literal )
+void PrintVisitor::visit_literal( const LiteralNode &/*literal*/ )
 {
     os << std::string(indent, ' ')  << "LiteralNode: ";
 
@@ -52,7 +52,7 @@ void PrintVisitor::visit_literal( const LiteralNode &literal )
     os << "\n";
 }
 
-void PrintVisitor::pre_group( const GroupNode& group )
+void PrintVisitor::pre_group( const GroupNode& /*group*/ )
 {
     os << std::string(indent, ' ')  << "GroupNode: {\n";
     indent += 4;
@@ -66,37 +66,37 @@ void PrintVisitor::post_group( const GroupNode& group )
     os << "\n";
 }
 
-void PrintVisitor::pre_elements( const SubPartNode& subpart )
+void PrintVisitor::pre_elements( const SubPartNode& /*subpart*/ )
 {
     os << std::string(indent, ' ')  << "SubpartNode: {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_elements( const SubPartNode& subpart )
+void PrintVisitor::post_elements( const SubPartNode& /*subpart*/ )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_alternates( const AlternatePartsNode& alternates )
+void PrintVisitor::pre_alternates( const AlternatePartsNode& /*alternates*/ )
 {
     os << std::string(indent, ' ')  << "AlternatePartsNode: {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_alternates( const AlternatePartsNode& alternates )
+void PrintVisitor::post_alternates( const AlternatePartsNode& /*alternates*/ )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_production( const ProductionNode& production )
+void PrintVisitor::pre_production( const ProductionNode& /*production*/ )
 {
     os << std::string(indent, ' ')  << "ProductionNode: {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_production( const ProductionNode& production )
+void PrintVisitor::post_production( const ProductionNode& /*production*/ )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
@@ -110,19 +110,19 @@ void PrintVisitor::pre_rules( const RuleNode& rule )
     os << std::string(indent, ' ')  << rule.name << "\n";
 }
 
-void PrintVisitor::post_rules( const RuleNode& rule )
+void PrintVisitor::post_rules( const RuleNode& /*rule*/ )
 {
     indent -= 4;
     os << std::string(indent, ' ')  << "}\n";
 }
 
-void PrintVisitor::pre_syntax( const SyntaxTree& grammar )
+void PrintVisitor::pre_syntax( const SyntaxTree& /*grammar*/ )
 {
     os << "SyntaxTree: {\n";
     indent += 4;
 }
 
-void PrintVisitor::post_syntax( const SyntaxTree& grammar )
+void PrintVisitor::post_syntax( const SyntaxTree& /*grammar*/ )
 {
     indent -= 4;
     os << "}\n";

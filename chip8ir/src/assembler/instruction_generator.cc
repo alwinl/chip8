@@ -32,8 +32,8 @@ namespace {
 		if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
 			return false;
 
-		const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
-		return !id.empty() && id[0] == 'V';
+		const auto& register_name = std::get<ASTIdentifierExpr>(expr.expression).text;
+		return !register_name.empty() && register_name[0] == 'V';
 	}
 
 	bool is_identifier( const ASTExpression& expr, std::string content )
@@ -41,8 +41,8 @@ namespace {
 		if( !std::holds_alternative<ASTIdentifierExpr>(expr.expression) )
 			return false;
 
-		const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
-		return !id.empty() && content == id;
+		const auto& identifier = std::get<ASTIdentifierExpr>(expr.expression).text;
+		return !identifier.empty() && content == identifier;
 	}
 
 	void require_operand_count( const ASTInstruction& instruction, std::size_t expected )
@@ -57,23 +57,23 @@ namespace {
 		if (!std::holds_alternative<ASTIdentifierExpr>(expr.expression))
 			throw std::runtime_error("Expected register");
 
-		const auto& id = std::get<ASTIdentifierExpr>(expr.expression).text;
+		const auto& register_name = std::get<ASTIdentifierExpr>(expr.expression).text;
 
-		if (id.size() != 2 || id[0] != 'V')
-			throw std::runtime_error("Invalid register: " + id);
+		if (register_name.size() != 2 || register_name[0] != 'V')
+			throw std::runtime_error("Invalid register: " + register_name);
 
-		char c = id[1];
+		const char reg_char = register_name[1];
 
 		int index = 0;
 
-		if (c >= '0' && c <= '9')
-			index = c - '0';
-		else if (c >= 'A' && c <= 'F')
-			index = 10 + (c - 'A');
-		else if (c >= 'a' && c <= 'f')
-			index = 10 + (c - 'a');
+		if (reg_char >= '0' && reg_char <= '9')
+			index = reg_char - '0';
+		else if (reg_char >= 'A' && reg_char <= 'F')
+			index = 10 + (reg_char - 'A');
+		else if (reg_char >= 'a' && reg_char <= 'f')
+			index = 10 + (reg_char - 'a');
 		else
-			throw std::runtime_error("Invalid register: " + id);
+			throw std::runtime_error("Invalid register: " + register_name);
 
 		return Reg{ static_cast<uint8_t>(index) };
 	}
@@ -109,15 +109,15 @@ namespace {
 	{
 		static const InstructionGenerator generators =
 		{
-			{ "NOP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "NOP",  []( const ASTInstruction &/*ast_inst*/, const ASMSymbolTable &/*symbols*/ ) {
 				return Instruction::make_nop();
 			} },
 
-			{ "CLS",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "CLS",  []( const ASTInstruction &/*ast_inst*/, const ASMSymbolTable &/*symbols*/ ) {
 				return Instruction::make_clear();
 			} },
 
-			{ "RET",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "RET",  []( const ASTInstruction &/*ast_inst*/, const ASMSymbolTable &/*symbols*/ ) {
 				return Instruction::make_return();
 			} },
 
@@ -126,37 +126,37 @@ namespace {
 				return Instruction::make_call( parse_addr( ast_inst.operands[0], symbols ));
 			} },
 
-			{ "OR",   []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "OR",   []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_or( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "AND",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "AND",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_and( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "XOR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "XOR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_xor( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "SUB",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SUB",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_sub( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "SHR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SHR",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_shift_right( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "SUBN", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SUBN", []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_subn( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
 
-			{ "SHL",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SHL",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 2 );
 				return Instruction::make_shift_left( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ));
 			} },
@@ -171,12 +171,12 @@ namespace {
 				return Instruction::make_drw( parse_reg( ast_inst.operands[0] ), parse_reg( ast_inst.operands[1] ), parse_nibble( ast_inst.operands[2], symbols ));
 			} },
 
-			{ "SKP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SKP",  []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 1 );
 				return Instruction::make_skip_if_key( parse_reg( ast_inst.operands[0] ) );
 			} },
 
-			{ "SKNP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
+			{ "SKNP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &/*symbols*/ ) {
 				require_operand_count( ast_inst, 1 );
 				return Instruction::make_skip_not_key( parse_reg( ast_inst.operands[0] ) );
 			} },
@@ -197,7 +197,7 @@ namespace {
 
 			{ "JP", []( const ASTInstruction &ast_inst, const ASMSymbolTable &symbols ) {
 
-				if( ast_inst.operands.size() == 0 )
+				if( ast_inst.operands.empty() )
 					throw std::runtime_error("Need at least one operand in JP statement");
 
 				if( is_identifier(ast_inst.operands[0], "V0") ) {
@@ -247,11 +247,11 @@ namespace {
 
 		return generators;
 	}
-}
+} // namespace
 
 Instruction generate_instruction( const ASTInstruction& instruction, const ASMSymbolTable& symbols )
 {
-    static auto& generators = get_instruction_generators();
+    static const auto& generators = get_instruction_generators();
 
     if( auto entry = generators.find(instruction.mnemonic); entry != generators.end() )
 	    return entry->second(instruction, symbols);

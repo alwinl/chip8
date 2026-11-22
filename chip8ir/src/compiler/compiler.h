@@ -23,14 +23,7 @@
 #include "ir/chip8formats.h"
 #include "ir/ir_bundle.h"
 
-#include "compiler/cmdlineparser.h"
-
-class Compiler
+namespace compiler
 {
-public:
-	Compiler() = default;
-
-	void configure( const ChicomCmdLineParser& cmd ) {};
-
-	IRBundle build_ir( const C8CSource& source );
-};
+	IRBundle build_ir( std::istream& is, std::string program_name );
+} // namespace compiler

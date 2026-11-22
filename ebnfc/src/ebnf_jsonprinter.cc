@@ -24,7 +24,7 @@ void print_cardinality( std::ostream& os, const ElementNode::Cardinality& card, 
 	if( card == ElementNode::Cardinality::ONCE )
 		return;
 
-	os << std::string(indent, ' ') << "\"cardinality\": \"";
+	os << std::string(indent, ' ') << R"("cardinality": ")";
 
 	switch( card ) {
 	case( ElementNode::Cardinality::ONE_OR_MORE ):  os << "+"; break;
@@ -49,7 +49,7 @@ void JSONPrintVisitor::visit_symbol( const SymbolNode& symbol )
 	os << "\n";
 }
 
-void JSONPrintVisitor::visit_literal( const LiteralNode& literal )
+void JSONPrintVisitor::visit_literal( const LiteralNode& symbol )
 {
 }
 
@@ -61,14 +61,14 @@ void JSONPrintVisitor::pre_group( const GroupNode& group )
 	print_cardinality( os, group.card, indent );
 }
 
-void JSONPrintVisitor::post_group( const GroupNode& group )
+void JSONPrintVisitor::post_group( const GroupNode& /*group*/ )
 {
 	indent -= 4;
 	os << std::string(indent, ' ')  << "}";
 	os << "\n";
 }
 
-void JSONPrintVisitor::pre_elements( const SubPartNode& subpart )
+void JSONPrintVisitor::pre_elements( const SubPartNode& /*subpart*/ )
 {
 	if( parsing_alternate_parts )
 		os << std::string(indent, ' ')  << "[\n";
@@ -78,13 +78,13 @@ void JSONPrintVisitor::pre_elements( const SubPartNode& subpart )
 	indent += 4;
 }
 
-void JSONPrintVisitor::post_elements( const SubPartNode& subpart )
+void JSONPrintVisitor::post_elements( const SubPartNode& /*subpart*/ )
 {
 	indent -= 4;
 	os << std::string(indent, ' ')  << "],\n";
 }
 
-void JSONPrintVisitor::pre_alternates( const AlternatePartsNode& alternates )
+void JSONPrintVisitor::pre_alternates( const AlternatePartsNode& /*alternates*/ )
 {
 	os << std::string(indent, ' ')  << "\"AlternatePartsNode\" : [\n";
 	indent += 4;
@@ -92,7 +92,7 @@ void JSONPrintVisitor::pre_alternates( const AlternatePartsNode& alternates )
 	parsing_alternate_parts = true;
 }
 
-void JSONPrintVisitor::post_alternates( const AlternatePartsNode& alternates )
+void JSONPrintVisitor::post_alternates( const AlternatePartsNode& /*alternates*/ )
 {
 	parsing_alternate_parts = false;
 
@@ -100,13 +100,13 @@ void JSONPrintVisitor::post_alternates( const AlternatePartsNode& alternates )
 	os << std::string(indent, ' ')  << "]\n";
 }
 
-void JSONPrintVisitor::pre_production( const ProductionNode& production )
+void JSONPrintVisitor::pre_production( const ProductionNode& /*production*/ )
 {
 	os << std::string(indent, ' ')  << "\"ProductionNode\" : {\n";
 	indent += 4;
 }
 
-void JSONPrintVisitor::post_production( const ProductionNode& production )
+void JSONPrintVisitor::post_production( const ProductionNode& /*production*/ )
 {
 	indent -= 4;
 	os << std::string(indent, ' ')  << "}\n";
@@ -114,19 +114,20 @@ void JSONPrintVisitor::post_production( const ProductionNode& production )
 
 void JSONPrintVisitor::pre_rules( const RuleNode& rule )
 {
-	os << std::string(indent, ' ')  << "\"RuleNode\" : {\n";
+	os << std::string(indent, ' ')  << R"("RuleNode" : {
+)";
 	indent += 4;
 
-	os << std::string(indent, ' ')  << "\"name\" : \"" << rule.name << "\",\n";
+	os << std::string(indent, ' ')  << R"("name" : ")" << rule.name << "\",\n";
 }
 
-void JSONPrintVisitor::post_rules( const RuleNode& rule )
+void JSONPrintVisitor::post_rules( const RuleNode& /*rule*/ )
 {
 	indent -= 4;
 	os << std::string(indent, ' ')  << "},\n";
 }
 
-void JSONPrintVisitor::pre_syntax( const SyntaxTree& grammar )
+void JSONPrintVisitor::pre_syntax( const SyntaxTree& /*grammar*/ )
 {
 	os << "{\n";
 	indent += 4;
@@ -134,7 +135,7 @@ void JSONPrintVisitor::pre_syntax( const SyntaxTree& grammar )
 	indent += 4;
 }
 
-void JSONPrintVisitor::post_syntax( const SyntaxTree& grammar )
+void JSONPrintVisitor::post_syntax( const SyntaxTree& /*grammar*/ )
 {
 	indent -= 4;
 	os << "}\n";

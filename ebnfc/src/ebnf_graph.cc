@@ -59,7 +59,7 @@ std::ostream& operator<<( std::ostream& os, const Graph& graph )
 
     os << header;
 
-    for( auto& [node, node_data] : graph ) {
+    for( const auto& [node, node_data] : graph ) {
 
 		if( first_node )
 			first_node = false;
@@ -98,25 +98,25 @@ std::ostream& operator<<( std::ostream& os, const Graph& graph )
 
 struct SemanticProbeVisitor : ASTVisitor
 {
+    void visit_symbol(const SymbolNode& symbol ) override;
+    void pre_group(const GroupNode& group) override;
+    void pre_alternates(const AlternatePartsNode& alternates) override;
+
     std::optional<std::string> found;
     bool invalid = false;
-
-    void visit_symbol(const SymbolNode&) override;
-    void pre_group(const GroupNode&) override;
-    void pre_alternates(const AlternatePartsNode&) override;
 };
 
-void SemanticProbeVisitor::visit_symbol(const SymbolNode& sym)
+void SemanticProbeVisitor::visit_symbol(const SymbolNode& symbol)
 {
-    if( sym.token.type != Token::Type::NONTERMINAL )
+    if( symbol.token.type != Token::Type::NONTERMINAL )
         return;
 
     if( !found ) {
-        found = sym.token.lexeme;
+        found = symbol.token.lexeme;
 		return;
 	}
 
-	if( *found != sym.token.lexeme )
+	if( *found != symbol.token.lexeme )
 		invalid = true;
 }
 
@@ -188,7 +188,7 @@ void GraphBuilderVisitor::pre_rules( const RuleNode& rule )
 	graph.try_emplace( rule.name );
 }
 
-void GraphBuilderVisitor::post_rules( const RuleNode& rule )
+void GraphBuilderVisitor::post_rules( const RuleNode& /*rule*/ )
 {
 	rule_stack.pop();
 }
