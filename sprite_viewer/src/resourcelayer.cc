@@ -82,8 +82,8 @@ void ResourceLayer::draw_pixel( uint8_t x_pos, uint8_t y_pos, bool white )
 {
 	// SDL_Rect pixel_loc;
 	const SDL_FRect pixel_loc {
-		.x = x_pos * 10.0F,
-		.y = y_pos * 10.0F,
+		.x = static_cast<float>(x_pos) * 10.0F,
+		.y = static_cast<float>(y_pos) * 10.0F,
 		.w = 10, // world width is 64, physical is 640 pixels
 		.h = 10 // world height is 32, physical is 320 pixels
 	};
